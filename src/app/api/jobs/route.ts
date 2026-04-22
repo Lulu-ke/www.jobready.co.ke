@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { Prisma } from '@prisma/client';
 
 function deriveIsUrgent(closingDate: Date | null): boolean {
   if (!closingDate) return false;
@@ -50,10 +49,10 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: Prisma.QueryMode.insensitive } },
-        { description: { contains: search, mode: Prisma.QueryMode.insensitive } },
-        { employer: { companyName: { contains: search, mode: Prisma.QueryMode.insensitive } } },
-        { category: { name: { contains: search, mode: Prisma.QueryMode.insensitive } } },
+        { title: { contains: search } },
+        { description: { contains: search } },
+        { employer: { companyName: { contains: search } } },
+        { category: { name: { contains: search } } },
       ];
     }
     if (location) {
@@ -71,7 +70,7 @@ export async function GET(request: NextRequest) {
       where.category = {
         OR: [
           { slug: category },
-          { name: { contains: category, mode: Prisma.QueryMode.insensitive } },
+          { name: { contains: category } },
         ],
       };
     }
@@ -89,13 +88,13 @@ export async function GET(request: NextRequest) {
       where.salaryMax = { lte: salaryMax };
     }
     if (experienceLevel) {
-      where.experienceLevel = experienceLevel as Prisma.EnumExperienceLevelFilter['equals'];
+      where.experienceLevel = experienceLevel as any;
     }
     if (county) {
       where.county = { contains: county };
     }
     if (orgType) {
-      where.employer = { ...where.employer, orgType: orgType as Prisma.EnumOrgTypeFilter['equals'] };
+      where.employer = { ...where.employer, orgType: orgType as any };
     }
 
     const orderBy: Record<string, string> = {};

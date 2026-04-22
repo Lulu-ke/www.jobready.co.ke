@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 // ============================================
@@ -78,7 +79,7 @@ model Employer {
   email       String   @unique
   phone       String?
   logoUrl     String?
-  description String?
+  description String? @db.Text
   orgType     OrgType  @default(PRIVATE)
   createdAt   DateTime @default(now())
 
@@ -95,7 +96,7 @@ model Category {
   icon        String
   color       String
   jobCount    Int      @default(0)
-  description String?
+  description String? @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -106,9 +107,9 @@ model Job {
   id          String   @id @default(cuid())
   title       String
   slug        String   @unique
-  description String
-  requirements String
-  howToApply  String
+  description String   @db.Text
+  requirements String   @db.Text
+  howToApply  String   @db.Text
 
   location    String
   county      String
@@ -149,14 +150,14 @@ model Opportunity {
   title       String
   slug        String   @unique
   type        OpportunityType
-  description String?
+  description String? @db.Text
 
   providerId  String?
   provider    Employer? @relation(fields: [providerId], references: [id])
 
   amount      Float?
   deadline    DateTime?
-  link        String?
+  link        String? @db.Text
 
   isActive    Boolean  @default(true)
   views       Int      @default(0)
@@ -168,8 +169,8 @@ model Article {
   id          String   @id @default(cuid())
   title       String
   slug        String   @unique
-  excerpt     String
-  content     String
+  excerpt     String   @db.Text
+  content     String   @db.Text
   category    String   @default("Career Advice")
   author      String?
   coverImage  String?
@@ -235,8 +236,8 @@ model JobApplication {
   applicantName  String
   applicantEmail String
   applicantPhone String?
-  cvUrl          String?
-  coverLetter    String?
+  cvUrl          String? @db.Text
+  coverLetter    String? @db.Text
   status         ApplicationStatus @default(pending)
   appliedAt      DateTime @default(now())
 
@@ -274,7 +275,7 @@ model CareerService {
   id            String   @id @default(cuid())
   name          String
   slug          String   @unique
-  description   String
+  description   String   @db.Text
   price         Float
   deliveryDays  Int      @default(3)
   isActive      Boolean  @default(true)

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { Prisma } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,13 +12,13 @@ export async function GET(request: NextRequest) {
     };
 
     if (type) {
-      where.type = type as Prisma.EnumOpportunityTypeFilter['equals'];
+      where.type = type as any;
     }
 
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: Prisma.QueryMode.insensitive } },
-        { description: { contains: search, mode: Prisma.QueryMode.insensitive } },
+        { title: { contains: search } },
+        { description: { contains: search } },
       ];
     }
 
