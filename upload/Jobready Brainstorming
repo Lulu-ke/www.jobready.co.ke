@@ -1,0 +1,562 @@
+Here is the **final, updated documentation** covering the schema, pages, and SEO capacity we’ve agreed on.
+
+---
+
+# 📘 Kenyan Job Board – Final Technical Documentation
+
+## Version 1.0 | Production Ready
+
+---
+
+## 🎯 Table of Contents
+
+1. [Database Schema](#-database-schema)
+2. [URL Structure & Pages](#-url-structure--pages)
+3. [SEO Capacity Analysis](#-seo-capacity-analysis)
+4. [High-Traffic Page Queries](#-high-traffic-page-queries)
+5. [Sitemap & Indexing Strategy](#-sitemap--indexing-strategy)
+6. [Revenue & Traffic Estimates](#-revenue--traffic-estimates)
+
+---
+
+## 🗄️ Database Schema
+
+### Table Count: **9 tables** + **1 view**
+
+| # | Table | Purpose |
+|---|-------|---------|
+| 1 | `employers` | Companies posting jobs |
+| 2 | `categories` | Job categories (Accounting, IT, Healthcare, etc.) |
+| 3 | `locations` | Cities & counties (Nairobi, Mombasa, etc.) |
+| 4 | `jobs` | Core job listings |
+| 5 | `sponsored_ads` | Paid promotions (time-based) |
+| 6 | `opportunities_hub` | Bursaries, scholarships, internships, university admissions, sponsorships, certifications |
+| 7 | `blogs` | Content marketing & SEO articles |
+| 8 | `job_applications` | Track applicants per job |
+| 9 | `sitemap_urls` | **VIEW** – auto-generates sitemap.xml |
+
+---
+
+### 🔹 Table: `employers`
+
+```sql
+CREATE TABLE employers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    company_name VARCHAR(150) NOT NULL,
+    slug VARCHAR(150) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(20),
+    logo_url VARCHAR(255),
+    description TEXT,
+    website VARCHAR(255),
+    is_trusted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    INDEX idx_slug (slug),
+    INDEX idx_trusted (is_trusted)
+);
+```
+
+---
+
+### 🔹 Table: `categories`
+
+```sql
+CREATE TABLE categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    slug VARCHAR(100) NOT NULL UNIQUE,
+    meta_title VARCHAR(150),
+    meta_description VARCHAR(320),
+    icon VARCHAR(50),
+    display_order INT DEFAULT 0,
+    is_popular BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    INDEX idx_slug (slug),
+    INDEX idx_popular (is_popular),
+    INDEX idx_display_order (display_order)
+);
+```
+
+---
+
+### 🔹 Table: `locations`
+
+```sql
+CREATE TABLE locations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    city VARCHAR(100) NOT NULL,
+    slug VARCHAR(100) NOT NULL UNIQUE,
+    county VARCHAR(100),
+    meta_title VARCHAR(150),
+    meta_description VARCHAR(320),
+    job_count INT DEFAULT 0,
+    is_popular BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    INDEX idx_slug (slug),
+    INDEX idx_popular (is_popular),
+    INDEX idx_county (county)
+);
+```
+
+---
+
+### 🔹 Table: `jobs` (Core)
+
+```sql
+CREATE TABLE jobs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    slug VARCHAR(220) NOT NULL UNIQUE,
+    description TEXT NOT NULL,
+    requirements TEXT,
+    salary_range VARCHAR(100),
+    employer_id INT NOT NULL,
+    category_id INT,
+    location_id INT,
+    
+    experience_level ENUM('entry', 'internship', 'casual', 'mid', 'senior') NOT NULL,
+    government_level ENUM('county', 'national', 'none') DEFAULT 'none',
+    county_name VARCHAR(100),
+    
+    meta_title VARCHAR(150),
+    meta_description VARCHAR(320),
+    
+    application_deadline DATE NOT NULL,
+    views INT DEFAULT 0,
+    applications_count INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (employer_id) REFERENCES employers(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id),
+    FOREIGN KEY (location_id) REFERENCES locations(id),
+    
+    INDEX idx_slug (slug),
+    INDEX idx_experience_level (experience_level),
+    INDEX idx_government_level (government_level, county_name),
+    INDEX idx_deadline (application_deadline),
+    INDEX idx_active (is_active),
+    INDEX idx_created (created_at DESC)
+);
+```
+
+---
+
+### 🔹 Table: `sponsored_ads`
+
+```sql
+CREATE TABLE sponsored_ads (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    job_id INT NOT NULL UNIQUE,
+    employer_id INT NOT NULL,
+    package ENUM('basic', 'premium', 'featured') DEFAULT 'basic',
+    amount_paid DECIMAL(10,2),
+    payment_status ENUM('pending', 'paid', 'expired') DEFAULT 'pending',
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+    FOREIGN KEY (employer_id) REFERENCES employers(id),
+    
+    INDEX idx_active_dates (start_date, end_date, payment_status)
+);
+```
+
+---
+
+### 🔹 Table: `opportunities_hub`
+
+```sql
+CREATE TABLE opportunities_hub (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    slug VARCHAR(220) NOT NULL UNIQUE,
+    opportunity_type ENUM('internship', 'sponsorship', 'bursary', 'university_admission', 'scholarship', 'certification') NOT NULL,
+    description TEXT,
+    eligibility TEXT,
+    provider VARCHAR(150),
+    amount DECIMAL(12,2),
+    application_link VARCHAR(255),
+    
+    meta_title VARCHAR(150),
+    meta_description VARCHAR(320),
+    
+    deadline DATE,
+    views INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_slug (slug),
+    INDEX idx_type (opportunity_type),
+    INDEX idx_deadline (deadline),
+    INDEX idx_active (is_active)
+);
+```
+
+---
+
+### 🔹 Table: `blogs`
+
+```sql
+CREATE TABLE blogs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    slug VARCHAR(220) NOT NULL UNIQUE,
+    excerpt VARCHAR(320),
+    content LONGTEXT,
+    author VARCHAR(100),
+    meta_title VARCHAR(150),
+    meta_description VARCHAR(320),
+    featured_image VARCHAR(255),
+    views INT DEFAULT 0,
+    published_at DATETIME,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_slug (slug),
+    INDEX idx_published (published_at DESC)
+);
+```
+
+---
+
+### 🔹 Table: `job_applications`
+
+```sql
+CREATE TABLE job_applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    job_id INT NOT NULL,
+    applicant_name VARCHAR(150) NOT NULL,
+    applicant_email VARCHAR(100) NOT NULL,
+    applicant_phone VARCHAR(20),
+    cv_url VARCHAR(255),
+    cover_letter TEXT,
+    status ENUM('pending', 'reviewed', 'shortlisted', 'rejected') DEFAULT 'pending',
+    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+    
+    INDEX idx_job (job_id),
+    INDEX idx_email (applicant_email),
+    INDEX idx_status (status),
+    UNIQUE KEY unique_application (job_id, applicant_email)
+);
+```
+
+---
+
+### 🔹 View: `sitemap_urls`
+
+```sql
+CREATE VIEW sitemap_urls AS
+    SELECT CONCAT('/job/', slug) as url, updated_at as lastmod, 'weekly' as changefreq, '0.8' as priority
+    FROM jobs WHERE is_active = TRUE AND application_deadline >= CURDATE()
+    
+    UNION ALL
+    
+    SELECT CONCAT('/jobs/category/', slug), created_at, 'weekly', '0.7'
+    FROM categories
+    
+    UNION ALL
+    
+    SELECT CONCAT('/jobs/location/', slug), created_at, 'weekly', '0.7'
+    FROM locations
+    
+    UNION ALL
+    
+    SELECT '/jobs/level/entry', NOW(), 'daily', '0.9'
+    UNION ALL
+    SELECT '/jobs/level/internship', NOW(), 'daily', '0.9'
+    UNION ALL
+    SELECT '/jobs/level/casual', NOW(), 'daily', '0.9'
+    UNION ALL
+    SELECT '/jobs/level/mid', NOW(), 'weekly', '0.7'
+    UNION ALL
+    SELECT '/jobs/level/senior', NOW(), 'weekly', '0.6'
+    
+    UNION ALL
+    
+    SELECT '/jobs/govt/county', NOW(), 'daily', '0.9'
+    UNION ALL
+    SELECT '/jobs/govt/national', NOW(), 'daily', '0.9'
+    
+    UNION ALL
+    
+    SELECT CONCAT('/opportunities/', REPLACE(opportunity_type, '_', '-')), updated_at, 'weekly', '0.8'
+    FROM (SELECT DISTINCT opportunity_type FROM opportunities_hub) AS types
+    
+    UNION ALL
+    
+    SELECT CONCAT('/opportunities/', slug), updated_at, 'weekly', '0.6'
+    FROM opportunities_hub WHERE is_active = TRUE AND deadline >= CURDATE()
+    
+    UNION ALL
+    
+    SELECT CONCAT('/blog/', slug), published_at, 'monthly', '0.5'
+    FROM blogs WHERE published_at IS NOT NULL;
+```
+
+---
+
+## 🌐 URL Structure & Pages
+
+### 📌 Static Pages (Always Present)
+
+| URL | Page |
+|-----|------|
+| `/` | Homepage |
+| `/about` | About Us |
+| `/contact` | Contact |
+| `/privacy` | Privacy Policy |
+| `/terms` | Terms & Conditions |
+| `/post-job` | Employer job posting form |
+| `/categories` | All categories listing |
+| `/locations` | All locations listing |
+| `/opportunities` | Opportunities Hub home |
+| `/blog` | Blog listing |
+
+---
+
+### 📌 Dynamic Pages (Content-Dependent)
+
+| URL Pattern | Page Type | SEO Priority |
+|-------------|-----------|--------------|
+| `/job/[slug]` | Single job detail | Medium |
+| `/jobs/category/[slug]` | Category jobs (e.g., accounting) | High |
+| `/jobs/location/[slug]` | Location jobs (e.g., nairobi) | High |
+| `/jobs/level/entry` | Entry level jobs | 🔥 Very High |
+| `/jobs/level/internship` | Internships | 🔥 Very High |
+| `/jobs/level/casual` | Casual jobs | 🔥 Very High |
+| `/jobs/level/mid` | Mid level jobs | Medium |
+| `/jobs/level/senior` | Senior level jobs | Low |
+| `/jobs/govt/county` | All county govt jobs | 🔥 Very High |
+| `/jobs/govt/national` | All national govt jobs | 🔥 Very High |
+| `/county/[county_name]` | County-specific govt jobs (47 pages) | 🔥 Very High |
+| `/opportunities/[type]` | Opportunity type (bursaries, scholarships, etc.) | 🔥 Very High |
+| `/opportunities/[slug]` | Single opportunity detail | Medium |
+| `/blog/[slug]` | Single blog post | Low-Medium |
+| `/search?q=` | Search results | Medium |
+
+---
+
+### 📊 Total Page Count (With Content)
+
+| Scenario | Page Count |
+|----------|------------|
+| Zero jobs | ~53 pages |
+| With 5,000 jobs + opportunities | **~5,500 pages** |
+
+---
+
+## 📈 SEO Capacity Analysis
+
+### 🎯 High-Value Keyword Targets (Kenya Market)
+
+| Keyword | Monthly Searches (Est.) | Your Potential |
+|---------|------------------------|----------------|
+| "entry level jobs Kenya" | 3,000+ | 🔥 Very High |
+| "internships in Kenya" | 5,000+ | 🔥 Very High |
+| "casual jobs Nairobi" | 2,000+ | 🔥 Very High |
+| "county government jobs" | 4,000+ | 🔥 High |
+| "Kiambu county jobs" | 1,000+ | 🔥 Very High |
+| "bursaries in Kenya 2026" | 8,000+ (seasonal) | 🔥 Very High |
+| "scholarships for Kenyans" | 6,000+ | 🔥 High |
+| "PSC jobs Kenya" | 2,500+ | 🔥 High |
+| "jobs in Mombasa" | 2,000+ | High |
+| "accounting jobs Kenya" | 1,500+ | High |
+
+---
+
+### 📊 Estimated Monthly Organic Traffic (5,000 jobs)
+
+| Page Type | # Pages | Avg Visits/Page | Total Monthly |
+|-----------|---------|----------------|---------------|
+| Job detail pages | 5,000 | 2-5 | 10,000 - 25,000 |
+| Entry/Intern/Casual pages | 3 | 500-1,500 | 1,500 - 4,500 |
+| County pages | 47 | 50-200 | 2,350 - 9,400 |
+| Bursaries/Scholarships | 2 | 1,000-3,000 (peak) | 2,000 - 6,000 |
+| Opportunity detail | 265 | 5-15 | 1,325 - 3,975 |
+| Blog posts | 137 | 20-100 | 2,740 - 13,700 |
+| Category/Location | 20 | 50-150 | 1,000 - 3,000 |
+| **TOTAL** | | | **21,000 - 65,000+** |
+
+---
+
+### 🚀 SEO Leverage Points (Highest ROI)
+
+| # | Page Type | Why Powerful |
+|---|-----------|--------------|
+| 1 | `/jobs/level/entry` | High volume, lower competition |
+| 2 | `/jobs/govt/county` | 47 individual county pages = hyper-local SEO |
+| 3 | `/opportunities/bursaries` | Seasonal spike (Jan-March) dominates search |
+| 4 | `/jobs/location/[city]` | Geo-targeted, local SEO gold |
+| 5 | `/jobs/level/casual` | Very low competition, high intent |
+
+---
+
+## 🔍 High-Traffic Page Queries
+
+### 1. Entry Level Jobs – `/jobs/level/entry`
+
+```sql
+SELECT j.*, e.company_name, e.logo_url, l.city, c.name as category_name,
+       CASE WHEN s.id IS NOT NULL AND s.start_date <= CURDATE() AND s.end_date >= CURDATE() 
+            THEN 1 ELSE 0 END as is_sponsored
+FROM jobs j
+JOIN employers e ON j.employer_id = e.id
+LEFT JOIN locations l ON j.location_id = l.id
+LEFT JOIN categories c ON j.category_id = c.id
+LEFT JOIN sponsored_ads s ON j.id = s.job_id AND s.start_date <= CURDATE() AND s.end_date >= CURDATE() AND s.payment_status = 'paid'
+WHERE j.experience_level = 'entry'
+  AND j.is_active = TRUE
+  AND j.application_deadline >= CURDATE()
+ORDER BY is_sponsored DESC, j.created_at DESC
+LIMIT 25 OFFSET 0;
+```
+
+---
+
+### 2. County Government Jobs – `/county/kiambu`
+
+```sql
+SELECT j.*, e.company_name, c.name as category_name
+FROM jobs j
+JOIN employers e ON j.employer_id = e.id
+LEFT JOIN categories c ON j.category_id = c.id
+WHERE j.government_level = 'county'
+  AND j.county_name = 'Kiambu'
+  AND j.is_active = TRUE
+  AND j.application_deadline >= CURDATE()
+ORDER BY j.created_at DESC;
+```
+
+---
+
+### 3. Bursaries – `/opportunities/bursaries`
+
+```sql
+SELECT * FROM opportunities_hub
+WHERE opportunity_type = 'bursary'
+  AND is_active = TRUE
+  AND deadline >= CURDATE()
+ORDER BY 
+  CASE WHEN deadline <= DATE_ADD(CURDATE(), INTERVAL 14 DAY) THEN 0 ELSE 1 END,
+  created_at DESC;
+```
+
+---
+
+### 4. Casual Jobs – `/jobs/level/casual`
+
+```sql
+-- Same as entry level, change experience_level = 'casual'
+```
+
+---
+
+### 5. National Government Jobs – `/jobs/govt/national`
+
+```sql
+SELECT j.*, e.company_name, l.city
+FROM jobs j
+JOIN employers e ON j.employer_id = e.id
+LEFT JOIN locations l ON j.location_id = l.id
+WHERE j.government_level = 'national'
+  AND j.is_active = TRUE
+  AND j.application_deadline >= CURDATE()
+ORDER BY j.created_at DESC;
+```
+
+---
+
+## 🗺️ Sitemap & Indexing Strategy
+
+### Auto-Generated Sitemap
+
+```xml
+<!-- Example entries from sitemap_urls view -->
+<url>
+    <loc>https://yourdomain.com/jobs/level/entry</loc>
+    <lastmod>2026-04-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+</url>
+<url>
+    <loc>https://yourdomain.com/jobs/govt/county</loc>
+    <lastmod>2026-04-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+</url>
+<url>
+    <loc>https://yourdomain.com/opportunities/bursaries</loc>
+    <lastmod>2026-04-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+</url>
+```
+
+### Indexing Priority
+
+| Priority | Pages |
+|----------|-------|
+| 0.9 (Highest) | `/jobs/level/entry`, `/jobs/level/internship`, `/jobs/level/casual`, `/jobs/govt/county`, `/jobs/govt/national` |
+| 0.8 | Job detail pages, opportunity type pages |
+| 0.7 | Category, location pages |
+| 0.6 | Individual opportunity pages |
+| 0.5 | Blog posts |
+
+---
+
+## 💰 Revenue & Traffic Estimates
+
+### Monthly Traffic Scenarios
+
+| Scenario | Monthly Visitors | Monthly Applications | Revenue Potential |
+|----------|-----------------|---------------------|-------------------|
+| Low (first 3 months) | 5,000 - 10,000 | 500 - 1,500 | KES 50K - 150K |
+| Medium (6-12 months) | 21,000 - 40,000 | 2,000 - 8,000 | KES 200K - 500K |
+| High (12+ months) | 40,000 - 65,000+ | 5,000 - 10,000+ | KES 500K - 1.5M |
+
+### Revenue Streams
+
+| Source | Estimated Monthly (High Traffic) |
+|--------|----------------------------------|
+| Google AdSense | KES 200K - 500K |
+| Sponsored job posts (KES 5K-15K each) | KES 100K - 300K |
+| Featured employer packages | KES 50K - 200K |
+| **TOTAL** | **KES 350K - 1M+** |
+
+---
+
+## ✅ Summary Checklist
+
+| Item | Status |
+|------|--------|
+| Database schema (9 tables + 1 view) | ✅ Documented |
+| URL structure (50+ page types) | ✅ Documented |
+| High-traffic page queries | ✅ Documented |
+| SEO capacity (21K-65K monthly visits) | ✅ Estimated |
+| Sitemap strategy | ✅ Documented |
+| Revenue projections | ✅ Estimated |
+
+---
+
+## 📌 Next Steps
+
+1. **Launch with 500-1,000 seed jobs** (prioritize entry-level, casual, county govt)
+2. **Create 47 county pages** with unique meta descriptions
+3. **Publish 10-20 bursary/scholarship listings** before January peak season
+4. **Generate sitemap.xml** from `sitemap_urls` view
+5. **Submit to Google Search Console**
+
+---
+
+**Document Version:** 1.0  
+**Last Updated:** April 22, 2026  
+**Status:** Production Ready
