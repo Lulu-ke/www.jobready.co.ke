@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { X, MapPin, DollarSign, Clock, Building2, Wifi, ExternalLink, Bookmark, Share2, ChevronRight } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
@@ -72,35 +71,41 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto custom-scrollbar p-0">
-        <SheetHeader className="sticky top-0 bg-white z-10 px-6 py-4 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="text-lg font-semibold text-gray-900 truncate pr-4">
+      {/* [&>button]:hidden hides the default tiny Radix close button */}
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto custom-scrollbar p-0 [&>button]:hidden">
+        {/* Sticky header with prominent close button */}
+        <SheetHeader className="sticky top-0 bg-white z-10 px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <SheetTitle className="text-base font-semibold text-gray-900 truncate flex-1 min-w-0">
               {job.title}
             </SheetTitle>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5 shrink-0">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
-                className="w-9 h-9"
-                onClick={() => setSaved(!saved)}
+                className="w-10 h-10 rounded-full border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+                onClick={onClose}
+                aria-label="Close"
               >
-                <Bookmark className={`w-4 h-4 ${saved ? 'fill-teal-500 text-teal-500' : 'text-gray-400'}`} />
-              </Button>
-              <Button variant="ghost" size="icon" className="w-9 h-9" onClick={shareWhatsApp}>
-                <Share2 className="w-4 h-4 text-gray-400" />
+                <X className="w-5 h-5" />
               </Button>
             </div>
           </div>
+          <div className="flex items-center gap-2 mt-1">
+            <div className={`w-5 h-5 rounded-md bg-gradient-to-br ${logoColor} flex items-center justify-center text-white font-bold text-[8px]`}>
+              {job.logo || job.company.substring(0, 2).toUpperCase()}
+            </div>
+            <span className="text-sm text-gray-500 truncate">{job.company} &middot; {job.location}</span>
+          </div>
         </SheetHeader>
 
-        <div className="px-6 py-6 space-y-6">
+        <div className="px-5 py-5 space-y-6">
           {/* Company Info */}
           <div className="flex items-center gap-4">
             <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${logoColor} flex items-center justify-center text-white font-bold text-lg shrink-0`}>
               {job.logo || job.company.substring(0, 2).toUpperCase()}
             </div>
-            <div>
+            <div className="min-w-0">
               <h3 className="font-semibold text-gray-900">{job.company}</h3>
               <p className="text-sm text-gray-500">{job.employer?.industry || job.category}</p>
               {job.employer?.isVerified && (
@@ -116,16 +121,16 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50">
               <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-gray-400">Location</p>
-                <p className="text-sm font-medium text-gray-700">{job.location}</p>
+                <p className="text-sm font-medium text-gray-700 truncate">{job.location}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50">
               <DollarSign className="w-4 h-4 text-gray-400 shrink-0" />
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-gray-400">Salary</p>
-                <p className="text-sm font-medium text-gray-700">{job.salaryFormatted}</p>
+                <p className="text-sm font-medium text-gray-700 truncate">{job.salaryFormatted}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50">
@@ -203,9 +208,25 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
               Apply Now
               <ExternalLink className="w-4 h-4 ml-2" />
             </Button>
-            <Button variant="outline" className="flex-1 py-3 text-base" onClick={shareWhatsApp}>
+            <Button
+              variant="outline"
+              className="flex-1 py-3 text-base"
+              onClick={shareWhatsApp}
+            >
               <Share2 className="w-4 h-4 mr-2 text-green-600" />
               Share via WhatsApp
+            </Button>
+          </div>
+
+          {/* Bottom actions: Save */}
+          <div className="flex gap-2 pt-1 pb-4 border-t border-gray-100">
+            <Button
+              variant="ghost"
+              className="flex-1 text-gray-500 hover:text-teal-600"
+              onClick={() => setSaved(!saved)}
+            >
+              <Bookmark className={`w-4 h-4 mr-2 ${saved ? 'fill-teal-500 text-teal-500' : ''}`} />
+              {saved ? 'Saved' : 'Save Job'}
             </Button>
           </div>
 

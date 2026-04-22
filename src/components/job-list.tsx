@@ -164,8 +164,8 @@ export default function JobList({ initialSearch }: JobListProps) {
           </div>
         </div>
 
-        <div className="flex gap-8">
-          {/* Filters Sidebar */}
+        <div className="flex flex-col lg:flex-row lg:gap-8 gap-4">
+          {/* Filters Sidebar — desktop only, mobile handled inside JobFilters */}
           <JobFilters
             filters={filters}
             onFilterChange={handleFilterChange}
@@ -174,7 +174,7 @@ export default function JobList({ initialSearch }: JobListProps) {
           />
 
           {/* Job Cards Grid */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 w-full">
             {error && (
               <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 text-red-700 mb-6">
                 <AlertCircle className="w-5 h-5 shrink-0" />
