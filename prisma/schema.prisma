@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Job {
+  id          String   @id @default(cuid())
+  title       String
+  company     String
+  logo        String?
+  location    String
+  county      String
+  type        String   @default("Full-Time")
+  category    String
+  salaryMin   Int?
+  salaryMax   Int?
+  currency    String   @default("KSh")
+  description String
+  requirements String
+  howToApply  String
+  isRemote    Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
+  isUrgent    Boolean  @default(false)
+  closingDate DateTime?
+  sourceUrl   String?
+  postedAt    DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employer Employer? @relation(fields: [employerId], references: [id])
+  employerId String?
+}
+
+model Employer {
+  id        String   @id @default(cuid())
+  name      String
+  logo      String?
+  industry  String
+  size      String?
+  website   String?
+  description String?
+  isVerified Boolean @default(false)
+  jobs      Job[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  icon      String
+  color     String
+  jobCount  Int      @default(0)
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Article {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  excerpt   String
+  content   String
+  category  String   @default("Career Advice")
+  author    String?
+  coverImage String?
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Scholarship {
+  id          String   @id @default(cuid())
+  title       String
+  provider    String
+  description String
+  eligibility String
+  deadline    DateTime?
+  amount      String?
+  level       String   @default("Undergraduate")
+  country     String   @default("Kenya")
+  isFeatured  Boolean  @default(false)
+  sourceUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  preferences String  @default("[]")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
