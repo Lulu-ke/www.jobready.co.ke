@@ -18,7 +18,7 @@ export default function Header() {
   const navLinks = [
     { label: 'Find Jobs', href: '#jobs' },
     { label: 'Categories', href: '#categories' },
-    { label: 'Scholarships', href: '#scholarships' },
+    { label: 'Opportunities', href: '#opportunities' },
     { label: 'Career Advice', href: '#articles' },
   ];
 

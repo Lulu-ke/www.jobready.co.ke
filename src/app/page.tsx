@@ -6,7 +6,7 @@ import Hero from '@/components/hero';
 import JobList from '@/components/job-list';
 import CategoriesGrid from '@/components/categories-grid';
 import EmployerMarquee from '@/components/employer-marquee';
-import ScholarshipsSection from '@/components/scholarships-section';
+import OpportunitiesSection from '@/components/opportunities-section';
 import ArticlesSection from '@/components/articles-section';
 import NewsletterSection from '@/components/newsletter-section';
 import Footer from '@/components/footer';
@@ -31,22 +31,24 @@ interface Category {
 
 interface Employer {
   id: string;
-  name: string;
-  logo: string;
-  industry: string;
-  size: string;
+  companyName: string;
+  logoUrl: string;
+  orgType: string;
+  slug: string;
 }
 
-interface Scholarship {
+interface Opportunity {
   id: string;
   title: string;
-  provider: string;
+  slug: string;
+  type: string;
   description: string;
-  eligibility: string;
-  deadline: string | null;
   amount: string | null;
-  level: string;
-  isFeatured: boolean;
+  deadline: string | null;
+  link: string | null;
+  isActive: boolean;
+  views: number;
+  provider?: { id: string; companyName: string; logoUrl: string; orgType: string; slug: string } | null;
 }
 
 interface Article {
@@ -63,7 +65,7 @@ export default function HomePage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [employers, setEmployers] = useState<Employer[]>([]);
-  const [scholarships, setScholarships] = useState<Scholarship[]>([]);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [searchFromHero, setSearchFromHero] = useState('');
 
@@ -80,26 +82,26 @@ export default function HomePage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [statsRes, catRes, empRes, schRes, artRes] = await Promise.all([
+        const [statsRes, catRes, empRes, oppRes, artRes] = await Promise.all([
           fetch('/api/stats'),
           fetch('/api/categories'),
           fetch('/api/employers'),
-          fetch('/api/scholarships'),
+          fetch('/api/opportunities'),
           fetch('/api/articles'),
         ]);
 
-        const [statsData, catData, empData, schData, artData] = await Promise.all([
+        const [statsData, catData, empData, oppData, artData] = await Promise.all([
           statsRes.json(),
           catRes.json(),
           empRes.json(),
-          schRes.json(),
+          oppRes.json(),
           artRes.json(),
         ]);
 
         setStats(statsData);
         setCategories(catData.categories || []);
         setEmployers(empData.employers || []);
-        setScholarships(schData.scholarships || []);
+        setOpportunities(oppData.opportunities || []);
         setArticles(artData.articles || []);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -128,7 +130,7 @@ export default function HomePage() {
         <EmployerMarquee employers={employers} />
         <CategoriesGrid categories={categories} />
         <JobList initialSearch={searchFromHero} />
-        <ScholarshipsSection scholarships={scholarships} />
+        <OpportunitiesSection opportunities={opportunities} />
         <ArticlesSection articles={articles} />
         <NewsletterSection />
       </main>

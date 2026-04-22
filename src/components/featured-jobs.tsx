@@ -5,8 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { JobData } from '@/components/job-card';
-import { JobDetailSheet } from '@/components/job-detail-sheet';
+import JobDetailSheet from '@/components/job-detail-sheet';
 import {
   MapPin,
   DollarSign,
@@ -23,6 +22,32 @@ import {
   getCompanyColor,
 } from '@/lib/helpers';
 import { motion } from 'framer-motion';
+
+export interface JobData {
+  id: string;
+  title: string;
+  slug?: string;
+  company: string;
+  logo: string;
+  currency?: string;
+  location: string;
+  county: string;
+  type: string;
+  category: { id: string; name: string; slug: string } | string | null;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  salaryFormatted: string;
+  description: string;
+  requirements: string;
+  howToApply: string;
+  isRemote: boolean;
+  isFeatured: boolean;
+  isUrgent: boolean;
+  experienceLevel?: string;
+  closingDate: string | null;
+  postedAt: string;
+  employer?: { id: string; companyName: string; logoUrl: string; orgType: string; slug: string; description?: string } | null;
+}
 
 interface FeaturedJobsProps {
   onJobSelect: (job: JobData) => void;

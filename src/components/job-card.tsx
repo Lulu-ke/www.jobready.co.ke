@@ -1,20 +1,23 @@
 'use client';
 
 import { formatDistanceToNow } from 'date-fns';
-import { MapPin, Clock, DollarSign, Building2, Wifi, Star, Zap, ArrowUpRight, Bookmark, Share2 } from 'lucide-react';
+import { MapPin, Clock, DollarSign, Building2, Wifi, Star, Zap, ArrowUpRight, Bookmark, Share2, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { experienceLevelLabel } from '@/lib/helpers';
 
-interface Job {
+export interface Job {
   id: string;
   title: string;
+  slug?: string;
   company: string;
   logo: string;
+  currency?: string;
   location: string;
   county: string;
   type: string;
-  category: string;
+  category: { id: string; name: string; slug: string } | string | null;
   salaryMin: number | null;
   salaryMax: number | null;
   salaryFormatted: string;
@@ -24,9 +27,10 @@ interface Job {
   isRemote: boolean;
   isFeatured: boolean;
   isUrgent: boolean;
+  experienceLevel?: string;
   closingDate: string | null;
   postedAt: string;
-  employer?: { name: string; logo: string; industry: string; isVerified: boolean } | null;
+  employer?: { id: string; companyName: string; logoUrl: string; orgType: string; slug: string; description?: string } | null;
 }
 
 interface JobCardProps {
@@ -66,10 +70,28 @@ function getTypeColor(type: string): string {
   return colors[type] || 'bg-gray-100 text-gray-700 border-gray-200';
 }
 
+function getExperienceLevelColor(level: string): string {
+  const colors: Record<string, string> = {
+    entry: 'bg-teal-100 text-teal-700 border-teal-200',
+    internship: 'bg-purple-100 text-purple-700 border-purple-200',
+    casual: 'bg-gray-100 text-gray-700 border-gray-200',
+    mid: 'bg-amber-100 text-amber-700 border-amber-200',
+    senior: 'bg-orange-100 text-orange-700 border-orange-200',
+  };
+  return colors[level] || 'bg-gray-100 text-gray-700 border-gray-200';
+}
+
+function getCategoryName(category: Job['category']): string {
+  if (!category) return '';
+  if (typeof category === 'string') return category;
+  return category.name;
+}
+
 export default function JobCard({ job, onClick }: JobCardProps) {
   const logoColor = getLogoColor(job.company);
   const typeColor = getTypeColor(job.type);
   const timeAgo = formatDistanceToNow(new Date(job.postedAt), { addSuffix: true });
+  const categoryName = getCategoryName(job.category);
 
   return (
     <Card
@@ -108,9 +130,6 @@ export default function JobCard({ job, onClick }: JobCardProps) {
             <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-2">
               <Building2 className="w-3.5 h-3.5" />
               <span className="truncate">{job.company}</span>
-              {job.employer?.isVerified && (
-                <span className="text-teal-500" title="Verified Employer">&#10003;</span>
-              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500 mb-3">
@@ -139,7 +158,15 @@ export default function JobCard({ job, onClick }: JobCardProps) {
                 <Badge variant="outline" className={typeColor + ' text-[11px]'}>
                   {job.type}
                 </Badge>
-                <span className="text-[11px] text-gray-400 hidden sm:inline">{job.category}</span>
+                {job.experienceLevel && (
+                  <Badge variant="outline" className={`${getExperienceLevelColor(job.experienceLevel)} text-[10px]`}>
+                    <TrendingUp className="w-2.5 h-2.5 mr-0.5" />
+                    {experienceLevelLabel(job.experienceLevel)}
+                  </Badge>
+                )}
+                {categoryName && (
+                  <span className="text-[11px] text-gray-400 hidden sm:inline">{categoryName}</span>
+                )}
               </div>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button variant="ghost" size="icon" className="w-8 h-8" onClick={(e) => e.stopPropagation()}>

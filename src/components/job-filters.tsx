@@ -3,18 +3,20 @@
 import { useState, useMemo } from 'react';
 import {
   Search, SlidersHorizontal, MapPin, Briefcase, DollarSign,
-  ChevronDown, X, RotateCcw
+  ChevronDown, X, RotateCcw, TrendingUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
+import { experienceLevelLabel } from '@/lib/helpers';
 
 interface Filters {
   search: string;
   location: string;
   category: string;
   type: string;
+  experienceLevel: string;
   salaryMin: string;
   salaryMax: string;
   sort: string;
@@ -29,6 +31,7 @@ interface JobFiltersProps {
 
 const locations = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika', 'Garissa', 'Narok', 'Voi'];
 const jobTypes = ['Full-Time', 'Part-Time', 'Contract', 'Internship', 'Fixed-Term', 'Remote'];
+const experienceLevels = ['entry', 'internship', 'casual', 'mid', 'senior'];
 const sortOptions = [
   { value: 'newest', label: 'Newest First' },
   { value: 'featured', label: 'Featured' },
@@ -44,6 +47,7 @@ export default function JobFilters({ filters, onFilterChange, categories, totalR
     if (filters.location) count++;
     if (filters.category) count++;
     if (filters.type) count++;
+    if (filters.experienceLevel) count++;
     if (filters.salaryMin) count++;
     if (filters.salaryMax) count++;
     if (filters.sort !== 'newest') count++;
@@ -56,6 +60,7 @@ export default function JobFilters({ filters, onFilterChange, categories, totalR
       location: '',
       category: '',
       type: '',
+      experienceLevel: '',
       salaryMin: '',
       salaryMax: '',
       sort: 'newest',
@@ -127,6 +132,23 @@ export default function JobFilters({ filters, onFilterChange, categories, totalR
         </select>
       </div>
 
+      {/* Experience Level */}
+      <div>
+        <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-1">
+          <TrendingUp className="w-4 h-4" /> Experience Level
+        </label>
+        <select
+          value={filters.experienceLevel}
+          onChange={(e) => onFilterChange({ ...filters, experienceLevel: e.target.value })}
+          className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+        >
+          <option value="">All Levels</option>
+          {experienceLevels.map((level) => (
+            <option key={level} value={level}>{experienceLevelLabel(level)}</option>
+          ))}
+        </select>
+      </div>
+
       {/* Salary Range */}
       <div>
         <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-1">
@@ -185,6 +207,11 @@ export default function JobFilters({ filters, onFilterChange, categories, totalR
             {filters.type && (
               <Badge variant="secondary" className="text-xs cursor-pointer" onClick={() => onFilterChange({ ...filters, type: '' })}>
                 {filters.type} <X className="w-3 h-3 ml-1" />
+              </Badge>
+            )}
+            {filters.experienceLevel && (
+              <Badge variant="secondary" className="text-xs cursor-pointer" onClick={() => onFilterChange({ ...filters, experienceLevel: '' })}>
+                {experienceLevelLabel(filters.experienceLevel)} <X className="w-3 h-3 ml-1" />
               </Badge>
             )}
           </div>

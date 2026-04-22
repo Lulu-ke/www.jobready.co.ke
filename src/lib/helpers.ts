@@ -86,3 +86,43 @@ export function formatClosingDate(date: string | Date | null | undefined): strin
     return 'No deadline';
   }
 }
+
+export function experienceLevelLabel(level: string): string {
+  const labels: Record<string, string> = {
+    entry: 'Entry Level',
+    internship: 'Internship',
+    casual: 'Casual',
+    mid: 'Mid Level',
+    senior: 'Senior',
+  };
+  return labels[level] || level;
+}
+
+export function orgTypeLabel(orgType: string): string {
+  const labels: Record<string, string> = {
+    PRIVATE: 'Private Company',
+    SMALL_BUSINESS: 'Small Business',
+    STARTUP: 'Startup',
+    NGO: 'NGO',
+    INTERNATIONAL_ORG: 'International Org',
+    NATIONAL_GOV: 'National Government',
+    COUNTY_GOV: 'County Government',
+    STATE_CORPORATION: 'State Corporation',
+    EDUCATION: 'Education',
+    FOUNDATION: 'Foundation',
+    RELIGIOUS_ORG: 'Religious Org',
+  };
+  return labels[orgType] || orgType;
+}
+
+export function opportunityTypeLabel(type: string): string {
+  const labels: Record<string, string> = {
+    internship: 'Internship',
+    sponsorship: 'Sponsorship',
+    bursary: 'Bursary',
+    university_admission: 'University Admission',
+    scholarship: 'Scholarship',
+    certification: 'Certification',
+  };
+  return labels[type] || type;
+}

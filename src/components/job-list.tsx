@@ -2,34 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
-import JobCard from './job-card';
+import JobCard, { Job } from './job-card';
 import JobFilters from './job-filters';
 import JobDetailSheet from './job-detail-sheet';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-
-interface Job {
-  id: string;
-  title: string;
-  company: string;
-  logo: string;
-  location: string;
-  county: string;
-  type: string;
-  category: string;
-  salaryMin: number | null;
-  salaryMax: number | null;
-  salaryFormatted: string;
-  description: string;
-  requirements: string;
-  howToApply: string;
-  isRemote: boolean;
-  isFeatured: boolean;
-  isUrgent: boolean;
-  closingDate: string | null;
-  postedAt: string;
-  employer?: { name: string; logo: string; industry: string; isVerified: boolean } | null;
-}
 
 interface Category {
   name: string;
@@ -58,6 +35,7 @@ export default function JobList({ initialSearch }: JobListProps) {
     location: '',
     category: '',
     type: '',
+    experienceLevel: '',
     salaryMin: '',
     salaryMax: '',
     sort: 'newest',
@@ -71,6 +49,7 @@ export default function JobList({ initialSearch }: JobListProps) {
     if (filters.location) params.set('location', filters.location);
     if (filters.category) params.set('category', filters.category);
     if (filters.type) params.set('type', filters.type);
+    if (filters.experienceLevel) params.set('experienceLevel', filters.experienceLevel);
     if (filters.salaryMin) params.set('salaryMin', filters.salaryMin);
     if (filters.salaryMax) params.set('salaryMax', filters.salaryMax);
     if (filters.sort) params.set('sort', filters.sort);
@@ -212,7 +191,7 @@ export default function JobList({ initialSearch }: JobListProps) {
                 <Button
                   variant="outline"
                   onClick={() => handleFilterChange({
-                    search: '', location: '', category: '', type: '', salaryMin: '', salaryMax: '', sort: 'newest',
+                    search: '', location: '', category: '', type: '', experienceLevel: '', salaryMin: '', salaryMax: '', sort: 'newest',
                   })}
                 >
                   Clear all filters

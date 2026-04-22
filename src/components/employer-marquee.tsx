@@ -1,13 +1,14 @@
 'use client';
 
 import { Building2 } from 'lucide-react';
+import { orgTypeLabel } from '@/lib/helpers';
 
 interface Employer {
   id: string;
-  name: string;
-  logo: string;
-  industry: string;
-  size: string;
+  companyName: string;
+  logoUrl: string;
+  orgType: string;
+  slug: string;
 }
 
 interface EmployerMarqueeProps {
@@ -59,18 +60,18 @@ export default function EmployerMarquee({ employers }: EmployerMarqueeProps) {
 
         <div className="flex animate-marquee">
           {doubled.map((emp, index) => {
-            const color = getLogoColor(emp.name);
+            const color = getLogoColor(emp.companyName);
             return (
               <div
                 key={`${emp.id}-${index}`}
                 className="flex items-center gap-3 px-6 shrink-0"
               >
                 <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-white font-bold text-xs`}>
-                  {emp.logo || emp.name.substring(0, 2).toUpperCase()}
+                  {emp.logoUrl || emp.companyName.substring(0, 2).toUpperCase()}
                 </div>
                 <div className="whitespace-nowrap">
-                  <p className="text-sm font-medium text-gray-700">{emp.name}</p>
-                  <p className="text-xs text-gray-400">{emp.industry}</p>
+                  <p className="text-sm font-medium text-gray-700">{emp.companyName}</p>
+                  <p className="text-xs text-gray-400">{orgTypeLabel(emp.orgType)}</p>
                 </div>
               </div>
             );

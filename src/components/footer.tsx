@@ -21,7 +21,7 @@ const footerLinks = {
     { label: 'API Access', href: '#' },
   ],
   'Resources': [
-    { label: 'Scholarships', href: '#scholarships' },
+    { label: 'Opportunities', href: '#opportunities' },
     { label: 'CV Builder', href: '#' },
     { label: 'Salary Guide', href: '#' },
     { label: 'Blog', href: '#articles' },

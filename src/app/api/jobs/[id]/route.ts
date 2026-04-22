@@ -1,6 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+function deriveIsUrgent(closingDate: Date | null): boolean {
+  if (!closingDate) return false;
+  const now = new Date();
+  const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  return closingDate <= sevenDaysFromNow;
+}
+
+function formatSalary(
+  salaryMin: number | null,
+  salaryMax: number | null,
+  currency: string
+): string {
+  const symbol = currency || 'KSh';
+  if (salaryMin && salaryMax) {
+    return `${symbol} ${Math.round(salaryMin / 1000)}K - ${Math.round(salaryMax / 1000)}K`;
+  }
+  if (salaryMin) {
+    return `From ${symbol} ${Math.round(salaryMin / 1000)}K`;
+  }
+  return 'Not disclosed';
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -10,7 +32,28 @@ export async function GET(
     const job = await db.job.findUnique({
       where: { id },
       include: {
-        employer: true,
+        employer: {
+          select: {
+            id: true,
+            companyName: true,
+            logoUrl: true,
+            orgType: true,
+            slug: true,
+            description: true,
+            email: true,
+            phone: true,
+          },
+        },
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            icon: true,
+            color: true,
+            description: true,
+          },
+        },
       },
     });
 
@@ -20,28 +63,54 @@ export async function GET(
 
     const formattedJob = {
       ...job,
-      salaryFormatted: job.salaryMin && job.salaryMax
-        ? `KSh ${Math.round(job.salaryMin / 1000)}K - ${Math.round(job.salaryMax / 1000)}K`
-        : job.salaryMin ? `From KSh ${Math.round(job.salaryMin / 1000)}K` : 'Not disclosed',
+      company: job.employer?.companyName || null,
+      logo: job.employer?.logoUrl || null,
+      isUrgent: deriveIsUrgent(job.closingDate),
+      salaryFormatted: formatSalary(job.salaryMin, job.salaryMax, job.currency),
     };
 
     // Get related jobs from same category
-    const relatedJobs = await db.job.findMany({
-      where: {
-        category: job.category,
-        id: { not: job.id },
-        isFeatured: true,
-      },
-      take: 4,
-      orderBy: { postedAt: 'desc' },
-      include: {
-        employer: { select: { name: true, logo: true, isVerified: true } },
-      },
-    });
+    const relatedJobs = job.categoryId
+      ? await db.job.findMany({
+          where: {
+            categoryId: job.categoryId,
+            id: { not: job.id },
+            isActive: true,
+          },
+          take: 4,
+          orderBy: { postedAt: 'desc' },
+          include: {
+            employer: {
+              select: {
+                id: true,
+                companyName: true,
+                logoUrl: true,
+                orgType: true,
+                slug: true,
+              },
+            },
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        })
+      : [];
+
+    const formattedRelatedJobs = relatedJobs.map((rj) => ({
+      ...rj,
+      company: rj.employer?.companyName || null,
+      logo: rj.employer?.logoUrl || null,
+      isUrgent: deriveIsUrgent(rj.closingDate),
+      salaryFormatted: formatSalary(rj.salaryMin, rj.salaryMax, rj.currency),
+    }));
 
     return NextResponse.json({
       job: formattedJob,
-      relatedJobs,
+      relatedJobs: formattedRelatedJobs,
     });
   } catch (error) {
     console.error('Error fetching job:', error);

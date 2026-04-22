@@ -4,9 +4,14 @@ import { db } from '@/lib/db';
 export async function GET() {
   try {
     const employers = await db.employer.findMany({
-      where: { isVerified: true },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true, logo: true, industry: true, size: true },
+      orderBy: { companyName: 'asc' },
+      select: {
+        id: true,
+        companyName: true,
+        logoUrl: true,
+        orgType: true,
+        slug: true,
+      },
     });
     return NextResponse.json({ employers });
   } catch (error) {

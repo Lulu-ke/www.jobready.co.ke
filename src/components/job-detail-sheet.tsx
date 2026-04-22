@@ -1,22 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { X, MapPin, DollarSign, Clock, Building2, Wifi, ExternalLink, Bookmark, Share2, ChevronRight } from 'lucide-react';
+import { X, MapPin, DollarSign, Clock, Building2, Wifi, ExternalLink, Bookmark, Share2, ChevronRight, TrendingUp, Building } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { format, formatDistanceToNow } from 'date-fns';
+import { experienceLevelLabel, orgTypeLabel } from '@/lib/helpers';
 
 interface Job {
   id: string;
   title: string;
+  slug?: string;
   company: string;
   logo: string;
+  currency?: string;
   location: string;
   county: string;
   type: string;
-  category: string;
+  category: { id: string; name: string; slug: string } | string | null;
   salaryMin: number | null;
   salaryMax: number | null;
   salaryFormatted: string;
@@ -26,9 +29,10 @@ interface Job {
   isRemote: boolean;
   isFeatured: boolean;
   isUrgent: boolean;
+  experienceLevel?: string;
   closingDate: string | null;
   postedAt: string;
-  employer?: { name: string; logo: string; industry: string; isVerified: boolean; description?: string; size?: string; website?: string } | null;
+  employer?: { id: string; companyName: string; logoUrl: string; orgType: string; slug: string; description?: string } | null;
 }
 
 interface JobDetailSheetProps {
@@ -55,6 +59,40 @@ function getLogoColor(name: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
+function getExperienceLevelColor(level: string): string {
+  const colors: Record<string, string> = {
+    entry: 'bg-teal-100 text-teal-700 border-teal-200',
+    internship: 'bg-purple-100 text-purple-700 border-purple-200',
+    casual: 'bg-gray-100 text-gray-700 border-gray-200',
+    mid: 'bg-amber-100 text-amber-700 border-amber-200',
+    senior: 'bg-orange-100 text-orange-700 border-orange-200',
+  };
+  return colors[level] || 'bg-gray-100 text-gray-700 border-gray-200';
+}
+
+function getCategoryName(category: Job['category']): string {
+  if (!category) return '';
+  if (typeof category === 'string') return category;
+  return category.name;
+}
+
+function getOrgTypeColor(orgType: string): string {
+  const colors: Record<string, string> = {
+    PRIVATE: 'bg-slate-100 text-slate-700',
+    SMALL_BUSINESS: 'bg-blue-100 text-blue-700',
+    STARTUP: 'bg-violet-100 text-violet-700',
+    NGO: 'bg-emerald-100 text-emerald-700',
+    INTERNATIONAL_ORG: 'bg-cyan-100 text-cyan-700',
+    NATIONAL_GOV: 'bg-amber-100 text-amber-700',
+    COUNTY_GOV: 'bg-orange-100 text-orange-700',
+    STATE_CORPORATION: 'bg-rose-100 text-rose-700',
+    EDUCATION: 'bg-indigo-100 text-indigo-700',
+    FOUNDATION: 'bg-pink-100 text-pink-700',
+    RELIGIOUS_ORG: 'bg-purple-100 text-purple-700',
+  };
+  return colors[orgType] || 'bg-gray-100 text-gray-700';
+}
+
 export default function JobDetailSheet({ job, open, onClose, onJobClick, relatedJobs }: JobDetailSheetProps) {
   const [saved, setSaved] = useState(false);
 
@@ -62,6 +100,7 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
 
   const logoColor = getLogoColor(job.company);
   const timeAgo = formatDistanceToNow(new Date(job.postedAt), { addSuffix: true });
+  const categoryName = getCategoryName(job.category);
 
   const shareWhatsApp = () => {
     const text = `${job.title} at ${job.company} in ${job.location}. Salary: ${job.salaryFormatted}. Apply now on JobReady Kenya!`;
@@ -107,13 +146,17 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
             </div>
             <div className="min-w-0">
               <h3 className="font-semibold text-gray-900">{job.company}</h3>
-              <p className="text-sm text-gray-500">{job.employer?.industry || job.category}</p>
-              {job.employer?.isVerified && (
-                <span className="inline-flex items-center gap-1 text-xs text-teal-600 font-medium mt-0.5">
-                  <span className="w-3.5 h-3.5 rounded-full bg-teal-100 flex items-center justify-center text-[10px] text-teal-600">&#10003;</span>
-                  Verified Employer
-                </span>
-              )}
+              <div className="flex items-center gap-2 mt-0.5">
+                {job.employer?.orgType && (
+                  <Badge variant="outline" className={`text-[10px] ${getOrgTypeColor(job.employer.orgType)}`}>
+                    <Building className="w-2.5 h-2.5 mr-0.5" />
+                    {orgTypeLabel(job.employer.orgType)}
+                  </Badge>
+                )}
+                {categoryName && (
+                  <span className="text-sm text-gray-500">{categoryName}</span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -151,9 +194,17 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
 
           {/* Tags */}
           <div className="flex flex-wrap gap-2">
-            <Badge variant="outline" className="border-teal-200 text-teal-700 bg-teal-50">
-              {job.category}
-            </Badge>
+            {categoryName && (
+              <Badge variant="outline" className="border-teal-200 text-teal-700 bg-teal-50">
+                {categoryName}
+              </Badge>
+            )}
+            {job.experienceLevel && (
+              <Badge variant="outline" className={`${getExperienceLevelColor(job.experienceLevel)}`}>
+                <TrendingUp className="w-3 h-3 mr-1" />
+                {experienceLevelLabel(job.experienceLevel)}
+              </Badge>
+            )}
             {job.isRemote && (
               <Badge variant="outline" className="border-cyan-200 text-cyan-700 bg-cyan-50">
                 <Wifi className="w-3 h-3 mr-1" /> Remote Friendly
