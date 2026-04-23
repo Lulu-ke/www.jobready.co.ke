@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { KENYA_COUNTIES, JOB_TYPE_SLUGS } from '@/lib/constants'
 
 const SITE_URL = 'https://www.jobready.co.ke'
 
@@ -60,6 +61,16 @@ export async function GET() {
       orderBy: { updatedAt: 'desc' },
     })
 
+    // Fetch all categories
+    const categories = await db.category.findMany({
+      select: { slug: true, updatedAt: true },
+    })
+
+    // Fetch all employers
+    const employers = await db.employer.findMany({
+      select: { id: true, createdAt: true },
+    })
+
     const urls: SitemapEntry[] = []
 
     // Static pages
@@ -108,6 +119,46 @@ export async function GET() {
         loc: `${SITE_URL}/updates/${update.id}`,
         lastmod: formatLastmod(update.updatedAt),
         changefreq: 'daily',
+        priority: '0.7',
+      })
+    }
+
+    // County job pages (47 counties)
+    for (const county of KENYA_COUNTIES) {
+      urls.push({
+        loc: `${SITE_URL}/jobs/county/${county.slug}`,
+        lastmod: today,
+        changefreq: 'weekly',
+        priority: '0.7',
+      })
+    }
+
+    // Category job pages
+    for (const category of categories) {
+      urls.push({
+        loc: `${SITE_URL}/jobs/category/${category.slug}`,
+        lastmod: formatLastmod(category.updatedAt),
+        changefreq: 'weekly',
+        priority: '0.7',
+      })
+    }
+
+    // Job type pages
+    for (const typeSlug of Object.values(JOB_TYPE_SLUGS)) {
+      urls.push({
+        loc: `${SITE_URL}/jobs/type/${typeSlug}`,
+        lastmod: today,
+        changefreq: 'weekly',
+        priority: '0.7',
+      })
+    }
+
+    // Employer detail pages
+    for (const employer of employers) {
+      urls.push({
+        loc: `${SITE_URL}/employers/${employer.id}`,
+        lastmod: formatLastmod(employer.createdAt),
+        changefreq: 'weekly',
         priority: '0.7',
       })
     }

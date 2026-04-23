@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { COUNTY_NAMES } from '@/lib/constants';
 
 interface EntryInternJob {
   id: string;
@@ -24,14 +25,7 @@ interface EntryInternLocationProps {
 }
 
 export default function EntryInternLocation({ entryJobs, internJobs, locationCounts, onJobClick }: EntryInternLocationProps) {
-  const defaultLocations = [
-    { county: 'Nairobi', count: 0 },
-    { county: 'Mombasa', count: 0 },
-    { county: 'Kisumu', count: 0 },
-    { county: 'Nakuru', count: 0 },
-    { county: 'Eldoret', count: 0 },
-    { county: 'Remote', count: 0 },
-  ];
+  const defaultLocations = COUNTY_NAMES.slice(0, 8).map(county => ({ county, count: 0 }));
 
   const locationData = locationCounts?.length > 0
     ? defaultLocations.map((dl) => {

@@ -10,10 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { experienceLevelLabel } from '@/lib/helpers';
+import { COUNTY_NAMES, MAJOR_LOCATIONS, JOB_TYPES, EXPERIENCE_LEVELS, SORT_OPTIONS } from '@/lib/constants';
 
 interface Filters {
   search: string;
   location: string;
+  county: string;
   category: string;
   type: string;
   experienceLevel: string;
@@ -29,22 +31,13 @@ interface JobFiltersProps {
   totalResults: number;
 }
 
-const locations = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika', 'Garissa', 'Narok', 'Voi'];
-const jobTypes = ['Full-Time', 'Part-Time', 'Contract', 'Internship', 'Fixed-Term', 'Remote'];
-const experienceLevels = ['entry', 'internship', 'casual', 'mid', 'senior'];
-const sortOptions = [
-  { value: 'newest', label: 'Newest First' },
-  { value: 'featured', label: 'Featured' },
-  { value: 'salary-high', label: 'Salary: High to Low' },
-  { value: 'salary-low', label: 'Salary: Low to High' },
-];
-
 export default function JobFilters({ filters, onFilterChange, categories, totalResults }: JobFiltersProps) {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (filters.location) count++;
+    if (filters.county) count++;
     if (filters.category) count++;
     if (filters.type) count++;
     if (filters.experienceLevel) count++;
@@ -58,6 +51,7 @@ export default function JobFilters({ filters, onFilterChange, categories, totalR
     onFilterChange({
       search: filters.search,
       location: '',
+      county: '',
       category: '',
       type: '',
       experienceLevel: '',
@@ -94,8 +88,25 @@ export default function JobFilters({ filters, onFilterChange, categories, totalR
           className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
         >
           <option value="">All Locations</option>
-          {locations.map((loc) => (
+          {MAJOR_LOCATIONS.map((loc) => (
             <option key={loc} value={loc}>{loc}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* County */}
+      <div>
+        <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-1">
+          <MapPin className="w-4 h-4" /> County
+        </label>
+        <select
+          value={filters.county}
+          onChange={(e) => onFilterChange({ ...filters, county: e.target.value })}
+          className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+        >
+          <option value="">All Counties</option>
+          {COUNTY_NAMES.map((county) => (
+            <option key={county} value={county}>{county}</option>
           ))}
         </select>
       </div>
@@ -126,7 +137,7 @@ export default function JobFilters({ filters, onFilterChange, categories, totalR
           className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
         >
           <option value="">All Types</option>
-          {jobTypes.map((type) => (
+          {JOB_TYPES.map((type) => (
             <option key={type} value={type}>{type}</option>
           ))}
         </select>
@@ -143,7 +154,7 @@ export default function JobFilters({ filters, onFilterChange, categories, totalR
           className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
         >
           <option value="">All Levels</option>
-          {experienceLevels.map((level) => (
+          {EXPERIENCE_LEVELS.map((level) => (
             <option key={level} value={level}>{experienceLevelLabel(level)}</option>
           ))}
         </select>
@@ -178,7 +189,7 @@ export default function JobFilters({ filters, onFilterChange, categories, totalR
           onChange={(e) => onFilterChange({ ...filters, sort: e.target.value })}
           className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
         >
-          {sortOptions.map((opt) => (
+          {SORT_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
@@ -197,6 +208,11 @@ export default function JobFilters({ filters, onFilterChange, categories, totalR
             {filters.location && (
               <Badge variant="secondary" className="text-xs cursor-pointer" onClick={() => onFilterChange({ ...filters, location: '' })}>
                 {filters.location} <X className="w-3 h-3 ml-1" />
+              </Badge>
+            )}
+            {filters.county && (
+              <Badge variant="secondary" className="text-xs cursor-pointer" onClick={() => onFilterChange({ ...filters, county: '' })}>
+                {filters.county} <X className="w-3 h-3 ml-1" />
               </Badge>
             )}
             {filters.category && (

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { SITE } from "@/lib/constants";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,6 +46,29 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'JobReady Kenya',
+              url: SITE.url,
+              description: SITE.description,
+              publisher: {
+                '@type': 'Organization',
+                name: 'JobReady Kenya',
+                url: SITE.url,
+                logo: `${SITE.url}/logo.png`,
+              },
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: `${SITE.url}/search?q={search_term_string}`,
+                'query-input': 'required name=search_term_string',
+              },
+            }),
+          }}
+        />
         {children}
         <Toaster />
       </body>
