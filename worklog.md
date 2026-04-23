@@ -59,3 +59,40 @@ Stage Summary:
 - Side-sheet modals (JobDetailSheet, OpportunityDetailSheet, ArticleDetailSheet) preserved
 - API-based data fetching maintained
 - Design system colors (Primary Purple #5B21B6, Teal #0D9488, Orange #F97316) consistently applied
+---
+Task ID: 5
+Agent: Main Agent
+Task: Phase 5 — Features, UX Polish & SEO Infrastructure
+
+Work Log:
+- Created comprehensive gap analysis between live site reference and current implementation (206 items audited)
+- Created phase documentation at docs/phase-5-plan.md with 12 phases roadmap
+- Added JobUpdate model to Prisma schema (5 update types: SHORTLISTED, INTERVIEW_SCHEDULE, CLOSING_EXTENDED, CORRIGENDUM, GENERAL)
+- Created /api/updates routes (list with pagination + filters, detail by ID)
+- Created job-updates-section.tsx (vertical card grid for homepage)
+- Created job-update-detail-sheet.tsx (side-sheet modal for updates)
+- Created /updates listing page with filter tabs + side-sheet support
+- Created /updates/[id] SEO detail page with generateMetadata() + JSON-LD
+- Created /sitemap.xml dynamic route (all entities from DB)
+- Created /feed.xml RSS 2.0 route (latest jobs + articles)
+- Created /robots.txt dynamic route (removed conflicting public/robots.txt)
+- Added EmployerMarquee to homepage (after hero section)
+- Restored side-sheet modals on homepage for jobs, opportunities, articles, updates
+- Added onClick callbacks to 6 homepage sub-components (latest-trending, gov-vacancies, entry-intern, opportunity-grid, uni-cv-bursaries, career-blog)
+- Added EmployerDetailSheet to /employers page (clickable cards, company profile + jobs)
+- Fixed modal close fallback: router.replace('/page') instead of router.back()
+- Merged job requirements into description on job detail page + job detail sheet
+- Fixed navigation links in header (top bar + nav)
+- Fixed navigation links in footer (all resource + legal links)
+- Connected hero search to /jobs?search= query parameter
+- Added employerId filter to /api/jobs
+- Added ID lookup support to /api/employers
+- Seeded 50 jobs, 30 employers, 26 categories, 12 opportunities, 6 articles, 16 job updates
+- Fixed critical issue: system-level DATABASE_URL was overriding .env on every restart
+- Fixed by hardcoding MySQL URL in db.ts (explicit datasources config)
+- Build passes clean (27 routes), all APIs returning data
+
+Stage Summary:
+- 31 files changed, ~3000 insertions, 27 total routes
+- Commits: a8d01af (Phase 5), 132d19d (robots.txt fix), 0858fb9 (DB URL fix)
+- All features working: sitemap, RSS, robots, updates, employer sheets, homepage modals
