@@ -141,8 +141,8 @@ export default function EmployerDetailClient({
                 <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
               </li>
               <li>
-                <Link href="/employers" className="hover:text-teal-600 transition-colors">
-                  Employers
+                <Link href="/companies" className="hover:text-teal-600 transition-colors">
+                  Companies
                 </Link>
               </li>
               <li>
@@ -196,11 +196,11 @@ export default function EmployerDetailClient({
 
                 <div className="flex items-center gap-4 mt-4">
                   <Link
-                    href="/employers"
+                    href="/companies"
                     className="inline-flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors"
                   >
                     <ArrowLeft className="w-4 h-4" />
-                    View All Employers
+                    View All Companies
                   </Link>
                 </div>
               </div>

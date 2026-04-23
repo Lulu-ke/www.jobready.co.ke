@@ -68,7 +68,7 @@ export default function NotFound() {
               View Opportunities
             </Link>
             <Link
-              href="/articles"
+              href="/career-advice"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 text-amber-700 text-sm font-medium hover:bg-amber-100 transition-colors"
             >
               <BookOpen className="w-4 h-4" />

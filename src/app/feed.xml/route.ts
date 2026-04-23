@@ -73,7 +73,7 @@ export async function GET() {
     // Build feed items from articles
     const articleItems: FeedItem[] = articles.map((article) => ({
       title: article.title,
-      link: `${SITE_URL}/articles/${article.slug}`,
+      link: `${SITE_URL}/career-advice/${article.slug}`,
       description: article.excerpt,
       pubDate: article.createdAt,
       category: article.category,

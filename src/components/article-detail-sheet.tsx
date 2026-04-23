@@ -146,7 +146,7 @@ export default function ArticleDetailSheet({ article, open, onClose }: ArticleDe
           {/* View Full Page link */}
           <div className="pt-1 pb-4 border-t border-gray-100">
             <a
-              href={`/articles/${article.slug}`}
+              href={`/career-advice/${article.slug}`}
               className="text-sm text-teal-600 hover:text-teal-700 font-medium flex items-center gap-1"
             >
               View Full Page

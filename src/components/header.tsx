@@ -23,8 +23,8 @@ export default function Header() {
   const navLinks = [
     { label: 'Jobs', href: '/jobs' },
     { label: 'Opportunities', href: '/opportunities' },
-    { label: 'Companies', href: '/employers' },
-    { label: 'Career Advice', href: '/articles' },
+    { label: 'Companies', href: '/companies' },
+    { label: 'Career Advice', href: '/career-advice' },
     { label: 'CV Services', href: '/cv-services' },
   ];
 
@@ -33,7 +33,7 @@ export default function Header() {
     { label: 'Govt Jobs', href: '/jobs?category=government' },
     { label: 'Remote', href: '/jobs?isRemote=true' },
     { label: 'Scholarships', href: '/opportunities?type=scholarship' },
-    { label: 'Career Advice', href: '/articles' },
+    { label: 'Career Advice', href: '/career-advice' },
   ];
 
   return (
@@ -58,7 +58,7 @@ export default function Header() {
             <Link href="https://wa.me/" className="flex items-center gap-1 text-[#0D9488] hover:text-[#5B21B6] transition">
               <MessageCircle className="w-3 h-3" /> WhatsApp
             </Link>
-            <Link href="/articles" className="text-[#0D9488] hover:text-[#5B21B6] transition">
+            <Link href="/career-advice" className="text-[#0D9488] hover:text-[#5B21B6] transition">
               Career Advice
             </Link>
             <Link href="/cv-services" className="text-[#0D9488] hover:text-[#5B21B6] transition">

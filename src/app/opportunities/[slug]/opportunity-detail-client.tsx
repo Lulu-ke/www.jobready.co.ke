@@ -394,7 +394,7 @@ export default function OpportunityDetailClient({
                       </p>
                     )}
                     <Link
-                      href={`/employers/${opportunity.provider.slug}`}
+                      href={`/companies/${opportunity.provider.slug}`}
                       className="inline-flex items-center gap-1 text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors"
                     >
                       View all jobs

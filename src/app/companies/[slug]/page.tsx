@@ -114,12 +114,12 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `${SITE.url}/employers/${slug}`,
+      canonical: `${SITE.url}/companies/${slug}`,
     },
     openGraph: {
       title,
       description,
-      url: `${SITE.url}/employers/${slug}`,
+      url: `${SITE.url}/companies/${slug}`,
       siteName: SITE.name,
       images: ogImage ? [{ url: ogImage, width: 1200, height: 630 }] : undefined,
       type: 'profile',
@@ -202,7 +202,7 @@ export default async function EmployerDetailPage({
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: employer.companyName,
-    url: `${SITE.url}/employers/${slug}`,
+    url: `${SITE.url}/companies/${slug}`,
     logo: employer.logoUrl || undefined,
     description: employer.description || undefined,
   };
@@ -220,14 +220,14 @@ export default async function EmployerDetailPage({
       {
         '@type': 'ListItem',
         position: 2,
-        name: 'Employers',
-        item: `${SITE.url}/employers`,
+        name: 'Companies',
+        item: `${SITE.url}/companies`,
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: employer.companyName,
-        item: `${SITE.url}/employers/${slug}`,
+        item: `${SITE.url}/companies/${slug}`,
       },
     ],
   };

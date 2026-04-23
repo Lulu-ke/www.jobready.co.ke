@@ -627,7 +627,7 @@ function SearchPageInner() {
                     {companies.slice(0, 8).map((company) => (
                       <Link
                         key={company.id}
-                        href={`/employers?id=${company.id}`}
+                        href={`/companies?id=${company.id}`}
                         className="flex flex-col items-center p-4 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-teal-200 transition-all group text-center"
                       >
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold text-sm mb-2 group-hover:scale-105 transition-transform">
@@ -667,7 +667,7 @@ function SearchPageInner() {
                     {articles.slice(0, 4).map((article) => (
                       <Link
                         key={article.id}
-                        href={`/articles/${article.slug || article.id}`}
+                        href={`/career-advice/${article.slug || article.id}`}
                         className="flex items-start gap-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-teal-200 transition-all group"
                       >
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center text-teal-600 shrink-0">
@@ -787,7 +787,7 @@ function SearchPageInner() {
                   {companies.map((company) => (
                     <Link
                       key={company.id}
-                      href={`/employers?id=${company.id}`}
+                      href={`/companies?id=${company.id}`}
                       className="flex flex-col items-center p-5 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-teal-200 transition-all group text-center"
                     >
                       <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold text-base mb-3 group-hover:scale-105 transition-transform">
@@ -810,7 +810,7 @@ function SearchPageInner() {
                   {articles.map((article) => (
                     <Link
                       key={article.id}
-                      href={`/articles/${article.slug || article.id}`}
+                      href={`/career-advice/${article.slug || article.id}`}
                       className="p-5 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-teal-200 transition-all group overflow-hidden"
                     >
                       <div className="h-1.5 bg-gradient-to-r from-teal-500 to-teal-400 -mx-5 -mt-5 mb-4" />

@@ -256,7 +256,7 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
             <div className="space-y-6">
               {/* Company About Card */}
               <div className="bg-white rounded-xl shadow-sm p-6">
-                <Link href={`/employers/${job.employer?.slug || job.employer?.id || ''}`} className="flex items-center gap-4 mb-4 group">
+                <Link href={`/companies/${job.employer?.slug || job.employer?.id || ''}`} className="flex items-center gap-4 mb-4 group">
                   <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${logoColor} flex items-center justify-center text-white font-bold text-lg shrink-0`}>
                     {job.logo || initials}
                   </div>
@@ -341,23 +341,23 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
                 <h3 className="font-bold text-gray-900 mb-3">Career Advice</h3>
                 <ul className="space-y-2.5">
                   <li>
-                    <Link href="/articles" className="text-sm text-gray-700 hover:text-teal-600 transition-colors line-clamp-2 leading-snug">
+                    <Link href="/career-advice" className="text-sm text-gray-700 hover:text-teal-600 transition-colors line-clamp-2 leading-snug">
                       How to Write a Winning CV in Kenya
                     </Link>
                   </li>
                   <li>
-                    <Link href="/articles" className="text-sm text-gray-700 hover:text-teal-600 transition-colors line-clamp-2 leading-snug">
+                    <Link href="/career-advice" className="text-sm text-gray-700 hover:text-teal-600 transition-colors line-clamp-2 leading-snug">
                       Top Interview Questions and How to Answer Them
                     </Link>
                   </li>
                   <li>
-                    <Link href="/articles" className="text-sm text-gray-700 hover:text-teal-600 transition-colors line-clamp-2 leading-snug">
+                    <Link href="/career-advice" className="text-sm text-gray-700 hover:text-teal-600 transition-colors line-clamp-2 leading-snug">
                       Salary Negotiation Tips for Kenyan Job Seekers
                     </Link>
                   </li>
                 </ul>
                 <Link
-                  href="/articles"
+                  href="/career-advice"
                   className="inline-flex items-center gap-1 text-sm font-semibold text-teal-700 hover:text-teal-800 transition-colors mt-3"
                 >
                   More Career Advice <ArrowRight className="w-3.5 h-3.5" />

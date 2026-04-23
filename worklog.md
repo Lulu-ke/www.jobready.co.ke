@@ -100,3 +100,27 @@ Stage Summary:
 - Job alerts with create/toggle/delete and notifications with read/unread management
 - Auth-aware header with dropdown menu and mobile nav integration
 - Lint passes with zero errors, Prisma client generated successfully
+
+---
+Task ID: 3-2
+Agent: Main Agent
+Task: Batch 3 — Website Polish & Route Renames for JobReady Kenya
+
+Work Log:
+- Renamed `/employers` → `/companies` directory (src/app/employers → src/app/companies)
+- Renamed `/articles` → `/career-advice` directory (src/app/articles → src/app/career-advice)
+- Updated all `/articles` → `/career-advice` references in 13 files: layout, detail page, client component, not-found, error, search, feed.xml, sitemap.xml, header, footer, career-blog-newsletter, article-detail-sheet, job-detail-client
+- Updated all `/employers` → `/companies` references in 9 files: layout, detail page, client component, opportunity-detail-client, search, sitemap.xml, header, footer, job-detail-client
+- Updated middleware.ts with 301 redirects for old routes + updated ROUTE_MODELS, CUID regex, matcher config
+- Created Cookie Consent Banner (src/components/cookie-consent.tsx) with Accept All / Reject / Customize options, localStorage persistence, positioned above mobile nav
+- Created Back to Top Button (src/components/back-to-top.tsx) with scroll-triggered visibility, smooth scroll, teal-600 theme
+- Updated root layout.tsx with both new components
+- Updated employer label changes: "View All Employers" → "View All Companies", breadcrumb "Employers" → "Companies"
+
+Stage Summary:
+- Complete route rename: `/employers` → `/companies`, `/articles` → `/career-advice` across all frontend links
+- 301 redirects for backward compatibility in middleware
+- SEO metadata (canonical, OG, JSON-LD, sitemap, RSS) fully updated
+- Cookie Consent Banner with granular preference controls
+- Back to Top button with smooth scroll
+- Build verified: ✓ Compiled successfully, zero errors, all pages generated

@@ -132,8 +132,8 @@ export default function ArticleDetailClient({
                 Home
               </Link>
               <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
-              <Link href="/articles" className="hover:text-teal-600 transition-colors">
-                Articles
+              <Link href="/career-advice" className="hover:text-teal-600 transition-colors">
+                Career Advice
               </Link>
               <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
               <span className="text-teal-600 font-medium truncate max-w-[200px] sm:max-w-none">
@@ -158,8 +158,8 @@ export default function ArticleDetailClient({
                 className="text-gray-500 hover:text-gray-700 -ml-2 mb-6"
                 asChild
               >
-                <Link href="/articles">
-                  <ArrowLeft className="w-4 h-4 mr-2" /> Back to Articles
+                <Link href="/career-advice">
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Back to Career Advice
                 </Link>
               </Button>
 
@@ -262,7 +262,7 @@ export default function ArticleDetailClient({
                       Category
                     </span>
                     <div className="mt-2">
-                      <Link href={`/articles?category=${encodeURIComponent(article.category)}`}>
+                      <Link href={`/career-advice?category=${encodeURIComponent(article.category)}`}>
                         <Badge
                           variant="secondary"
                           className="bg-teal-50 text-teal-700 border-teal-100 hover:bg-teal-100 transition-colors cursor-pointer"
@@ -289,7 +289,7 @@ export default function ArticleDetailClient({
                             Career insights and job market analysis for Kenyan professionals.
                           </p>
                           <Link
-                            href={`/articles?author=${encodeURIComponent(article.author)}`}
+                            href={`/career-advice?author=${encodeURIComponent(article.author)}`}
                             className="inline-flex items-center gap-1 text-sm text-teal-600 hover:text-teal-700 font-medium mt-2 transition-colors"
                           >
                             View all articles by {article.author}
@@ -339,7 +339,7 @@ export default function ArticleDetailClient({
                     {relatedArticles.slice(0, 3).map((related) => (
                       <Link
                         key={related.id}
-                        href={`/articles/${related.slug}`}
+                        href={`/career-advice/${related.slug}`}
                         className="group block no-underline"
                       >
                         <Card className="border border-gray-100 shadow-sm hover:shadow-md hover:border-teal-200 transition-all duration-200 h-full">
@@ -414,7 +414,7 @@ export default function ArticleDetailClient({
                       {relatedArticles.slice(0, 3).map((related) => (
                         <Link
                           key={related.id}
-                          href={`/articles/${related.slug}`}
+                          href={`/career-advice/${related.slug}`}
                           className="group block no-underline"
                         >
                           <div className="flex gap-3">
@@ -441,7 +441,7 @@ export default function ArticleDetailClient({
                       ))}
                     </div>
                     <Link
-                      href={`/articles?category=${encodeURIComponent(article.category)}`}
+                      href={`/career-advice?category=${encodeURIComponent(article.category)}`}
                       className="flex items-center gap-1 text-sm text-teal-600 hover:text-teal-700 font-medium mt-4 transition-colors no-underline"
                     >
                       View all in {article.category}
@@ -467,7 +467,7 @@ export default function ArticleDetailClient({
                     Join 50,000+ Kenyan job seekers getting weekly career advice.
                   </p>
                   <Link
-                    href="/articles#newsletter"
+                    href="/career-advice#newsletter"
                     className="inline-flex items-center gap-2 bg-white text-teal-700 hover:bg-teal-50 font-semibold py-2.5 px-5 rounded-full transition-colors text-sm no-underline"
                   >
                     Subscribe Free

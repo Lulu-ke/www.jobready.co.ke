@@ -78,8 +78,8 @@ export async function GET() {
       { loc: `${SITE_URL}/`, lastmod: today, changefreq: 'monthly', priority: '0.9' },
       { loc: `${SITE_URL}/jobs`, lastmod: today, changefreq: 'monthly', priority: '0.9' },
       { loc: `${SITE_URL}/opportunities`, lastmod: today, changefreq: 'monthly', priority: '0.8' },
-      { loc: `${SITE_URL}/employers`, lastmod: today, changefreq: 'monthly', priority: '0.7' },
-      { loc: `${SITE_URL}/articles`, lastmod: today, changefreq: 'monthly', priority: '0.7' },
+      { loc: `${SITE_URL}/companies`, lastmod: today, changefreq: 'monthly', priority: '0.7' },
+      { loc: `${SITE_URL}/career-advice`, lastmod: today, changefreq: 'monthly', priority: '0.7' },
       { loc: `${SITE_URL}/updates`, lastmod: today, changefreq: 'monthly', priority: '0.7' },
       { loc: `${SITE_URL}/about`, lastmod: today, changefreq: 'monthly', priority: '0.5' },
       { loc: `${SITE_URL}/contact`, lastmod: today, changefreq: 'monthly', priority: '0.5' },
@@ -116,7 +116,7 @@ export async function GET() {
     // Article pages
     for (const article of articles) {
       urls.push({
-        loc: `${SITE_URL}/articles/${article.slug}`,
+        loc: `${SITE_URL}/career-advice/${article.slug}`,
         lastmod: formatLastmod(article.updatedAt),
         changefreq: 'weekly',
         priority: '0.6',
@@ -166,7 +166,7 @@ export async function GET() {
     // Employer detail pages
     for (const employer of employers) {
       urls.push({
-        loc: `${SITE_URL}/employers/${employer.slug}`,
+        loc: `${SITE_URL}/companies/${employer.slug}`,
         lastmod: formatLastmod(employer.createdAt),
         changefreq: 'weekly',
         priority: '0.7',

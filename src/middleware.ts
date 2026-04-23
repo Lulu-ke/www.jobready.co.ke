@@ -11,10 +11,10 @@ const slugCache = new Map<string, string>();
 // Match table against route base path
 const ROUTE_MODELS: Record<string, { model: string; basePath: string }> = {
   jobs: { model: 'job', basePath: '/jobs' },
-  articles: { model: 'article', basePath: '/articles' },
+  articles: { model: 'article', basePath: '/career-advice' },
   opportunities: { model: 'opportunity', basePath: '/opportunities' },
   updates: { model: 'jobUpdate', basePath: '/updates' },
-  employers: { model: 'employer', basePath: '/employers' },
+  employers: { model: 'employer', basePath: '/companies' },
 };
 
 /**
@@ -94,11 +94,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // ── Old route redirects (301 permanent) ──
+  if (pathname.startsWith('/articles')) {
+    return NextResponse.redirect(new URL(pathname.replace('/articles', '/career-advice'), request.url), 301);
+  }
+  if (pathname.startsWith('/employers')) {
+    return NextResponse.redirect(new URL(pathname.replace('/employers', '/companies'), request.url), 301);
+  }
+
   // ── CUID-to-slug redirect ──
-  // Match only /jobs/{segment}, /articles/{segment}, etc. — single segment only
+  // Match only /jobs/{segment}, /career-advice/{segment}, etc. — single segment only
   // This intentionally does NOT match nested routes like /jobs/county/nairobi
   const match = pathname.match(
-    /^\/(jobs|articles|opportunities|updates|employers)\/([^/]+)$/
+    /^\/(jobs|career-advice|opportunities|updates|companies)\/([^/]+)$/
   );
 
   if (!match) return NextResponse.next();
@@ -131,11 +139,14 @@ export const config = {
   matcher: [
     // Dashboard routes — auth protection
     '/dashboard/:path*',
+    // Old route redirects
+    '/articles/:path*',
+    '/employers/:path*',
     // Only match single-segment paths under these routes for CUID redirect
     '/jobs/:path',
-    '/articles/:path',
+    '/career-advice/:path',
     '/opportunities/:path',
     '/updates/:path',
-    '/employers/:path',
+    '/companies/:path',
   ],
 };

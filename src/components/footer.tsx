@@ -8,7 +8,7 @@ const footerLinks = {
     { label: 'Internships', href: '/jobs?type=Internship' },
     { label: 'Government Jobs', href: '/jobs?category=government' },
     { label: 'Remote Jobs', href: '/jobs?isRemote=true' },
-    { label: 'Career Advice', href: '/articles' },
+    { label: 'Career Advice', href: '/career-advice' },
   ],
   'Opportunities': [
     { label: 'Scholarships', href: '/opportunities' },
@@ -21,7 +21,7 @@ const footerLinks = {
     { label: 'About Us', href: '/about' },
     { label: 'CV Writing Services', href: '/cv-services' },
     { label: 'Contact Us', href: '/contact' },
-    { label: 'Employers', href: '/employers' },
+    { label: 'Companies', href: '/companies' },
     { label: 'Privacy Policy', href: '/privacy' },
     { label: 'Terms of Service', href: '/terms' },
   ],

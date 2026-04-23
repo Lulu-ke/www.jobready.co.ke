@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${article.title} | JobReady Kenya`,
     description: `${article.excerpt || (article.title + ' - Read more on JobReady Kenya.')}`,
-    alternates: { canonical: `${SITE.url}/articles/${slug}` },
+    alternates: { canonical: `${SITE.url}/career-advice/${slug}` },
     openGraph: {
       title: article.title,
       description: article.excerpt || article.title,
@@ -100,8 +100,8 @@ export default async function ArticleDetailPage({ params }: Props) {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.url },
-      { '@type': 'ListItem', position: 2, name: 'Articles', item: `${SITE.url}/articles` },
-      { '@type': 'ListItem', position: 3, name: article.title, item: `${SITE.url}/articles/${slug}` },
+      { '@type': 'ListItem', position: 2, name: 'Career Advice', item: `${SITE.url}/career-advice` },
+      { '@type': 'ListItem', position: 3, name: article.title, item: `${SITE.url}/career-advice/${slug}` },
     ],
   };
 

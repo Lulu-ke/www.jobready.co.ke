@@ -4,6 +4,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { SITE } from "@/lib/constants";
 import AuthProvider from "@/components/auth-provider";
+import CookieConsent from "@/components/cookie-consent";
+import BackToTop from "@/components/back-to-top";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -79,6 +81,8 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        <BackToTop />
+        <CookieConsent />
         <Toaster />
       </body>
     </html>
