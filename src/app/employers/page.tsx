@@ -140,11 +140,11 @@ function EmployersPageInner() {
     setSheetOpen(true);
     setJobsLoading(true);
     sheetOpenRef.current = true;
-    router.replace(`${pathname}?view=${employer.id}`, { scroll: false });
+    router.replace(`${pathname}?view=${employer.slug}`, { scroll: false });
 
     try {
       // Fetch full employer details
-      const empRes = await fetch(`/api/employers?id=${employer.id}`);
+      const empRes = await fetch(`/api/employers?slug=${employer.slug}`);
       if (empRes.ok) {
         const empData = await empRes.json();
         if (empData.employer) {
@@ -195,14 +195,14 @@ function EmployersPageInner() {
   useEffect(() => {
     const viewId = searchParams.get('view');
     if (viewId && !sheetOpen) {
-      const employer = employers.find((e) => e.id === viewId);
+      const employer = employers.find((e) => e.slug === viewId || e.id === viewId);
       if (employer) {
         openEmployerSheet(employer);
       } else {
         // Fetch employer directly
         (async () => {
           try {
-            const res = await fetch(`/api/employers?id=${viewId}`);
+            const res = await fetch(`/api/employers?slug=${viewId}`);
             if (res.ok) {
               const data = await res.json();
               if (data.employer) {

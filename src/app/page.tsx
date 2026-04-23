@@ -238,14 +238,14 @@ function HomePageContent() {
   const govJobsData = Array.isArray(govJobs) ? { county: [], national: govJobs } : govJobs;
 
   // ── Helper: parse ?view= param ──
-  function parseViewParam(raw: string | null): { type: string; id: string } | null {
+  function parseViewParam(raw: string | null): { type: string; slugOrId: string } | null {
     if (!raw) return null;
     if (raw.includes(':')) {
       const idx = raw.indexOf(':');
-      return { type: raw.substring(0, idx), id: raw.substring(idx + 1) };
+      return { type: raw.substring(0, idx), slugOrId: raw.substring(idx + 1) };
     }
     // Backward compatibility: no prefix → treat as job
-    return { type: 'job', id: raw };
+    return { type: 'job', slugOrId: raw };
   }
 
   // ── Sheet open/close handlers ──
@@ -257,9 +257,9 @@ function HomePageContent() {
     setSelectedJob(job);
     setJobSheetOpen(true);
     sheetOpenRef.current = true;
-    router.replace(`${pathname}?view=job:${job.id}`, { scroll: false });
+    router.replace(`${pathname}?view=job:${job.slug || job.id}`, { scroll: false });
     try {
-      const res = await fetch(`/api/jobs/${job.id}`);
+      const res = await fetch(`/api/jobs/${job.slug || job.id}`);
       if (res.ok) {
         const data = await res.json();
         setSelectedJob(data.job || job);
@@ -280,9 +280,9 @@ function HomePageContent() {
     setSelectedOpportunity(opp);
     setOpportunitySheetOpen(true);
     sheetOpenRef.current = true;
-    router.replace(`${pathname}?view=opp:${opp.id}`, { scroll: false });
+    router.replace(`${pathname}?view=opp:${opp.slug || opp.id}`, { scroll: false });
     try {
-      const res = await fetch(`/api/opportunities/${opp.id}`);
+      const res = await fetch(`/api/opportunities/${opp.slug || opp.id}`);
       if (res.ok) {
         const data = await res.json();
         setSelectedOpportunity(data.opportunity || opp);
@@ -302,9 +302,9 @@ function HomePageContent() {
     setSelectedArticle(article);
     setArticleSheetOpen(true);
     sheetOpenRef.current = true;
-    router.replace(`${pathname}?view=art:${article.id}`, { scroll: false });
+    router.replace(`${pathname}?view=art:${article.slug || article.id}`, { scroll: false });
     try {
-      const res = await fetch(`/api/articles/${article.id}`);
+      const res = await fetch(`/api/articles/${article.slug || article.id}`);
       if (res.ok) {
         const data = await res.json();
         setSelectedArticle(data.article || article);
@@ -324,9 +324,9 @@ function HomePageContent() {
     setSelectedUpdate(update);
     setUpdateSheetOpen(true);
     sheetOpenRef.current = true;
-    router.replace(`${pathname}?view=upd:${update.id}`, { scroll: false });
+    router.replace(`${pathname}?view=upd:${update.slug || update.id}`, { scroll: false });
     try {
-      const res = await fetch(`/api/updates/${update.id}`);
+      const res = await fetch(`/api/updates/${update.slug || update.id}`);
       if (res.ok) {
         const data = await res.json();
         setSelectedUpdate(data.update || update);
@@ -367,19 +367,19 @@ function HomePageContent() {
     const parsed = parseViewParam(searchParams.get('view'));
     if (!parsed) return;
 
-    const { type, id } = parsed;
+    const { type, slugOrId } = parsed;
 
     switch (type) {
       case 'job': {
-        const job = [...latestJobs, ...trendingJobs, ...featuredJobs, ...entryJobs, ...internJobs].find((j) => j.id === id);
+        const job = [...latestJobs, ...trendingJobs, ...featuredJobs, ...entryJobs, ...internJobs].find((j) => j.slug === slugOrId || j.id === slugOrId);
         if (job) {
           openJobSheet(job);
         } else {
           (async () => {
             try {
               setJobSheetOpen(true);
-              setSelectedJob({ id } as any);
-              const res = await fetch(`/api/jobs/${id}`);
+              setSelectedJob({ id: slugOrId } as any);
+              const res = await fetch(`/api/jobs/${slugOrId}`);
               if (res.ok) {
                 const data = await res.json();
                 if (data.job) {
@@ -402,15 +402,15 @@ function HomePageContent() {
         break;
       }
       case 'opp': {
-        const opp = opportunities.find((o) => o.id === id);
+        const opp = opportunities.find((o) => o.slug === slugOrId || o.id === slugOrId);
         if (opp) {
           openOpportunitySheet(opp);
         } else {
           (async () => {
             try {
               setOpportunitySheetOpen(true);
-              setSelectedOpportunity({ id } as any);
-              const res = await fetch(`/api/opportunities/${id}`);
+              setSelectedOpportunity({ id: slugOrId } as any);
+              const res = await fetch(`/api/opportunities/${slugOrId}`);
               if (res.ok) {
                 const data = await res.json();
                 if (data.opportunity) {
@@ -432,15 +432,15 @@ function HomePageContent() {
         break;
       }
       case 'art': {
-        const article = articles.find((a) => a.id === id);
+        const article = articles.find((a) => a.slug === slugOrId || a.id === slugOrId);
         if (article) {
           openArticleSheet(article);
         } else {
           (async () => {
             try {
               setArticleSheetOpen(true);
-              setSelectedArticle({ id } as any);
-              const res = await fetch(`/api/articles/${id}`);
+              setSelectedArticle({ id: slugOrId } as any);
+              const res = await fetch(`/api/articles/${slugOrId}`);
               if (res.ok) {
                 const data = await res.json();
                 if (data.article) {
@@ -462,15 +462,15 @@ function HomePageContent() {
         break;
       }
       case 'upd': {
-        const update = updates.find((u) => u.id === id);
+        const update = updates.find((u) => u.slug === slugOrId || u.id === slugOrId);
         if (update) {
           openUpdateSheet(update);
         } else {
           (async () => {
             try {
               setUpdateSheetOpen(true);
-              setSelectedUpdate({ id } as any);
-              const res = await fetch(`/api/updates/${id}`);
+              setSelectedUpdate({ id: slugOrId } as any);
+              const res = await fetch(`/api/updates/${slugOrId}`);
               if (res.ok) {
                 const data = await res.json();
                 if (data.update) {

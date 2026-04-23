@@ -113,7 +113,7 @@ export default function JobList({ initialSearch }: JobListProps) {
     setDetailOpen(true);
 
     try {
-      const res = await fetch(`/api/jobs/${job.id}`);
+      const res = await fetch(`/api/jobs/${job.slug || job.id}`);
       if (res.ok) {
         const data = await res.json();
         setRelatedJobs(data.relatedJobs || []);

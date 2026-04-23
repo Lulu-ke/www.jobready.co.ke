@@ -161,11 +161,11 @@ function CountyJobsInner({ countyName, countySlug }: CountyJobsClientProps) {
     setSelectedJob(job);
     setDetailOpen(true);
     sheetOpenRef.current = true;
-    router.replace(`${pathname}?view=${job.id}`, { scroll: false });
+    router.replace(`${pathname}?view=${job.slug || job.id}`, { scroll: false });
 
     setDetailLoading(true);
     try {
-      const res = await fetch(`/api/jobs/${job.id}`);
+      const res = await fetch(`/api/jobs/${job.slug || job.id}`);
       if (res.ok) {
         const data = await res.json();
         setSelectedJob(data.job || job);
@@ -203,7 +203,7 @@ function CountyJobsInner({ countyName, countySlug }: CountyJobsClientProps) {
   useEffect(() => {
     const viewId = searchParams.get('view');
     if (viewId && !detailOpen) {
-      const job = jobs.find((j) => j.id === viewId);
+      const job = jobs.find((j) => j.slug === viewId || j.id === viewId);
       if (job) {
         openJobSheet(job);
       } else {

@@ -101,12 +101,12 @@ function ArticlesPageInner() {
     setSelectedArticle(article);
     setDetailOpen(true);
     sheetOpenRef.current = true;
-    router.replace(`${pathname}?view=${article.id}`, { scroll: false });
+    router.replace(`${pathname}?view=${article.slug}`, { scroll: false });
 
     // Fetch full details
     setDetailLoading(true);
     try {
-      const res = await fetch(`/api/articles/${article.id}`);
+      const res = await fetch(`/api/articles/${article.slug}`);
       if (res.ok) {
         const data = await res.json();
         if (data.article) setSelectedArticle(data.article);
@@ -142,7 +142,7 @@ function ArticlesPageInner() {
   useEffect(() => {
     const viewId = searchParams.get('view');
     if (viewId && !detailOpen) {
-      const article = articles.find((a) => a.id === viewId);
+      const article = articles.find((a) => a.slug === viewId || a.id === viewId);
       if (article) {
         openArticleSheet(article);
       } else {

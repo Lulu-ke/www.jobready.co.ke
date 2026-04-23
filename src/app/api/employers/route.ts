@@ -5,10 +5,11 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const slug = searchParams.get('slug');
 
-    if (id) {
+    if (id || slug) {
       const employer = await db.employer.findUnique({
-        where: { id },
+        where: slug ? { slug } : { id: id! },
       });
       if (!employer) {
         return NextResponse.json({ error: 'Employer not found' }, { status: 404 });

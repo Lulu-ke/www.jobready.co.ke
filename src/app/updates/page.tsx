@@ -47,6 +47,7 @@ function getUpdateTypeLabel(type: string): string {
 interface JobUpdate {
   id: string;
   title: string;
+  slug: string;
   type: string;
   sourceName: string;
   sourceUrl?: string;
@@ -147,12 +148,12 @@ function UpdatesPageInner() {
     setSelectedUpdate(update as JobUpdateDetail);
     setDetailOpen(true);
     sheetOpenRef.current = true;
-    router.replace(`${pathname}?view=${update.id}`, { scroll: false });
+    router.replace(`${pathname}?view=${update.slug}`, { scroll: false });
 
     // Fetch full details
     setDetailLoading(true);
     try {
-      const res = await fetch(`/api/updates/${update.id}`);
+      const res = await fetch(`/api/updates/${update.slug}`);
       if (res.ok) {
         const data = await res.json();
         if (data.update) setSelectedUpdate(data.update);
@@ -188,7 +189,7 @@ function UpdatesPageInner() {
   useEffect(() => {
     const viewId = searchParams.get('view');
     if (viewId && !detailOpen) {
-      const update = updates.find((u) => u.id === viewId);
+      const update = updates.find((u) => u.slug === viewId || u.id === viewId);
       if (update) {
         openUpdateSheet(update);
       } else {

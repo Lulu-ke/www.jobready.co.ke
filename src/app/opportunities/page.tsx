@@ -151,12 +151,12 @@ function OpportunitiesPageInner() {
     setSelectedOpp(opp);
     setDetailOpen(true);
     sheetOpenRef.current = true;
-    router.replace(`${pathname}?view=${opp.id}`, { scroll: false });
+    router.replace(`${pathname}?view=${opp.slug}`, { scroll: false });
 
     // Fetch full details
     setDetailLoading(true);
     try {
-      const res = await fetch(`/api/opportunities/${opp.id}`);
+      const res = await fetch(`/api/opportunities/${opp.slug}`);
       if (res.ok) {
         const data = await res.json();
         if (data.opportunity) setSelectedOpp(data.opportunity);
@@ -192,7 +192,7 @@ function OpportunitiesPageInner() {
   useEffect(() => {
     const viewId = searchParams.get('view');
     if (viewId && !detailOpen) {
-      const opp = opportunities.find((o) => o.id === viewId);
+      const opp = opportunities.find((o) => o.slug === viewId || o.id === viewId);
       if (opp) {
         openOppSheet(opp);
       } else {

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
-    const { id } = await params;
-    const update = await db.jobUpdate.findUnique({ where: { id } });
+    const { slug } = await params;
+    const update = await db.jobUpdate.findUnique({ where: { slug } });
     if (!update) return NextResponse.json({ error: 'Update not found' }, { status: 404 });
     return NextResponse.json({ update });
   } catch (error) {

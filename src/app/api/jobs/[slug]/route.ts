@@ -25,12 +25,12 @@ function formatSalary(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { slug } = await params;
     const job = await db.job.findUnique({
-      where: { id },
+      where: { slug },
       include: {
         employer: {
           select: {
