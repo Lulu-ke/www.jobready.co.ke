@@ -10,6 +10,7 @@ import Header from '@/components/header';
 import Footer from '@/components/footer';
 import WhatsAppFloat from '@/components/whatsapp-float';
 import NewsletterSection from '@/components/newsletter-section';
+import AdSlot from '@/components/ad-slot';
 import EmployerDetailSheet from '@/components/employer-detail-sheet';
 import { orgTypeLabel, getInitials } from '@/lib/helpers';
 
@@ -355,7 +356,8 @@ function EmployersPageInner() {
 
           {/* Employers Grid */}
           {!loading && !error && filteredEmployers.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
               {filteredEmployers.map((employer) => {
                 const gradient = getLogoGradient(employer.companyName);
                 const initials = getInitials(employer.companyName);
@@ -378,10 +380,23 @@ function EmployersPageInner() {
                   </div>
                 );
               })}
-            </div>
+              </div>
+
+              {/* Inline Ad between grid and newsletter */}
+              {filteredEmployers.length >= 4 && (
+                <div className="mt-10">
+                  <AdSlot slot="inline-1" />
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
+
+      {/* Banner Ad before newsletter */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <AdSlot slot="banner" className="my-6" />
+      </div>
 
       <NewsletterSection />
 

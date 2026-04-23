@@ -12,6 +12,7 @@ import Footer from '@/components/footer';
 import WhatsAppFloat from '@/components/whatsapp-float';
 import OpportunityDetailSheet from '@/components/opportunity-detail-sheet';
 import NewsletterSection from '@/components/newsletter-section';
+import AdSlot from '@/components/ad-slot';
 import { opportunityTypeLabel } from '@/lib/helpers';
 
 interface Opportunity {
@@ -328,7 +329,8 @@ function OpportunitiesPageInner() {
 
           {/* Grid */}
           {!loading && !error && filteredOpps.length > 0 && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredOpps.map((opp) => (
                 <div
                   key={opp.id}
@@ -387,10 +389,23 @@ function OpportunitiesPageInner() {
                   )}
                 </div>
               ))}
-            </div>
+              </div>
+
+              {/* Inline Ad between grid and newsletter */}
+              {filteredOpps.length >= 3 && (
+                <div className="mt-10">
+                  <AdSlot slot="inline-1" />
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
+
+      {/* Banner Ad before newsletter */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <AdSlot slot="banner" className="my-6" />
+      </div>
 
       <NewsletterSection />
 

@@ -13,6 +13,7 @@ import WhatsAppFloat from '@/components/whatsapp-float';
 import JobFilters from '@/components/job-filters';
 import JobDetailSheet from '@/components/job-detail-sheet';
 import NewsletterSection from '@/components/newsletter-section';
+import AdSlot from '@/components/ad-slot';
 
 interface Filters {
   search: string;
@@ -390,6 +391,13 @@ function JobsPageInner() {
                 </div>
               )}
 
+              {/* Inline Ad — after first 6 jobs */}
+              {!loading && !error && jobs.length >= 6 && (
+                <div className="my-8">
+                  <AdSlot slot="inline-1" />
+                </div>
+              )}
+
               {/* Load More */}
               {!loading && !error && jobs.length > 0 && page < totalPages && (
                 <div className="text-center mt-8">
@@ -412,6 +420,11 @@ function JobsPageInner() {
           </div>
         </div>
       </section>
+
+      {/* Banner Ad before newsletter */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <AdSlot slot="banner" className="my-6" />
+      </div>
 
       <NewsletterSection />
 

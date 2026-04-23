@@ -12,6 +12,7 @@ import Footer from '@/components/footer';
 import WhatsAppFloat from '@/components/whatsapp-float';
 import ArticleDetailSheet from '@/components/article-detail-sheet';
 import NewsletterSection from '@/components/newsletter-section';
+import AdSlot from '@/components/ad-slot';
 
 interface Article {
   id: string;
@@ -235,7 +236,8 @@ function ArticlesPageInner() {
 
           {/* Articles Grid */}
           {!loading && !error && articles.length > 0 && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {articles.map((article, index) => (
                 <motion.article
                   key={article.id}
@@ -274,10 +276,23 @@ function ArticlesPageInner() {
                   </div>
                 </motion.article>
               ))}
-            </div>
+              </div>
+
+              {/* Inline Ad between articles and newsletter */}
+              {articles.length >= 3 && (
+                <div className="mt-10">
+                  <AdSlot slot="inline-1" />
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
+
+      {/* Banner Ad before newsletter */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <AdSlot slot="banner" className="my-6" />
+      </div>
 
       <NewsletterSection />
 

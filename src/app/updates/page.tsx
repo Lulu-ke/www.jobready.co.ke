@@ -12,6 +12,7 @@ import Footer from '@/components/footer';
 import WhatsAppFloat from '@/components/whatsapp-float';
 import JobUpdateDetailSheet from '@/components/job-update-detail-sheet';
 import NewsletterSection from '@/components/newsletter-section';
+import AdSlot from '@/components/ad-slot';
 
 const UPDATE_TYPES = [
   { key: 'ALL', label: 'All Updates' },
@@ -304,7 +305,8 @@ function UpdatesPageInner() {
 
           {/* Updates Grid */}
           {!loading && !error && updates.length > 0 && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {updates.map((update, index) => (
                 <motion.article
                   key={update.id}
@@ -349,10 +351,23 @@ function UpdatesPageInner() {
                   </div>
                 </motion.article>
               ))}
-            </div>
+              </div>
+
+              {/* Inline Ad between updates and newsletter */}
+              {updates.length >= 3 && (
+                <div className="mt-10">
+                  <AdSlot slot="inline-1" />
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
+
+      {/* Banner Ad before newsletter */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <AdSlot slot="banner" className="my-6" />
+      </div>
 
       <NewsletterSection />
 
