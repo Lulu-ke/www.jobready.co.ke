@@ -42,6 +42,8 @@ export async function GET(request: NextRequest) {
     const experienceLevel = searchParams.get('experienceLevel') || '';
     const county = searchParams.get('county') || '';
     const orgType = searchParams.get('orgType') || '';
+    const featured = searchParams.get('featured') === 'true';
+    const deadline = searchParams.get('deadline') || '';
 
     const where: Record<string, unknown> = {
       isActive: true,
@@ -96,6 +98,15 @@ export async function GET(request: NextRequest) {
     if (orgType) {
       where.employer = { ...where.employer, orgType: orgType as any };
     }
+    if (featured) {
+      where.isFeatured = true;
+    }
+    if (deadline === 'soon') {
+      where.closingDate = {
+        gte: new Date(),
+        lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      };
+    }
 
     const orderBy: Record<string, string> = {};
     if (sort === 'newest') {
@@ -106,6 +117,10 @@ export async function GET(request: NextRequest) {
       orderBy.salaryMin = 'asc';
     } else if (sort === 'featured') {
       orderBy.isFeatured = 'desc';
+    } else if (sort === 'trending') {
+      orderBy.views = 'desc';
+    } else if (sort === 'deadline') {
+      orderBy.closingDate = 'asc';
     }
 
     const [jobs, total] = await Promise.all([

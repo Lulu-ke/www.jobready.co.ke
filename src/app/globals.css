@@ -150,3 +150,18 @@
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Clickable text */
+.clickable-text {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.clickable-text:hover {
+  color: #0D9488;
+}
+
+/* WhatsApp float animation */
+@keyframes wa-fade {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.5; }
+}
