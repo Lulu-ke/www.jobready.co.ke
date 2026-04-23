@@ -40,7 +40,7 @@ export default function EmployerMarquee({ employers }: EmployerMarqueeProps) {
 
   return (
     <section className="py-10 lg:py-12 overflow-hidden border-y border-gray-100 bg-gray-50/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8 mb-6">
         <div className="text-center">
           <h2 className="text-lg font-semibold text-gray-600 flex items-center justify-center gap-2">
             <Building2 className="w-5 h-5 text-gray-400" />

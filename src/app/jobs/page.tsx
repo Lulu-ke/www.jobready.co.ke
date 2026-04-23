@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
-import MobileNav from '@/components/mobile-nav';
 import JobCard, { Job } from '@/components/job-card';
+import WhatsAppFloat from '@/components/whatsapp-float';
 import JobFilters from '@/components/job-filters';
 import JobDetailSheet from '@/components/job-detail-sheet';
 import NewsletterSection from '@/components/newsletter-section';
@@ -39,7 +39,7 @@ function JobsPageContent() {
         <JobsPageInner />
       </Suspense>
       <Footer />
-      <MobileNav />
+      <WhatsAppFloat />
     </div>
   );
 }
@@ -426,7 +426,7 @@ export default function JobsPage() {
         <JobsPageInner />
       </Suspense>
       <Footer />
-      <MobileNav />
+      <WhatsAppFloat />
     </div>
   );
 }

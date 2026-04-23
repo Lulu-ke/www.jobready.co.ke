@@ -12,7 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
-import MobileNav from '@/components/mobile-nav';
+import WhatsAppFloat from '@/components/whatsapp-float';
 import NewsletterSection from '@/components/newsletter-section';
 
 interface ArticleDetail {
@@ -142,7 +142,7 @@ export default function ArticleDetailClient({ article }: ArticleDetailClientProp
         <NewsletterSection />
       </main>
       <Footer />
-      <MobileNav />
+      <WhatsAppFloat />
     </div>
   );
 }

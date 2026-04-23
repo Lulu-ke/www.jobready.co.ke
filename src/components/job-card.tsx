@@ -3,7 +3,6 @@
 import { formatDistanceToNow } from 'date-fns';
 import { MapPin, Clock, DollarSign, Building2, Wifi, Star, Zap, Bookmark, Share2, TrendingUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { experienceLevelLabel } from '@/lib/helpers';
 
 export interface Job {
@@ -59,25 +58,14 @@ function getLogoColor(name: string): string {
 
 function getTypeColor(type: string): string {
   const colors: Record<string, string> = {
-    'Full-Time': 'bg-green-50 text-green-700 border-green-200',
-    'Part-Time': 'bg-blue-50 text-blue-700 border-blue-200',
-    'Contract': 'bg-orange-50 text-orange-700 border-orange-200',
-    'Internship': 'bg-purple-50 text-purple-700 border-purple-200',
-    'Fixed-Term': 'bg-amber-50 text-amber-700 border-amber-200',
-    'Remote': 'bg-cyan-50 text-cyan-700 border-cyan-200',
+    'Full-Time': 'bg-green-50 text-green-700',
+    'Part-Time': 'bg-blue-50 text-blue-700',
+    'Contract': 'bg-orange-50 text-orange-700',
+    'Internship': 'bg-purple-50 text-purple-700',
+    'Fixed-Term': 'bg-amber-50 text-amber-700',
+    'Remote': 'bg-cyan-50 text-cyan-700',
   };
-  return colors[type] || 'bg-gray-50 text-gray-700 border-gray-200';
-}
-
-function getExperienceLevelColor(level: string): string {
-  const colors: Record<string, string> = {
-    entry: 'bg-teal-50 text-teal-700 border-teal-200',
-    internship: 'bg-purple-50 text-purple-700 border-purple-200',
-    casual: 'bg-gray-50 text-gray-700 border-gray-200',
-    mid: 'bg-amber-50 text-amber-700 border-amber-200',
-    senior: 'bg-orange-50 text-orange-700 border-orange-200',
-  };
-  return colors[level] || 'bg-gray-50 text-gray-700 border-gray-200';
+  return colors[type] || 'bg-gray-50 text-gray-700';
 }
 
 function getCategoryName(category: Job['category']): string {
@@ -94,86 +82,46 @@ export default function JobCard({ job, onClick }: JobCardProps) {
 
   return (
     <div
-      className="group cursor-pointer bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 hover:border-teal-200 transition-all duration-200 p-5"
+      className="group cursor-pointer bg-white rounded-xl shadow-sm hover:shadow-md p-4 border border-gray-100 transition-all duration-200"
       onClick={() => onClick(job)}
     >
-      <div className="flex items-start gap-4">
-        {/* Company Logo */}
-        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${logoColor} flex items-center justify-center text-white font-bold text-sm shrink-0`}>
+      <div className="flex items-start gap-3">
+        {/* Company Logo - rounded-full per live site */}
+        <div className={`w-10 h-10 bg-gray-200 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold text-xs bg-gradient-to-br ${logoColor}`}>
           {job.logo || job.company.substring(0, 2).toUpperCase()}
         </div>
 
         {/* Job Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                {job.isFeatured && (
-                  <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] px-1.5 py-0">
-                    <Star className="w-3 h-3 mr-0.5 fill-amber-500" /> Featured
-                  </Badge>
-                )}
-                {job.isUrgent && (
-                  <Badge className="bg-red-50 text-red-700 border-red-200 text-[10px] px-1.5 py-0 animate-pulse-badge">
-                    <Zap className="w-3 h-3 mr-0.5" /> Urgent
-                  </Badge>
-                )}
-              </div>
-              <h3 className="font-semibold text-slate-800 group-hover:text-teal-700 transition-colors truncate">
-                {job.title}
-              </h3>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-2">
-            <Building2 className="w-3.5 h-3.5" />
-            <span className="truncate">{job.company}</span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500 mb-3">
-            <span className="flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5" />
-              {job.location}
-            </span>
-            <span className="flex items-center gap-1">
-              <DollarSign className="w-3.5 h-3.5" />
-              {job.salaryFormatted}
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
-              {timeAgo}
-            </span>
-            {job.isRemote && (
-              <span className="flex items-center gap-1 text-teal-600 font-medium">
-                <Wifi className="w-3.5 h-3.5" />
-                Remote
-              </span>
+          {/* Badges */}
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            {job.isFeatured && (
+              <Badge className="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full gap-0.5">
+                <Star className="w-3 h-3 fill-amber-500" /> Featured
+              </Badge>
+            )}
+            {job.isUrgent && (
+              <Badge className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full gap-0.5 animate-pulse-badge">
+                <Zap className="w-3 h-3" /> Urgent
+              </Badge>
             )}
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className={typeColor + ' text-[11px]'}>
-                {job.type}
-              </Badge>
-              {job.experienceLevel && (
-                <Badge variant="outline" className={`${getExperienceLevelColor(job.experienceLevel)} text-[10px]`}>
-                  <TrendingUp className="w-2.5 h-2.5 mr-0.5" />
-                  {experienceLevelLabel(job.experienceLevel)}
-                </Badge>
-              )}
-              {categoryName && (
-                <span className="text-[11px] text-gray-400 hidden sm:inline">{categoryName}</span>
-              )}
-            </div>
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button variant="ghost" size="icon" className="w-8 h-8" onClick={(e) => e.stopPropagation()}>
-                <Bookmark className="w-4 h-4 text-gray-400" />
-              </Button>
-              <Button variant="ghost" size="icon" className="w-8 h-8" onClick={(e) => e.stopPropagation()}>
-                <Share2 className="w-4 h-4 text-gray-400" />
-              </Button>
-            </div>
+          {/* Title */}
+          <h3 className="font-semibold text-sm group-hover:text-teal-700 transition-colors truncate mb-0.5" style={{ color: '#1E293B' }}>
+            {job.title}
+          </h3>
+
+          {/* Company */}
+          <p className="text-xs text-gray-400 mb-1">{job.company} &middot; {job.location}</p>
+
+          {/* Tags */}
+          <div className="flex gap-2 mt-3">
+            {categoryName && (
+              <span className="text-[11px] bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full">{categoryName}</span>
+            )}
+            <span className="text-[11px] bg-gray-50 text-gray-600 px-2 py-0.5 rounded-full">{job.location}</span>
+            <span className="text-[11px] bg-gray-50 text-gray-600 px-2 py-0.5 rounded-full">{job.type}</span>
           </div>
         </div>
       </div>

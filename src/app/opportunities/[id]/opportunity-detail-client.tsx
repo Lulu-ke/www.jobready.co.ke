@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
-import MobileNav from '@/components/mobile-nav';
+import WhatsAppFloat from '@/components/whatsapp-float';
 import NewsletterSection from '@/components/newsletter-section';
 import { opportunityTypeLabel, orgTypeLabel, getInitials } from '@/lib/helpers';
 
@@ -221,7 +221,7 @@ export default function OpportunityDetailClient({ opportunity }: OpportunityDeta
         <NewsletterSection />
       </main>
       <Footer />
-      <MobileNav />
+      <WhatsAppFloat />
     </div>
   );
 }

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
-import MobileNav from '@/components/mobile-nav';
+import WhatsAppFloat from '@/components/whatsapp-float';
 import ArticleDetailSheet from '@/components/article-detail-sheet';
 import NewsletterSection from '@/components/newsletter-section';
 
@@ -291,7 +291,7 @@ export default function ArticlesPage() {
         <ArticlesPageInner />
       </Suspense>
       <Footer />
-      <MobileNav />
+      <WhatsAppFloat />
     </div>
   );
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef } from 'react';
-import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import {
   Calculator, ClipboardList, Sprout, Plane, Landmark, Briefcase,
@@ -9,6 +8,7 @@ import {
   Heart, Users, Shield, Rocket, Code, Scale, Truck, Megaphone,
   Globe, GanttChart, Wifi, TrendingUp, Award, MapPin
 } from 'lucide-react';
+import Link from 'next/link';
 
 interface Category {
   name: string;
@@ -47,98 +47,67 @@ export default function CategoriesGrid({ categories }: CategoriesGridProps) {
   };
 
   return (
-    <section id="categories" className="scroll-mt-20 py-12 lg:py-16 bg-gradient-to-br from-white to-gray-50/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="flex items-end justify-between mb-8"
-        >
-          <div>
-            <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 mb-1">
-              Browse by Category
-            </h2>
-            <p className="text-gray-500">
-              Find opportunities in your field of expertise
-            </p>
-          </div>
-          <a
-            href="#jobs"
-            className="hidden sm:flex items-center gap-1 text-sm font-medium hover:underline"
-            style={{ color: 'rgb(91, 33, 182)' }}
-          >
-            View all {categories.length} categories
-            <ArrowRight className="w-4 h-4" />
-          </a>
-        </motion.div>
+    <section id="categories" className="scroll-mt-32 py-8 md:py-12">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
+        <h2 className="text-xl md:text-2xl font-bold mb-5" style={{ color: '#1E293B' }}>
+          Browse by Category
+        </h2>
 
         {/* Carousel */}
         <div className="relative">
           {/* Left Arrow */}
           <button
             onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-9 h-9 rounded-full bg-white shadow-md border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors hidden md:flex"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors text-teal-600 hidden md:flex cursor-pointer"
             aria-label="Scroll left"
           >
-            <ChevronLeft className="w-5 h-5 text-gray-600" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
 
           {/* Right Arrow */}
           <button
             onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-9 h-9 rounded-full bg-white shadow-md border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors hidden md:flex"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors text-teal-600 hidden md:flex cursor-pointer"
             aria-label="Scroll right"
           >
-            <ChevronRight className="w-5 h-5 text-gray-600" />
+            <ChevronRight className="w-5 h-5" />
           </button>
 
           {/* Scrollable Container */}
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto hide-scrollbar carousel-scroll pb-2"
+            className="flex overflow-x-auto space-x-4 pb-4 hide-scrollbar scroll-smooth"
           >
-            {categories.map((category, index) => {
+            {categories.map((category) => {
               const IconComponent = iconMap[category.icon] || Briefcase;
               return (
-                <motion.button
+                <button
                   key={category.slug}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.03 }}
                   onClick={() => handleCategoryClick(category)}
-                  className="group flex-shrink-0 w-32 md:w-36 bg-white rounded-xl shadow-sm p-4 text-center hover:shadow-md border border-gray-100 hover:border-teal-200 transition-all duration-200 cursor-pointer"
+                  className="flex-shrink-0 w-32 md:w-36 bg-white rounded-xl shadow-sm p-4 text-center hover:shadow-md transition-shadow no-underline group cursor-pointer"
                 >
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 transition-transform group-hover:scale-110"
-                    style={{ backgroundColor: `${category.color}15` }}
-                  >
+                  <div className="w-8 h-8 mx-auto mb-2">
                     <IconComponent
-                      className="w-6 h-6 transition-colors"
-                      style={{ color: 'rgb(91, 33, 182)' }}
+                      className="w-8 h-8"
+                      style={{ color: '#5B21B6', fontSize: '1.75rem' }}
                     />
                   </div>
-                  <p className="text-sm font-medium text-slate-800 group-hover:text-teal-700 transition-colors line-clamp-2">
+                  <p className="text-sm font-medium mt-2" style={{ color: '#1E293B' }}>
                     {category.name}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">{category.jobCount} jobs</p>
-                </motion.button>
+                </button>
               );
             })}
           </div>
         </div>
 
-        {/* Mobile View All link */}
-        <div className="mt-4 text-center sm:hidden">
-          <a
-            href="#jobs"
-            className="text-sm font-medium"
-            style={{ color: 'rgb(91, 33, 182)' }}
-          >
-            View all {categories.length} categories →
-          </a>
-        </div>
+        {/* View all link */}
+        <Link
+          href="/jobs"
+          className="text-sm font-medium text-teal-600 hover:text-purple-700 transition-colors inline-flex items-center gap-1 mt-2"
+        >
+          View all {categories.length} categories <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
       </div>
     </section>
   );

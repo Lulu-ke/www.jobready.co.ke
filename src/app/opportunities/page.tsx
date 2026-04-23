@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
-import MobileNav from '@/components/mobile-nav';
+import WhatsAppFloat from '@/components/whatsapp-float';
 import OpportunityDetailSheet from '@/components/opportunity-detail-sheet';
 import NewsletterSection from '@/components/newsletter-section';
 import { opportunityTypeLabel } from '@/lib/helpers';
@@ -404,7 +404,7 @@ export default function OpportunitiesPage() {
         <OpportunitiesPageInner />
       </Suspense>
       <Footer />
-      <MobileNav />
+      <WhatsAppFloat />
     </div>
   );
 }

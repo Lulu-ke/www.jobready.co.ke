@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowRight } from 'lucide-react';
 import JobCard, { Job } from './job-card';
 import JobFilters from './job-filters';
 import JobDetailSheet from './job-detail-sheet';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FileText } from 'lucide-react';
 
 interface Category {
   name: string;
@@ -103,7 +104,6 @@ export default function JobList({ initialSearch }: JobListProps) {
     setPage(1);
   };
 
-  // Reset page when filters change
   useEffect(() => {
     setPage(1);
   }, [filters]);
@@ -127,113 +127,129 @@ export default function JobList({ initialSearch }: JobListProps) {
   const hasMore = jobs.length < total;
 
   return (
-    <section id="jobs" className="scroll-mt-20 bg-white py-12 lg:py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="jobs" className="scroll-mt-32 py-8 md:py-12">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-          <div>
-            <h2 className="text-2xl lg:text-3xl font-bold text-slate-800">
-              Featured Jobs
-            </h2>
-            <p className="text-gray-500 mt-1">
-              {loading ? 'Loading...' : `${total.toLocaleString()} jobs found`}
-              {filters.search && ` for "${filters.search}"`}
-            </p>
-          </div>
-          <div className="text-sm text-gray-400">
-            Showing {jobs.length} of {total.toLocaleString()} results
-          </div>
-        </div>
+        <h2 className="text-xl md:text-2xl font-bold mb-5" style={{ color: '#1E293B' }}>
+          Featured Jobs – Sponsored
+        </h2>
 
-        <div className="flex flex-col lg:flex-row lg:gap-8 gap-4">
-          {/* Filters Sidebar */}
-          <JobFilters
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            categories={categories}
-            totalResults={total}
-          />
+        <div className="grid md:grid-cols-3 gap-6">
+          {/* Left: Featured Job Cards (2 cols) */}
+          <div className="md:col-span-2">
+            <div className="flex flex-col lg:flex-row lg:gap-8 gap-4">
+              {/* Filters Sidebar (desktop) */}
+              <JobFilters
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                categories={categories}
+                totalResults={total}
+              />
 
-          {/* Job Cards Grid */}
-          <div className="flex-1 min-w-0 w-full">
-            {error && (
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 text-red-700 mb-6">
-                <AlertCircle className="w-5 h-5 shrink-0" />
-                <p className="text-sm">{error}</p>
-                <Button variant="ghost" size="sm" className="ml-auto" onClick={() => fetchJobs()}>Retry</Button>
-              </div>
-            )}
-
-            {loading ? (
-              <div className="grid gap-4">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="flex items-start gap-4 p-5 rounded-xl bg-white border border-gray-100 shadow-sm">
-                    <Skeleton className="w-12 h-12 rounded-xl" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
-                      <Skeleton className="h-3 w-1/3" />
-                      <div className="flex gap-2 pt-1">
-                        <Skeleton className="h-5 w-16 rounded-full" />
-                        <Skeleton className="h-5 w-20 rounded-full" />
-                      </div>
-                    </div>
+              {/* Job Cards */}
+              <div className="flex-1 min-w-0 w-full">
+                {error && (
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 text-red-700 mb-6">
+                    <AlertCircle className="w-5 h-5 shrink-0" />
+                    <p className="text-sm">{error}</p>
+                    <Button variant="ghost" size="sm" className="ml-auto" onClick={() => fetchJobs()}>Retry</Button>
                   </div>
-                ))}
-              </div>
-            ) : jobs.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4">
-                  <AlertCircle className="w-8 h-8 text-gray-300" />
-                </div>
-                <h3 className="font-semibold text-slate-800 mb-2">No jobs found</h3>
-                <p className="text-gray-500 text-sm mb-6">
-                  Try adjusting your search or filter criteria
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => handleFilterChange({
-                    search: '', location: '', category: '', type: '', experienceLevel: '', salaryMin: '', salaryMax: '', sort: 'newest',
-                  })}
-                >
-                  Clear all filters
-                </Button>
-              </div>
-            ) : (
-              <div className="grid gap-4">
-                {jobs.map((job) => (
-                  <JobCard key={job.id} job={job} onClick={handleJobClick} />
-                ))}
-              </div>
-            )}
+                )}
 
-            {/* Load More */}
-            {hasMore && !loading && (
-              <div className="mt-8 text-center">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setPage((p) => p + 1);
-                  }}
-                  disabled={loadingMore}
-                  className="px-8"
-                >
-                  {loadingMore ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Loading more jobs...
-                    </>
-                  ) : (
-                    `Load More Jobs (${total - jobs.length} remaining)`
-                  )}
-                </Button>
+                {loading ? (
+                  <div className="space-y-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+                        <div className="flex items-start gap-3">
+                          <Skeleton className="w-10 h-10 rounded-full shrink-0" />
+                          <div className="flex-1 space-y-2">
+                            <Skeleton className="h-4 w-3/4 rounded" />
+                            <Skeleton className="h-3 w-1/2 rounded" />
+                            <div className="flex gap-2 pt-1">
+                              <Skeleton className="h-5 w-16 rounded-full" />
+                              <Skeleton className="h-5 w-20 rounded-full" />
+                              <Skeleton className="h-5 w-14 rounded-full" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : jobs.length === 0 ? (
+                  <div className="text-center py-16">
+                    <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4">
+                      <AlertCircle className="w-8 h-8 text-gray-300" />
+                    </div>
+                    <h3 className="font-semibold mb-2" style={{ color: '#1E293B' }}>No jobs found</h3>
+                    <p className="text-gray-400 text-sm mb-6">
+                      Try adjusting your search or filter criteria
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleFilterChange({
+                        search: '', location: '', category: '', type: '', experienceLevel: '', salaryMin: '', salaryMax: '', sort: 'newest',
+                      })}
+                    >
+                      Clear all filters
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {jobs.map((job) => (
+                      <JobCard key={job.id} job={job} onClick={handleJobClick} />
+                    ))}
+                  </div>
+                )}
+
+                {/* Load More */}
+                {hasMore && !loading && (
+                  <div className="mt-8 text-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => setPage((p) => p + 1)}
+                      disabled={loadingMore}
+                      className="px-8"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Loading more jobs...
+                        </>
+                      ) : (
+                        `Load More Jobs (${total - jobs.length} remaining)`
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+          </div>
+
+          {/* Right: CV Promo Card */}
+          <div className="bg-gradient-to-r from-purple-50 to-teal-50 p-5 rounded-xl border border-teal-200 text-center shadow-md h-full flex flex-col justify-center">
+            <FileText className="w-8 h-8 mx-auto mb-2" style={{ color: '#5B21B6' }} />
+            <h3 className="font-bold text-lg mt-1" style={{ color: '#1E293B' }}>
+              Land Your Dream Job Faster
+            </h3>
+            <p className="text-sm text-gray-600 my-2 text-left space-y-1">
+              <span className="block">Professional CV Writing (from KES 2,500)</span>
+              <span className="block">Cover Letter &amp; Application Docs</span>
+              <span className="block">Career Coaching</span>
+            </p>
+            <Button
+              className="w-full mt-2 text-white font-semibold rounded-full transition-colors"
+              style={{ backgroundColor: '#5B21B6' }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#4a1a94')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#5B21B6')}
+              asChild
+            >
+              <a href="#">Get Started &rarr;</a>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Job Detail Sheet */}
+      {/* Job Detail Sheet - MAINTAINED */}
       <JobDetailSheet
         job={selectedJob}
         open={detailOpen}

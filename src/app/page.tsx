@@ -10,7 +10,7 @@ import OpportunitiesSection from '@/components/opportunities-section';
 import ArticlesSection from '@/components/articles-section';
 import NewsletterSection from '@/components/newsletter-section';
 import Footer from '@/components/footer';
-import MobileNav from '@/components/mobile-nav';
+import WhatsAppFloat from '@/components/whatsapp-float';
 
 interface Stats {
   totalJobs: number;
@@ -123,7 +123,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col font-sans bg-gray-50">
       <Header />
       <main className="flex-1">
         <Hero stats={defaultStats} onSearch={handleHeroSearch} />
@@ -135,7 +135,7 @@ export default function HomePage() {
         <NewsletterSection />
       </main>
       <Footer />
-      <MobileNav />
+      <WhatsAppFloat />
     </div>
   );
 }

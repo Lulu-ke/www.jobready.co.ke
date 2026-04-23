@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
-import MobileNav from '@/components/mobile-nav';
+import WhatsAppFloat from '@/components/whatsapp-float';
 import NewsletterSection from '@/components/newsletter-section';
 import { orgTypeLabel, getInitials } from '@/lib/helpers';
 
@@ -230,7 +230,7 @@ export default function EmployersPage() {
         <NewsletterSection />
       </main>
       <Footer />
-      <MobileNav />
+      <WhatsAppFloat />
     </div>
   );
 }

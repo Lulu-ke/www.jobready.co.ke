@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Mail, Send, CheckCircle, Loader2, Bell } from 'lucide-react';
+import { Send, CheckCircle, Loader2, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -41,13 +40,8 @@ export default function NewsletterSection() {
 
   return (
     <section className="py-12 lg:py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-600 to-teal-700 p-8 lg:p-14"
-        >
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-teal-600 to-teal-700 p-8 lg:p-14">
           <div className="relative max-w-2xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 text-white/90 text-sm mb-4">
               <Bell className="w-4 h-4" />
@@ -62,14 +56,10 @@ export default function NewsletterSection() {
             </p>
 
             {status === 'success' ? (
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="flex items-center justify-center gap-2 text-white text-lg"
-              >
+              <div className="flex items-center justify-center gap-2 text-white text-lg">
                 <CheckCircle className="w-6 h-6 text-green-300" />
                 You&apos;re subscribed! Check your inbox for a welcome email.
-              </motion.div>
+              </div>
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                 <Input
@@ -109,7 +99,7 @@ export default function NewsletterSection() {
               No spam, ever. Unsubscribe at any time.
             </p>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
