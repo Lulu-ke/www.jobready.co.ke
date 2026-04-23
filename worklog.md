@@ -96,3 +96,22 @@ Stage Summary:
 - 31 files changed, ~3000 insertions, 27 total routes
 - Commits: a8d01af (Phase 5), 132d19d (robots.txt fix), 0858fb9 (DB URL fix)
 - All features working: sitemap, RSS, robots, updates, employer sheets, homepage modals
+
+---
+Task ID: 5b
+Agent: Main Agent
+Task: Fix side-sheet modal close navigation — stay on current page
+
+Work Log:
+- Diagnosed root cause: router.replace() overwrites history entry, so router.back() navigates to the PREVIOUS page, not current page without params
+- Identified all 6 affected pages: /, /jobs, /opportunities, /articles, /updates, /employers
+- Replaced router.back() with router.replace(pathname) using usePathname() hook
+- Added sheetOpenRef to guard popstate listeners (only close sheets that are actually open)
+- Added missing popstate listener to employers page
+- Created reusable useSheetNavigation hook for future pages
+- Build passes clean (27 routes), all committed and pushed
+
+Stage Summary:
+- 7 files changed, 240 insertions, 97 deletions
+- Commit: b3f0e57 "Fix: side-sheet modal close now stays on current page"
+- Closing a sheet on any page now correctly falls back to that same page
