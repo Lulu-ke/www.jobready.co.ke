@@ -109,7 +109,7 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
   };
 
   return (
-    <Sheet open={open} onOpenChange={onClose}>
+    <Sheet open={open} onOpenChange={(val) => { if (!val) onClose(); }}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto custom-scrollbar p-0 [&>button]:hidden bg-white">
         {/* Sticky header */}
         <SheetHeader className="sticky top-0 bg-white/95 backdrop-blur-sm z-10 px-5 py-4 border-b border-gray-100">
@@ -223,23 +223,23 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
 
           <Separator />
 
-          {/* Description */}
+          {/* Description + Requirements */}
           <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
             <h4 className="font-semibold text-slate-800 mb-3 text-sm">Job Description</h4>
             <p className="text-sm text-gray-600 leading-relaxed">{job.description}</p>
-          </div>
-
-          {/* Requirements */}
-          <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-            <h4 className="font-semibold text-slate-800 mb-3 text-sm">Requirements</h4>
-            <ul className="space-y-2">
-              {job.requirements.split('. ').filter(Boolean).map((req, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                  <ChevronRight className="w-4 h-4 text-teal-500 mt-0.5 shrink-0" />
-                  <span>{req.trim()}</span>
-                </li>
-              ))}
-            </ul>
+            {job.requirements && (
+              <div className="mt-5 pt-4 border-t border-gray-100">
+                <h5 className="font-semibold text-slate-800 mb-2 text-sm">Requirements</h5>
+                <ul className="space-y-2">
+                  {job.requirements.split('. ').filter(Boolean).map((req, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                      <ChevronRight className="w-4 h-4 text-teal-500 mt-0.5 shrink-0" />
+                      <span>{req.trim()}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* How to Apply */}

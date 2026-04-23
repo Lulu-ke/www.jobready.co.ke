@@ -1,4 +1,4 @@
-import { PrismaClient, OrgType, ExperienceLevel, OpportunityType } from '@prisma/client';
+import { PrismaClient, OrgType, ExperienceLevel, OpportunityType, UpdateType } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -197,6 +197,76 @@ const articlesData = [
 ];
 
 // ============================================
+// JOB UPDATES (8)
+// ============================================
+const jobUpdatesData = [
+  {
+    title: "Shortlisted Candidates At Office of the Director of Public Prosecutions (ODPP)",
+    slug: generateSlug("Shortlisted Candidates At Office of the Director of Public Prosecutions (ODPP)"),
+    sourceName: "ODPP",
+    sourceUrl: "https://odpp.go.ke",
+    type: "SHORTLISTED" as UpdateType,
+    content: "The Office of the Director of Public Prosecutions (ODPP) has released the list of shortlisted candidates for various positions advertised in the 2025/2026 financial year recruitment cycle. All shortlisted applicants are required to present themselves for verification of documents on the dates indicated in their respective invitation letters.\n\nCandidates must carry original academic and professional certificates, national identity card, and two passport-size photographs. Additionally, shortlisted applicants are required to present clearance certificates from the following bodies: Law Society of Kenya (LSK) for advocates, Higher Education Loans Board (HELB), Kenya Revenue Authority (KRA), Directorate of Criminal Investigations (CID), and the Ethics and Anti-Corruption Commission (EACC).\n\nThe verification exercise will be conducted at the ODPP headquarters along Harambee Avenue, Nairobi. Candidates who fail to appear on the scheduled date will automatically be disqualified from the recruitment process. The ODPP has emphasized that all communication regarding the recruitment will be done officially through the provided contact channels and candidates should beware of fraudulent individuals purporting to offer assistance.\n\nFor any inquiries, candidates may contact the ODPP Human Resource Department through the official email address or visit the ODPP website for more details on the recruitment timeline and requirements."
+  },
+  {
+    title: "Shortlisted Candidates of the National Research Fund",
+    slug: generateSlug("Shortlisted Candidates of the National Research Fund"),
+    sourceName: "National Research Fund",
+    sourceUrl: "https://researchfund.go.ke",
+    type: "SHORTLISTED" as UpdateType,
+    content: "The National Research Fund (NRF) has published the names of shortlisted candidates for the positions of Senior Research Officers, Research Assistants, and Administrative staff. The shortlisting follows a rigorous evaluation process that considered academic qualifications, research experience, and relevant skills.\n\nAll shortlisted candidates are invited for interviews scheduled to take place at the NRF headquarters in Nairobi. Candidates are required to carry their original certificates, transcripts, CV, and a copy of the application letter. Those with foreign qualifications must present recognition letters from the Commission for University Education (CUE).\n\nThe NRF is a state corporation established under the Science, Technology and Innovation Act, 2013, mandated to fund and facilitate research, innovation, and technology development in Kenya. Successful candidates will join a dynamic team dedicated to advancing research across various disciplines including health, agriculture, energy, and environmental sciences.\n\nCandidates are advised to regularly check the NRF website and their email for any updates regarding the interview schedule and venue. The Fund wishes all candidates the best in the upcoming interviews."
+  },
+  {
+    title: "Interview Schedule: Kenya School of Government - Senior Lecturers",
+    slug: generateSlug("Interview Schedule: Kenya School of Government - Senior Lecturers"),
+    sourceName: "Kenya School of Government",
+    sourceUrl: null,
+    type: "INTERVIEW_SCHEDULE" as UpdateType,
+    content: "The Kenya School of Government (KSG) has announced the interview schedule for the position of Senior Lecturers in various disciplines. Interviews will commence on the dates specified below and will be held at the KSG Lower Kabete Campus in Nairobi.\n\nCandidates shortlisted for the Senior Lecturer positions in Public Policy, Governance, and Leadership will be interviewed from 9:00 AM daily in the order of the published list. Each candidate is expected to arrive at least thirty minutes before their scheduled interview time and report to the reception desk with their national identity card for verification.\n\nThe interview panel will assess candidates on their academic credentials, teaching experience, research publications, and understanding of the Kenyan public sector landscape. Candidates may also be required to make a brief presentation on a topic related to their area of specialization.\n\nThe KSG encourages all candidates to prepare adequately and to familiarize themselves with the school's mandate of building capacity in the public service. Results will be communicated to successful candidates through official channels within two weeks after the completion of all interviews."
+  },
+  {
+    title: "Extended Deadline: Public Service Commission Graduate Trainee Programme 2026",
+    slug: generateSlug("Extended Deadline: Public Service Commission Graduate Trainee Programme 2026"),
+    sourceName: "Public Service Commission",
+    sourceUrl: null,
+    type: "CLOSING_EXTENDED" as UpdateType,
+    content: "The Public Service Commission (PSC) has extended the application deadline for the 2026 Graduate Trainee Programme. The new closing date is now two weeks from the original deadline, giving additional time for eligible graduates to submit their applications through the PSC online portal.\n\nThe Graduate Trainee Programme is designed to recruit and develop fresh graduates for leadership roles in the public service. Successful candidates will undergo a comprehensive two-year rotational training programme across various government ministries, departments, and agencies. The programme targets graduates from accredited universities with a minimum of a second-class upper division or equivalent qualification.\n\nApplicants must have completed their degree within the last three years and should not be above thirty-five years of age. The programme is open to graduates from all disciplines, though priority will be given to fields with identified skills gaps in the public service including information technology, data science, public health, and environmental management.\n\nInterested candidates are encouraged to apply early and ensure all required documents are uploaded correctly. The PSC has clarified that no extensions will be granted beyond the new deadline and late applications will not be considered."
+  },
+  {
+    title: "Corrigendum: Ministry of Education Teacher Recruitment - Additional Positions",
+    slug: generateSlug("Corrigendum: Ministry of Education Teacher Recruitment - Additional Positions"),
+    sourceName: "Ministry of Education",
+    sourceUrl: null,
+    type: "CORRIGENDUM" as UpdateType,
+    content: "The Ministry of Education wishes to issue a corrigendum to the earlier advertisement for teacher recruitment that was published in the local dailies. The following amendments and additions have been made to the original advertisement.\n\nFirst, the Ministry has added 1,500 additional teaching positions across various counties, bringing the total number of advertised positions to 6,500. The new positions are primarily in the subjects of Mathematics, Physics, Chemistry, Biology, and English for secondary schools, as well as Early Childhood Development Education (ECDE) teachers for primary schools.\n\nSecondly, the minimum qualifications for some positions have been revised. Applicants for secondary school positions now require a Bachelor of Education degree with a minimum of two teaching subjects. Applicants for ECDE positions must hold at least a Diploma in Early Childhood Education from a recognized institution.\n\nThe application process remains unchanged and all applications should be submitted through the Teachers Service Commission (TSC) online portal. The Ministry apologizes for any inconvenience caused by the changes and encourages all eligible candidates to take advantage of the additional positions. The closing date for all applications remains as originally advertised."
+  },
+  {
+    title: "New Requirement: All Government Job Applicants Must Submit Tax Compliance Certificate",
+    slug: generateSlug("New Requirement: All Government Job Applicants Must Submit Tax Compliance Certificate"),
+    sourceName: "Kenya Revenue Authority",
+    sourceUrl: null,
+    type: "GENERAL" as UpdateType,
+    content: "The Kenya Revenue Authority (KRA), in consultation with the Public Service Commission, has announced a new requirement for all individuals applying for government jobs. Effective immediately, all applicants must include a valid Tax Compliance Certificate (TCC) as part of their application documents.\n\nThe Tax Compliance Certificate is issued by KRA and serves as proof that an individual or entity has fulfilled their tax obligations as required by law. Applicants can apply for the TCC through the iTax platform (itra.kra.go.ke) and the certificate is typically processed within five working days. The certificate must be valid at the time of application and throughout the recruitment process.\n\nThis new requirement is part of the government's broader initiative to promote a culture of tax compliance among citizens and to ensure that public servants meet their tax obligations. The measure is also aimed at curbing tax evasion and widening the tax base to support government service delivery.\n\nApplicants who are unable to obtain a TCC are advised to visit their nearest KRA office for assistance with their tax records. The KRA has set up dedicated help desks at all its offices to assist job seekers with TCC applications. All employers in the public sector are expected to enforce this requirement during their recruitment processes."
+  },
+  {
+    title: "Shortlisted Candidates: Kenya Medical Research Institute (KEMRI)",
+    slug: generateSlug("Shortlisted Candidates: Kenya Medical Research Institute (KEMRI)"),
+    sourceName: "KEMRI",
+    sourceUrl: null,
+    type: "SHORTLISTED" as UpdateType,
+    content: "The Kenya Medical Research Institute (KEMRI) has released the list of shortlisted candidates for research scientist positions, laboratory technologists, and field coordinators. The shortlisting exercise considered academic qualifications, relevant research experience, and publications in peer-reviewed journals.\n\nShortlisted candidates are required to attend a practical assessment at their respective KEMRI centres before the formal interview. The practical assessment will evaluate candidates' technical competencies in their areas of specialization. Candidates must bring original certificates, professional registration documents where applicable, and a detailed curriculum vitae.\n\nKEMRI is Kenya's leading medical research institution, conducting research in infectious diseases, non-communicable diseases, and health systems strengthening. Successful candidates will be posted to various KEMRI research centres across the country including Nairobi, Kisumu, Kilifi, and Busia.\n\nAll candidates are advised to plan their travel accordingly and to contact the KEMRI Human Resource Department for any clarifications regarding the assessment schedule and requirements. KEMRI is an equal opportunity employer and encourages applications from all qualified individuals including persons with disabilities."
+  },
+  {
+    title: "Interview Dates: Commission on Revenue Allocation - Research Officers",
+    slug: generateSlug("Interview Dates: Commission on Revenue Allocation - Research Officers"),
+    sourceName: "Commission on Revenue Allocation",
+    sourceUrl: null,
+    type: "INTERVIEW_SCHEDULE" as UpdateType,
+    content: "The Commission on Revenue Allocation (CRA) has announced interview dates for the positions of Research Officers and Senior Research Officers. Interviews are scheduled to take place at the CRA headquarters in Nairobi starting from the dates specified in the individual invitation letters sent to shortlisted candidates.\n\nThe interview process will consist of two stages: a written assessment and an oral interview. The written assessment will test candidates' knowledge of public finance, fiscal decentralization, and research methodology. Candidates who pass the written assessment will proceed to the oral interview, which will focus on their academic background, research experience, and understanding of Kenya's revenue allocation framework.\n\nCandidates are required to bring original academic certificates, national identity card, curriculum vitae, and copies of published research papers or reports. Those with experience in public finance analysis, data analytics, or policy research will have an added advantage during the evaluation.\n\nThe CRA is established under Article 215 of the Constitution of Kenya and plays a critical role in recommending the basis for equitable sharing of revenue raised nationally between the national and county governments. Successful candidates will contribute to the Commission's mandate of promoting equitable development across all forty-seven counties."
+  },
+];
+
+// ============================================
 // SEED FUNCTION
 // ============================================
 async function seed() {
@@ -347,6 +417,17 @@ async function seed() {
         data: { jobCount: jc._count.categoryId },
       });
     }
+  }
+
+  // 7. Create job updates
+  console.log("Creating job updates...");
+  try {
+    for (const upd of jobUpdatesData) {
+      await prisma.jobUpdate.create({ data: upd });
+    }
+    console.log(`  Created ${jobUpdatesData.length} job updates`);
+  } catch (err) {
+    console.error("  Failed to seed job updates:", err);
   }
 
   console.log("\nDatabase seeded successfully!");

@@ -180,10 +180,11 @@ function JobsPageInner() {
     }
   }, [router]);
 
-  // Close detail sheet
+  // Close detail sheet — always return to the jobs listing
   const closeJobSheet = useCallback(() => {
     setDetailOpen(false);
-    router.back();
+    setSelectedJob(null);
+    router.replace('/jobs', { scroll: false });
   }, [router]);
 
   // Listen for popstate (back button) to close sheet

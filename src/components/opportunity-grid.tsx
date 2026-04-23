@@ -81,9 +81,10 @@ const hubCategories = [
 
 interface OpportunityGridProps {
   opportunities: Array<{ type: string }>;
+  onOpportunityClick?: (opp: any) => void;
 }
 
-export default function OpportunityGrid({ opportunities }: OpportunityGridProps) {
+export default function OpportunityGrid({ opportunities, onOpportunityClick }: OpportunityGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: 'left' | 'right') => {

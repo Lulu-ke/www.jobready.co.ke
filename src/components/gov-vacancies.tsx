@@ -14,9 +14,10 @@ interface GovJob {
 interface GovVacanciesProps {
   countyJobs: GovJob[];
   nationalJobs: GovJob[];
+  onJobClick?: (job: GovJob) => void;
 }
 
-export default function GovVacancies({ countyJobs, nationalJobs }: GovVacanciesProps) {
+export default function GovVacancies({ countyJobs, nationalJobs, onJobClick }: GovVacanciesProps) {
   return (
     <section className="py-8 md:py-12">
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
@@ -49,12 +50,22 @@ export default function GovVacancies({ countyJobs, nationalJobs }: GovVacanciesP
                       </div>
                       <div>
                         <div>
-                          <Link
-                            href={`/jobs/${job.id}`}
-                            className="hover:text-teal-600 transition-colors no-underline text-gray-800 text-sm font-medium"
-                          >
-                            {job.county || ''} – {job.title}
-                          </Link>
+                          {onJobClick ? (
+                            <button
+                              type="button"
+                              onClick={() => onJobClick(job)}
+                              className="hover:text-teal-600 transition-colors text-gray-800 text-sm font-medium bg-transparent border-0 p-0 text-left cursor-pointer"
+                            >
+                              {job.county || ''} – {job.title}
+                            </button>
+                          ) : (
+                            <Link
+                              href={`/jobs/${job.id}`}
+                              className="hover:text-teal-600 transition-colors no-underline text-gray-800 text-sm font-medium"
+                            >
+                              {job.county || ''} – {job.title}
+                            </Link>
+                          )}
                         </div>
                         {job.closingDate && (
                           <div className="text-gray-400 text-xs">
@@ -91,12 +102,22 @@ export default function GovVacancies({ countyJobs, nationalJobs }: GovVacanciesP
                       </div>
                       <div>
                         <div>
-                          <Link
-                            href={`/jobs/${job.id}`}
-                            className="hover:text-teal-600 transition-colors no-underline text-gray-800 text-sm font-medium"
-                          >
-                            {job.company || ''} – {job.title}
-                          </Link>
+                          {onJobClick ? (
+                            <button
+                              type="button"
+                              onClick={() => onJobClick(job)}
+                              className="hover:text-teal-600 transition-colors text-gray-800 text-sm font-medium bg-transparent border-0 p-0 text-left cursor-pointer"
+                            >
+                              {job.company || ''} – {job.title}
+                            </button>
+                          ) : (
+                            <Link
+                              href={`/jobs/${job.id}`}
+                              className="hover:text-teal-600 transition-colors no-underline text-gray-800 text-sm font-medium"
+                            >
+                              {job.company || ''} – {job.title}
+                            </Link>
+                          )}
                         </div>
                         {job.closingDate && (
                           <div className="text-gray-400 text-xs">

@@ -1,9 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/header';
 import Hero from '@/components/hero';
+import EmployerMarquee from '@/components/employer-marquee';
 import DeadlineStrip from '@/components/deadline-strip';
+import JobUpdatesSection from '@/components/job-updates-section';
 import LatestTrendingSection from '@/components/latest-trending-section';
 import CategoriesGrid from '@/components/categories-grid';
 import GovVacancies from '@/components/gov-vacancies';
@@ -13,6 +17,10 @@ import UniCvBursaries from '@/components/uni-cv-bursaries';
 import CareerBlogNewsletter from '@/components/career-blog-newsletter';
 import Footer from '@/components/footer';
 import WhatsAppFloat from '@/components/whatsapp-float';
+import JobDetailSheet from '@/components/job-detail-sheet';
+import OpportunityDetailSheet from '@/components/opportunity-detail-sheet';
+import ArticleDetailSheet from '@/components/article-detail-sheet';
+import JobUpdateDetailSheet from '@/components/job-update-detail-sheet';
 
 interface Stats {
   totalJobs: number;
@@ -31,7 +39,43 @@ interface Category {
   description?: string;
 }
 
+// ─── Skeleton Fallback ─────────────────────────────────────────
+function HomePageSkeleton() {
+  return (
+    <div className="min-h-screen flex flex-col font-sans bg-gray-50">
+      <Header />
+      <main className="flex-1">
+        <div className="h-[400px] bg-gradient-to-br from-white to-gray-50" />
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <div className="max-w-[1280px] mx-auto px-4 py-12">
+          <Skeleton className="h-8 w-64 mb-6" />
+          <div className="grid md:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-40 rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+// ─── Main Export ───────────────────────────────────────────────
 export default function HomePage() {
+  return (
+    <Suspense fallback={<HomePageSkeleton />}>
+      <HomePageContent />
+    </Suspense>
+  );
+}
+
+// ─── Inner Content (uses useSearchParams) ──────────────────────
+function HomePageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // ── Data state ──
   const [categories, setCategories] = useState<Category[]>([]);
   const [featuredJobs, setFeaturedJobs] = useState<any[]>([]);
   const [deadlineJobs, setDeadlineJobs] = useState<any[]>([]);
@@ -39,13 +83,32 @@ export default function HomePage() {
   const [trendingJobs, setTrendingJobs] = useState<any[]>([]);
   const [entryJobs, setEntryJobs] = useState<any[]>([]);
   const [internJobs, setInternJobs] = useState<any[]>([]);
-  const [govJobs, setGovJobs] = useState<any[]>([]);
-  // locationCounts derived from latestJobs (computed below)
+  const [govJobs, setGovJobs] = useState<any>([]);
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [universityOpps, setUniversityOpps] = useState<any[]>([]);
   const [bursaryOpps, setBursaryOpps] = useState<any[]>([]);
   const [articles, setArticles] = useState<any[]>([]);
+  const [employers, setEmployers] = useState<any[]>([]);
+  const [updates, setUpdates] = useState<any[]>([]);
 
+  // ── Sheet state: Jobs ──
+  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [jobSheetOpen, setJobSheetOpen] = useState(false);
+  const [relatedJobs, setRelatedJobs] = useState<any[]>([]);
+
+  // ── Sheet state: Opportunities ──
+  const [selectedOpportunity, setSelectedOpportunity] = useState<any>(null);
+  const [opportunitySheetOpen, setOpportunitySheetOpen] = useState(false);
+
+  // ── Sheet state: Articles ──
+  const [selectedArticle, setSelectedArticle] = useState<any>(null);
+  const [articleSheetOpen, setArticleSheetOpen] = useState(false);
+
+  // ── Sheet state: Updates ──
+  const [selectedUpdate, setSelectedUpdate] = useState<any>(null);
+  const [updateSheetOpen, setUpdateSheetOpen] = useState(false);
+
+  // ── Fetch all data ──
   useEffect(() => {
     async function fetchData() {
       try {
@@ -60,6 +123,8 @@ export default function HomePage() {
           catRes,
           oppRes,
           articleRes,
+          employerRes,
+          updatesRes,
         ] = await Promise.all([
           fetch('/api/jobs?featured=true&limit=5'),
           fetch('/api/jobs?deadline=soon&limit=5'),
@@ -71,6 +136,8 @@ export default function HomePage() {
           fetch('/api/categories'),
           fetch('/api/opportunities'),
           fetch('/api/articles'),
+          fetch('/api/employers'),
+          fetch('/api/updates?limit=6'),
         ]);
 
         const [
@@ -84,6 +151,8 @@ export default function HomePage() {
           catData,
           oppData,
           articleData,
+          employerData,
+          updatesData,
         ] = await Promise.all([
           featuredRes.json(),
           deadlineRes.json(),
@@ -95,6 +164,8 @@ export default function HomePage() {
           catRes.json(),
           oppRes.json(),
           articleRes.json(),
+          employerRes.json(),
+          updatesRes.json(),
         ]);
 
         setFeaturedJobs(featuredData.jobs || []);
@@ -107,6 +178,8 @@ export default function HomePage() {
         setCategories(catData.categories || []);
         setOpportunities(oppData.opportunities || []);
         setArticles(articleData.articles || []);
+        setEmployers(employerData.employers || []);
+        setUpdates(updatesData.updates || []);
 
         // Split opportunities by type
         const allOpps = oppData.opportunities || [];
@@ -136,7 +209,7 @@ export default function HomePage() {
     fetchData();
   }, []);
 
-  // Derive location counts from latest jobs
+  // ── Derive location counts from latest jobs ──
   const locationCounts = (() => {
     if (latestJobs.length === 0) return [];
     const locMap: Record<string, number> = {};
@@ -161,36 +234,341 @@ export default function HomePage() {
 
   const govJobsData = Array.isArray(govJobs) ? { county: [], national: govJobs } : govJobs;
 
+  // ── Helper: parse ?view= param ──
+  function parseViewParam(raw: string | null): { type: string; id: string } | null {
+    if (!raw) return null;
+    if (raw.includes(':')) {
+      const idx = raw.indexOf(':');
+      return { type: raw.substring(0, idx), id: raw.substring(idx + 1) };
+    }
+    // Backward compatibility: no prefix → treat as job
+    return { type: 'job', id: raw };
+  }
+
+  // ── Sheet open/close handlers ──
+
+  const openJobSheet = useCallback(async (job: any) => {
+    setSelectedJob(job);
+    setJobSheetOpen(true);
+    router.replace(`/?view=job:${job.id}`, { scroll: false });
+    try {
+      const res = await fetch(`/api/jobs/${job.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedJob(data.job || job);
+        setRelatedJobs(data.relatedJobs || []);
+      }
+    } catch {
+      // keep existing data
+    }
+  }, [router]);
+
+  const closeJobSheet = useCallback(() => {
+    setJobSheetOpen(false);
+    router.back();
+  }, [router]);
+
+  const openOpportunitySheet = useCallback(async (opp: any) => {
+    setSelectedOpportunity(opp);
+    setOpportunitySheetOpen(true);
+    router.replace(`/?view=opp:${opp.id}`, { scroll: false });
+    try {
+      const res = await fetch(`/api/opportunities/${opp.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedOpportunity(data.opportunity || opp);
+      }
+    } catch {
+      // keep existing data
+    }
+  }, [router]);
+
+  const closeOpportunitySheet = useCallback(() => {
+    setOpportunitySheetOpen(false);
+    router.back();
+  }, [router]);
+
+  const openArticleSheet = useCallback(async (article: any) => {
+    setSelectedArticle(article);
+    setArticleSheetOpen(true);
+    router.replace(`/?view=art:${article.id}`, { scroll: false });
+    try {
+      const res = await fetch(`/api/articles/${article.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedArticle(data.article || article);
+      }
+    } catch {
+      // keep existing data
+    }
+  }, [router]);
+
+  const closeArticleSheet = useCallback(() => {
+    setArticleSheetOpen(false);
+    router.back();
+  }, [router]);
+
+  const openUpdateSheet = useCallback(async (update: any) => {
+    setSelectedUpdate(update);
+    setUpdateSheetOpen(true);
+    router.replace(`/?view=upd:${update.id}`, { scroll: false });
+    try {
+      const res = await fetch(`/api/updates/${update.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedUpdate(data.update || update);
+      }
+    } catch {
+      // keep existing data
+    }
+  }, [router]);
+
+  const closeUpdateSheet = useCallback(() => {
+    setUpdateSheetOpen(false);
+    router.back();
+  }, [router]);
+
+  // ── Close all sheets on popstate (back button) ──
+  useEffect(() => {
+    const handlePopState = () => {
+      setJobSheetOpen(false);
+      setOpportunitySheetOpen(false);
+      setArticleSheetOpen(false);
+      setUpdateSheetOpen(false);
+      setSelectedJob(null);
+      setSelectedOpportunity(null);
+      setSelectedArticle(null);
+      setSelectedUpdate(null);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // ── Auto-open sheet if ?view= present on mount ──
+  /* eslint-disable react-hooks/set-state-in-effect -- auto-opening sheets from URL params on mount is intentional */
+  useEffect(() => {
+    const parsed = parseViewParam(searchParams.get('view'));
+    if (!parsed) return;
+
+    const { type, id } = parsed;
+
+    switch (type) {
+      case 'job': {
+        const job = [...latestJobs, ...trendingJobs, ...featuredJobs, ...entryJobs, ...internJobs].find((j) => j.id === id);
+        if (job) {
+          openJobSheet(job);
+        } else {
+          (async () => {
+            try {
+              setJobSheetOpen(true);
+              setSelectedJob({ id } as any);
+              const res = await fetch(`/api/jobs/${id}`);
+              if (res.ok) {
+                const data = await res.json();
+                if (data.job) {
+                  setSelectedJob(data.job);
+                  setRelatedJobs(data.relatedJobs || []);
+                } else {
+                  setJobSheetOpen(false);
+                  router.replace('/', { scroll: false });
+                }
+              } else {
+                setJobSheetOpen(false);
+                router.replace('/', { scroll: false });
+              }
+            } catch {
+              setJobSheetOpen(false);
+              router.replace('/', { scroll: false });
+            }
+          })();
+        }
+        break;
+      }
+      case 'opp': {
+        const opp = opportunities.find((o) => o.id === id);
+        if (opp) {
+          openOpportunitySheet(opp);
+        } else {
+          (async () => {
+            try {
+              setOpportunitySheetOpen(true);
+              setSelectedOpportunity({ id } as any);
+              const res = await fetch(`/api/opportunities/${id}`);
+              if (res.ok) {
+                const data = await res.json();
+                if (data.opportunity) {
+                  setSelectedOpportunity(data.opportunity);
+                } else {
+                  setOpportunitySheetOpen(false);
+                  router.replace('/', { scroll: false });
+                }
+              } else {
+                setOpportunitySheetOpen(false);
+                router.replace('/', { scroll: false });
+              }
+            } catch {
+              setOpportunitySheetOpen(false);
+              router.replace('/', { scroll: false });
+            }
+          })();
+        }
+        break;
+      }
+      case 'art': {
+        const article = articles.find((a) => a.id === id);
+        if (article) {
+          openArticleSheet(article);
+        } else {
+          (async () => {
+            try {
+              setArticleSheetOpen(true);
+              setSelectedArticle({ id } as any);
+              const res = await fetch(`/api/articles/${id}`);
+              if (res.ok) {
+                const data = await res.json();
+                if (data.article) {
+                  setSelectedArticle(data.article);
+                } else {
+                  setArticleSheetOpen(false);
+                  router.replace('/', { scroll: false });
+                }
+              } else {
+                setArticleSheetOpen(false);
+                router.replace('/', { scroll: false });
+              }
+            } catch {
+              setArticleSheetOpen(false);
+              router.replace('/', { scroll: false });
+            }
+          })();
+        }
+        break;
+      }
+      case 'upd': {
+        const update = updates.find((u) => u.id === id);
+        if (update) {
+          openUpdateSheet(update);
+        } else {
+          (async () => {
+            try {
+              setUpdateSheetOpen(true);
+              setSelectedUpdate({ id } as any);
+              const res = await fetch(`/api/updates/${id}`);
+              if (res.ok) {
+                const data = await res.json();
+                if (data.update) {
+                  setSelectedUpdate(data.update);
+                } else {
+                  setUpdateSheetOpen(false);
+                  router.replace('/', { scroll: false });
+                }
+              } else {
+                setUpdateSheetOpen(false);
+                router.replace('/', { scroll: false });
+              }
+            } catch {
+              setUpdateSheetOpen(false);
+              router.replace('/', { scroll: false });
+            }
+          })();
+        }
+        break;
+      }
+      default:
+        // Unknown type, clean up URL
+        router.replace('/', { scroll: false });
+        break;
+    }
+    // Only run on mount — intentionally empty deps so searchParams snapshot is taken once
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  // ── Callbacks for sub-components ──
+  const handleJobClick = useCallback((job: any) => {
+    openJobSheet(job);
+  }, [openJobSheet]);
+
+  const handleOpportunityClick = useCallback((opp: any) => {
+    openOpportunitySheet(opp);
+  }, [openOpportunitySheet]);
+
+  const handleArticleClick = useCallback((article: any) => {
+    openArticleSheet(article);
+  }, [openArticleSheet]);
+
+  const handleUpdateClick = useCallback((update: any) => {
+    openUpdateSheet(update);
+  }, [openUpdateSheet]);
+
   return (
     <div className="min-h-screen flex flex-col font-sans bg-gray-50">
       <Header />
       <main className="flex-1">
         <Hero stats={defaultStats} onSearch={() => {}} />
+
+        {/* Employer Marquee — after Hero, before DeadlineStrip */}
+        <EmployerMarquee employers={employers} />
+
         <DeadlineStrip jobs={deadlineJobs} />
+
+        {/* Job Updates Section — after DeadlineStrip, before LatestTrending */}
+        <JobUpdatesSection updates={updates} onUpdateClick={handleUpdateClick} />
+
         <LatestTrendingSection
           latestJobs={latestJobs}
           trendingJobs={trendingJobs}
           featuredJobs={featuredJobs}
+          onJobClick={handleJobClick}
         />
         <CategoriesGrid categories={categories} />
         <GovVacancies
           countyJobs={govJobsData?.county || []}
           nationalJobs={govJobsData?.national || []}
+          onJobClick={handleJobClick}
         />
         <EntryInternLocation
           entryJobs={entryJobs}
           internJobs={internJobs}
           locationCounts={locationCounts}
+          onJobClick={handleJobClick}
         />
         <OpportunityGrid opportunities={opportunities} />
         <UniCvBursaries
           universityOpps={universityOpps}
           bursaryOpps={bursaryOpps}
+          onOpportunityClick={handleOpportunityClick}
         />
-        <CareerBlogNewsletter articles={articles} />
+        <CareerBlogNewsletter
+          articles={articles}
+          onArticleClick={handleArticleClick}
+        />
       </main>
       <Footer />
       <WhatsAppFloat />
+
+      {/* ── Side-sheet modals ── */}
+      <JobDetailSheet
+        job={selectedJob}
+        open={jobSheetOpen}
+        onClose={closeJobSheet}
+        onJobClick={handleJobClick}
+        relatedJobs={relatedJobs}
+      />
+      <OpportunityDetailSheet
+        opportunity={selectedOpportunity}
+        open={opportunitySheetOpen}
+        onClose={closeOpportunitySheet}
+      />
+      <ArticleDetailSheet
+        article={selectedArticle}
+        open={articleSheetOpen}
+        onClose={closeArticleSheet}
+      />
+      <JobUpdateDetailSheet
+        update={selectedUpdate}
+        open={updateSheetOpen}
+        onClose={closeUpdateSheet}
+      />
     </div>
   );
 }

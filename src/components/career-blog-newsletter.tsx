@@ -156,6 +156,7 @@ function SubscribeForm() {
 // ─── Career Blog + Newsletter Combined ─────────────────────────
 interface CareerBlogNewsletterProps {
   articles: Article[];
+  onArticleClick?: (article: Article) => void;
 }
 
 const categoryColors: Record<string, string> = {
@@ -166,7 +167,7 @@ const categoryColors: Record<string, string> = {
   default: '#6B7280',
 };
 
-export default function CareerBlogNewsletter({ articles }: CareerBlogNewsletterProps) {
+export default function CareerBlogNewsletter({ articles, onArticleClick }: CareerBlogNewsletterProps) {
   if (!articles || articles.length === 0) return null;
 
   return (
@@ -181,7 +182,42 @@ export default function CareerBlogNewsletter({ articles }: CareerBlogNewsletterP
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {articles.slice(0, 3).map((article) => {
                 const catColor = categoryColors[article.category] || categoryColors.default;
-                return (
+                return onArticleClick ? (
+                  <div
+                    key={article.id}
+                    onClick={() => onArticleClick(article)}
+                    className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow group cursor-pointer"
+                  >
+                    <div className="w-full h-40 bg-gradient-to-br from-purple-50 to-teal-50 flex items-center justify-center">
+                      <span className="text-4xl">📰</span>
+                    </div>
+                    <div className="p-4">
+                      <span
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full inline-block mb-2"
+                        style={{
+                          backgroundColor: `${catColor}20`,
+                          color: catColor,
+                        }}
+                      >
+                        {article.category}
+                      </span>
+                      <h3
+                        className="font-bold line-clamp-2"
+                        style={{ color: '#1E293B', fontSize: '0.95rem' }}
+                      >
+                        {article.title}
+                      </h3>
+                      {article.excerpt && (
+                        <p className="text-gray-500 text-xs mt-1 line-clamp-3">
+                          {article.excerpt}
+                        </p>
+                      )}
+                      <span className="inline-block mt-3 text-xs font-medium text-teal-600 group-hover:text-purple-700 transition-colors">
+                        Read More <ArrowRight className="w-3 h-3 inline" />
+                      </span>
+                    </div>
+                  </div>
+                ) : (
                   <Link
                     key={article.id}
                     href={`/articles/${article.id}`}

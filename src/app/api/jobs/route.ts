@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
     const experienceLevel = searchParams.get('experienceLevel') || '';
     const county = searchParams.get('county') || '';
     const orgType = searchParams.get('orgType') || '';
+    const employerId = searchParams.get('employerId') || '';
     const featured = searchParams.get('featured') === 'true';
     const deadline = searchParams.get('deadline') || '';
 
@@ -96,7 +97,10 @@ export async function GET(request: NextRequest) {
       where.county = { contains: county };
     }
     if (orgType) {
-      where.employer = { ...where.employer, orgType: orgType as any };
+      where.employer = { ...(where.employer as any), orgType: orgType as any };
+    }
+    if (employerId) {
+      where.employerId = employerId;
     }
     if (featured) {
       where.isFeatured = true;

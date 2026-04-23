@@ -253,3 +253,24 @@ enum PaymentStatus {
   paid
   expired
 }
+
+model JobUpdate {
+  id          String     @id @default(cuid())
+  title       String
+  slug        String     @unique
+  content     String     @db.Text
+  sourceUrl   String?    @db.Text
+  sourceName  String     @default("Unknown")
+  type        UpdateType @default(GENERAL)
+  isPublished Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+enum UpdateType {
+  SHORTLISTED
+  INTERVIEW_SCHEDULE
+  CLOSING_EXTENDED
+  CORRIGENDUM
+  GENERAL
+}

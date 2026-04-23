@@ -20,9 +20,10 @@ interface EntryInternLocationProps {
   entryJobs: EntryInternJob[];
   internJobs: EntryInternJob[];
   locationCounts: LocationCount[];
+  onJobClick?: (job: EntryInternJob) => void;
 }
 
-export default function EntryInternLocation({ entryJobs, internJobs, locationCounts }: EntryInternLocationProps) {
+export default function EntryInternLocation({ entryJobs, internJobs, locationCounts, onJobClick }: EntryInternLocationProps) {
   const defaultLocations = [
     { county: 'Nairobi', count: 0 },
     { county: 'Mombasa', count: 0 },
@@ -57,12 +58,22 @@ export default function EntryInternLocation({ entryJobs, internJobs, locationCou
                   className="py-1.5"
                   style={{ borderLeft: '3px solid #5B21B6', paddingLeft: '0.75rem' }}
                 >
-                  <Link
-                    href={`/jobs/${job.id}`}
-                    className="hover:text-teal-600 transition-colors no-underline text-sm text-gray-800 font-medium clickable-text"
-                  >
-                    {job.title} – {job.company}{job.county ? `, ${job.county}` : ''}
-                  </Link>
+                  {onJobClick ? (
+                    <button
+                      type="button"
+                      onClick={() => onJobClick(job)}
+                      className="hover:text-teal-600 transition-colors text-sm text-gray-800 font-medium clickable-text bg-transparent border-0 p-0 text-left cursor-pointer"
+                    >
+                      {job.title} – {job.company}{job.county ? `, ${job.county}` : ''}
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/jobs/${job.id}`}
+                      className="hover:text-teal-600 transition-colors no-underline text-sm text-gray-800 font-medium clickable-text"
+                    >
+                      {job.title} – {job.company}{job.county ? `, ${job.county}` : ''}
+                    </Link>
+                  )}
                   {job.closingDate && (
                     <div className="text-gray-400 text-xs">
                       Deadline: {new Date(job.closingDate).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -96,12 +107,22 @@ export default function EntryInternLocation({ entryJobs, internJobs, locationCou
                   className="py-1.5"
                   style={{ borderLeft: '3px solid #F97316', paddingLeft: '0.75rem' }}
                 >
-                  <Link
-                    href={`/jobs/${job.id}`}
-                    className="hover:text-teal-600 transition-colors no-underline text-sm text-gray-800 font-medium clickable-text"
-                  >
-                    {job.title} – {job.company}{job.county ? `, ${job.county}` : ''}
-                  </Link>
+                  {onJobClick ? (
+                    <button
+                      type="button"
+                      onClick={() => onJobClick(job)}
+                      className="hover:text-teal-600 transition-colors text-sm text-gray-800 font-medium clickable-text bg-transparent border-0 p-0 text-left cursor-pointer"
+                    >
+                      {job.title} – {job.company}{job.county ? `, ${job.county}` : ''}
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/jobs/${job.id}`}
+                      className="hover:text-teal-600 transition-colors no-underline text-sm text-gray-800 font-medium clickable-text"
+                    >
+                      {job.title} – {job.company}{job.county ? `, ${job.county}` : ''}
+                    </Link>
+                  )}
                   {job.closingDate && (
                     <div className="text-gray-400 text-xs">
                       Deadline: {new Date(job.closingDate).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}

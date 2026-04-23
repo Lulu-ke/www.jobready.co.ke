@@ -5,9 +5,9 @@ import Link from 'next/link';
 const footerLinks = {
   'For Job Seekers': [
     { label: 'Browse Jobs', href: '/jobs' },
-    { label: 'Internships', href: '/jobs?search=internship' },
-    { label: 'Government Jobs', href: '/jobs?search=government' },
-    { label: 'Remote Jobs', href: '/jobs?search=remote' },
+    { label: 'Internships', href: '/jobs?type=Internship' },
+    { label: 'Government Jobs', href: '/jobs?category=government' },
+    { label: 'Remote Jobs', href: '/jobs?isRemote=true' },
     { label: 'Career Advice', href: '/articles' },
   ],
   'Opportunities': [
@@ -19,10 +19,11 @@ const footerLinks = {
   ],
   'Company': [
     { label: 'About Us', href: '#' },
-    { label: 'CV Writing Services', href: '#' },
+    { label: 'CV Writing Services', href: '/cv-services' },
     { label: 'Contact Us', href: '#' },
-    { label: 'Privacy Policy', href: '#' },
-    { label: 'Terms of Service', href: '#' },
+    { label: 'Employers', href: '/employers' },
+    { label: 'Privacy Policy', href: '/privacy' },
+    { label: 'Terms of Service', href: '/terms' },
   ],
 };
 
@@ -139,9 +140,9 @@ export default function Footer() {
       <div className="bg-gray-900 border-t border-white/5">
         <div className="flex items-center justify-between px-4 md:px-6 py-2 max-w-[1200px] mx-auto">
           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-            <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
             <span>&middot;</span>
-            <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
             <span>&middot;</span>
             <Link href="#" className="hover:text-white transition-colors">Cookies</Link>
             <span>&middot;</span>

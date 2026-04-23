@@ -12,15 +12,15 @@ export default function Header() {
     { label: 'Opportunities', href: '/opportunities' },
     { label: 'Companies', href: '/employers' },
     { label: 'Career Advice', href: '/articles' },
-    { label: 'CV Services', href: '#' },
+    { label: 'CV Services', href: '/cv-services' },
   ];
 
   const topBarLinks = [
-    { label: 'Internships', href: '/jobs?search=internship' },
-    { label: 'Govt Jobs', href: '/jobs?search=government' },
-    { label: 'Remote', href: '/jobs?search=remote' },
-    { label: 'Scholarships', href: '/opportunities' },
-    { label: 'CV Writing', href: '#' },
+    { label: 'Internships', href: '/jobs?type=Internship' },
+    { label: 'Govt Jobs', href: '/jobs?category=government' },
+    { label: 'Remote', href: '/jobs?isRemote=true' },
+    { label: 'Scholarships', href: '/opportunities?type=scholarship' },
+    { label: 'Career Advice', href: '/articles' },
   ];
 
   return (
@@ -48,7 +48,7 @@ export default function Header() {
             <Link href="/articles" className="text-[#0D9488] hover:text-[#5B21B6] transition">
               Career Advice
             </Link>
-            <Link href="#" className="text-[#0D9488] hover:text-[#5B21B6] transition">
+            <Link href="/cv-services" className="text-[#0D9488] hover:text-[#5B21B6] transition">
               Our Services
             </Link>
           </div>

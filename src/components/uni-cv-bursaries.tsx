@@ -13,9 +13,10 @@ interface OppItem {
 interface UniCvBursariesProps {
   universityOpps: OppItem[];
   bursaryOpps: OppItem[];
+  onOpportunityClick?: (opp: OppItem) => void;
 }
 
-export default function UniCvBursaries({ universityOpps, bursaryOpps }: UniCvBursariesProps) {
+export default function UniCvBursaries({ universityOpps, bursaryOpps, onOpportunityClick }: UniCvBursariesProps) {
   return (
     <section className="py-8 md:py-12">
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
@@ -32,12 +33,22 @@ export default function UniCvBursaries({ universityOpps, bursaryOpps }: UniCvBur
                   className="py-1.5"
                   style={{ borderLeft: '3px solid #5B21B6', paddingLeft: '0.75rem' }}
                 >
-                  <Link
-                    href={`/opportunities/${opp.id}`}
-                    className="hover:text-teal-600 transition-colors no-underline text-sm text-gray-800 font-medium clickable-text"
-                  >
-                    {opp.title}
-                  </Link>
+                  {onOpportunityClick ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpportunityClick(opp)}
+                      className="hover:text-teal-600 transition-colors text-sm text-gray-800 font-medium clickable-text bg-transparent border-0 p-0 text-left cursor-pointer"
+                    >
+                      {opp.title}
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/opportunities/${opp.id}`}
+                      className="hover:text-teal-600 transition-colors no-underline text-sm text-gray-800 font-medium clickable-text"
+                    >
+                      {opp.title}
+                    </Link>
+                  )}
                   {opp.deadline && (
                     <div className="text-gray-400 text-xs">
                       Deadline: {new Date(opp.deadline).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -105,12 +116,22 @@ export default function UniCvBursaries({ universityOpps, bursaryOpps }: UniCvBur
                   className="py-1.5"
                   style={{ borderLeft: '3px solid #F97316', paddingLeft: '0.75rem' }}
                 >
-                  <Link
-                    href={`/opportunities/${opp.id}`}
-                    className="hover:text-teal-600 transition-colors no-underline text-sm text-gray-800 font-medium clickable-text"
-                  >
-                    {opp.title}
-                  </Link>
+                  {onOpportunityClick ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpportunityClick(opp)}
+                      className="hover:text-teal-600 transition-colors text-sm text-gray-800 font-medium clickable-text bg-transparent border-0 p-0 text-left cursor-pointer"
+                    >
+                      {opp.title}
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/opportunities/${opp.id}`}
+                      className="hover:text-teal-600 transition-colors no-underline text-sm text-gray-800 font-medium clickable-text"
+                    >
+                      {opp.title}
+                    </Link>
+                  )}
                   {opp.deadline && (
                     <div className="text-gray-400 text-xs">
                       Deadline: {new Date(opp.deadline).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}

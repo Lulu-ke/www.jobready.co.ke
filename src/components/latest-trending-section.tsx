@@ -17,7 +17,7 @@ interface FeaturedJob {
   slug?: string;
 }
 
-function FeaturedJobsSection({ featuredJobs }: { featuredJobs: FeaturedJob[] }) {
+function FeaturedJobsSection({ featuredJobs, onJobClick }: { featuredJobs: FeaturedJob[]; onJobClick?: (job: FeaturedJob) => void }) {
   const largeJob = featuredJobs?.[0];
   const smallJobs = featuredJobs?.slice(1, 3);
 
@@ -43,7 +43,11 @@ function FeaturedJobsSection({ featuredJobs }: { featuredJobs: FeaturedJob[] }) 
                   </Link>
                 </div>
                 {largeJob ? (
-                  <div className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col h-full">
+                  <div
+                    className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col h-full"
+                    onClick={onJobClick ? () => onJobClick(largeJob) : undefined}
+                    style={onJobClick ? { cursor: 'pointer' } : undefined}
+                  >
                     <div className="relative">
                       <div className="w-full h-56 bg-gradient-to-br from-purple-100 to-teal-50" />
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
@@ -78,32 +82,61 @@ function FeaturedJobsSection({ featuredJobs }: { featuredJobs: FeaturedJob[] }) 
               {/* Right column: Stacked small cards */}
               <div className="space-y-3">
                 {smallJobs.map((job) => (
-                  <Link
-                    key={job.id}
-                    href={`/jobs/${job.id}`}
-                    className="group block bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow no-underline"
-                  >
-                    <div className="relative">
-                      <div className="w-full h-28 bg-gradient-to-br from-gray-100 to-gray-50" />
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                        <h3 className="font-bold text-sm text-white">{job.title}</h3>
-                        <p className="text-xs text-white/80">
-                          {job.company}{job.county ? ` – ${job.county}` : ''}
+                  onJobClick ? (
+                    <div
+                      key={job.id}
+                      onClick={() => onJobClick(job)}
+                      className="group block bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                    >
+                      <div className="relative">
+                        <div className="w-full h-28 bg-gradient-to-br from-gray-100 to-gray-50" />
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                          <h3 className="font-bold text-sm text-white">{job.title}</h3>
+                          <p className="text-xs text-white/80">
+                            {job.company}{job.county ? ` – ${job.county}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-2">
+                        {job.type && (
+                          <div className="flex flex-wrap gap-1 mb-1">
+                            <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">{job.type}</span>
+                          </div>
+                        )}
+                        <p className="text-gray-500 text-xs flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          Posted {formatRelativeDate(job.postedAt)}
                         </p>
                       </div>
                     </div>
-                    <div className="p-2">
-                      {job.type && (
-                        <div className="flex flex-wrap gap-1 mb-1">
-                          <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">{job.type}</span>
+                  ) : (
+                    <Link
+                      key={job.id}
+                      href={`/jobs/${job.id}`}
+                      className="group block bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow no-underline"
+                    >
+                      <div className="relative">
+                        <div className="w-full h-28 bg-gradient-to-br from-gray-100 to-gray-50" />
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                          <h3 className="font-bold text-sm text-white">{job.title}</h3>
+                          <p className="text-xs text-white/80">
+                            {job.company}{job.county ? ` – ${job.county}` : ''}
+                          </p>
                         </div>
-                      )}
-                      <p className="text-gray-500 text-xs flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        Posted {formatRelativeDate(job.postedAt)}
-                      </p>
-                    </div>
-                  </Link>
+                      </div>
+                      <div className="p-2">
+                        {job.type && (
+                          <div className="flex flex-wrap gap-1 mb-1">
+                            <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">{job.type}</span>
+                          </div>
+                        )}
+                        <p className="text-gray-500 text-xs flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          Posted {formatRelativeDate(job.postedAt)}
+                        </p>
+                      </div>
+                    </Link>
+                  )
                 ))}
                 {smallJobs.length === 0 && (
                   <div className="bg-white rounded-xl shadow-md flex items-center justify-center h-28">
@@ -151,7 +184,7 @@ interface LatestJob {
   closingDate: string | null;
 }
 
-function LatestJobsSection({ jobs }: { jobs: LatestJob[] }) {
+function LatestJobsSection({ jobs, onJobClick }: { jobs: LatestJob[]; onJobClick?: (job: LatestJob) => void }) {
   if (!jobs || jobs.length === 0) return null;
   return (
     <div>
@@ -165,12 +198,22 @@ function LatestJobsSection({ jobs }: { jobs: LatestJob[] }) {
             className="py-1"
             style={{ borderLeft: '3px solid #0D9488', paddingLeft: '0.75rem' }}
           >
-            <Link
-              href={`/jobs/${job.id}`}
-              className="clickable-text font-semibold text-gray-800 no-underline"
-            >
-              {job.title}
-            </Link>
+            {onJobClick ? (
+              <button
+                type="button"
+                onClick={() => onJobClick(job)}
+                className="clickable-text font-semibold text-gray-800 bg-transparent border-0 p-0 text-left cursor-pointer"
+              >
+                {job.title}
+              </button>
+            ) : (
+              <Link
+                href={`/jobs/${job.id}`}
+                className="clickable-text font-semibold text-gray-800 no-underline"
+              >
+                {job.title}
+              </Link>
+            )}
             <span className="text-gray-500 text-sm">
               {' '}- {job.company}{job.county ? ` - ${job.county}` : ''}
             </span>
@@ -209,7 +252,7 @@ const categoryIconMap: Record<string, React.ElementType> = {
   default: Briefcase,
 };
 
-function TrendingNowSection({ jobs }: { jobs: TrendingJob[] }) {
+function TrendingNowSection({ jobs, onJobClick }: { jobs: TrendingJob[]; onJobClick?: (job: TrendingJob) => void }) {
   if (!jobs || jobs.length === 0) return null;
 
   return (
@@ -226,12 +269,22 @@ function TrendingNowSection({ jobs }: { jobs: TrendingJob[] }) {
                 <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center shrink-0 text-gray-500">
                   <Icon className="w-4 h-4" />
                 </div>
-                <Link
-                  href={`/jobs/${job.id}`}
-                  className="flex-1 text-gray-700 hover:text-teal-600 transition-colors no-underline text-sm"
-                >
-                  {job.title} – {job.company}
-                </Link>
+                {onJobClick ? (
+                  <button
+                    type="button"
+                    onClick={() => onJobClick(job)}
+                    className="flex-1 text-gray-700 hover:text-teal-600 transition-colors text-sm bg-transparent border-0 p-0 text-left cursor-pointer"
+                  >
+                    {job.title} – {job.company}
+                  </button>
+                ) : (
+                  <Link
+                    href={`/jobs/${job.id}`}
+                    className="flex-1 text-gray-700 hover:text-teal-600 transition-colors no-underline text-sm"
+                  >
+                    {job.title} – {job.company}
+                  </Link>
+                )}
               </div>
             );
           })}
@@ -254,17 +307,18 @@ interface LatestTrendingSectionProps {
   latestJobs: LatestJob[];
   trendingJobs: TrendingJob[];
   featuredJobs: FeaturedJob[];
+  onJobClick?: (job: any) => void;
 }
 
-export default function LatestTrendingSection({ latestJobs, trendingJobs, featuredJobs }: LatestTrendingSectionProps) {
+export default function LatestTrendingSection({ latestJobs, trendingJobs, featuredJobs, onJobClick }: LatestTrendingSectionProps) {
   return (
     <>
-      <FeaturedJobsSection featuredJobs={featuredJobs} />
+      <FeaturedJobsSection featuredJobs={featuredJobs} onJobClick={onJobClick} />
       <section className="py-8 md:py-12">
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-8">
-            <LatestJobsSection jobs={latestJobs} />
-            <TrendingNowSection jobs={trendingJobs} />
+            <LatestJobsSection jobs={latestJobs} onJobClick={onJobClick} />
+            <TrendingNowSection jobs={trendingJobs} onJobClick={onJobClick} />
           </div>
         </div>
       </section>

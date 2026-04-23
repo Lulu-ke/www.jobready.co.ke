@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, Building2, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,7 @@ import Header from '@/components/header';
 import Footer from '@/components/footer';
 import WhatsAppFloat from '@/components/whatsapp-float';
 import NewsletterSection from '@/components/newsletter-section';
+import EmployerDetailSheet from '@/components/employer-detail-sheet';
 import { orgTypeLabel, getInitials } from '@/lib/helpers';
 
 interface Employer {
@@ -17,6 +19,18 @@ interface Employer {
   logoUrl: string | null;
   orgType: string;
   slug: string;
+  description?: string;
+  email?: string;
+  phone?: string;
+}
+
+interface EmployerJob {
+  id: string;
+  title: string;
+  location: string;
+  county: string;
+  type: string;
+  slug?: string;
 }
 
 const orgTypeFilters = [
@@ -56,12 +70,47 @@ function getLogoGradient(name: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
-export default function EmployersPage() {
+function EmployersPageSkeleton() {
+  return (
+    <div className="flex-1">
+      <section className="bg-gradient-to-br from-white to-gray-50 py-12 lg:py-16 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Skeleton className="h-10 w-64 mx-auto mb-3 rounded-lg" />
+          <Skeleton className="h-5 w-80 mx-auto rounded-lg" />
+        </div>
+      </section>
+      <section className="py-8 lg:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="p-5 rounded-2xl border border-gray-100 text-center">
+                <Skeleton className="w-16 h-16 rounded-full mx-auto mb-3" />
+                <Skeleton className="h-4 w-3/4 mx-auto mb-2" />
+                <Skeleton className="h-5 w-24 mx-auto rounded-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function EmployersPageInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [employers, setEmployers] = useState<Employer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [activeOrgType, setActiveOrgType] = useState('');
+
+  // Sheet state
+  const [selectedEmployer, setSelectedEmployer] = useState<Employer | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [employerJobs, setEmployerJobs] = useState<EmployerJob[]>([]);
+  const [jobsLoading, setJobsLoading] = useState(false);
 
   useEffect(() => {
     async function fetchEmployers() {
@@ -82,6 +131,90 @@ export default function EmployersPage() {
     fetchEmployers();
   }, []);
 
+  // Open employer detail sheet
+  const openEmployerSheet = useCallback(async (employer: Employer) => {
+    setSelectedEmployer(employer);
+    setSheetOpen(true);
+    setJobsLoading(true);
+    router.replace(`/employers?view=${employer.id}`, { scroll: false });
+
+    try {
+      // Fetch full employer details
+      const empRes = await fetch(`/api/employers?id=${employer.id}`);
+      if (empRes.ok) {
+        const empData = await empRes.json();
+        if (empData.employer) {
+          setSelectedEmployer(empData.employer);
+        }
+      }
+    } catch {
+      // keep existing data
+    }
+
+    try {
+      // Fetch employer's jobs
+      const jobsRes = await fetch(`/api/jobs?employerId=${employer.id}&limit=20`);
+      if (jobsRes.ok) {
+        const jobsData = await jobsRes.json();
+        setEmployerJobs(jobsData.jobs || []);
+      }
+    } catch {
+      // keep empty
+    } finally {
+      setJobsLoading(false);
+    }
+  }, [router]);
+
+  // Close employer detail sheet
+  const closeEmployerSheet = useCallback(() => {
+    setSheetOpen(false);
+    setSelectedEmployer(null);
+    setEmployerJobs([]);
+    router.replace('/employers', { scroll: false });
+  }, [router]);
+
+  // Auto-open sheet if ?view= is present
+  useEffect(() => {
+    const viewId = searchParams.get('view');
+    if (viewId && !sheetOpen) {
+      const employer = employers.find((e) => e.id === viewId);
+      if (employer) {
+        openEmployerSheet(employer);
+      } else {
+        // Fetch employer directly
+        (async () => {
+          try {
+            const res = await fetch(`/api/employers?id=${viewId}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.employer) {
+                openEmployerSheet(data.employer);
+              } else {
+                router.replace('/employers', { scroll: false });
+              }
+            } else {
+              router.replace('/employers', { scroll: false });
+            }
+          } catch {
+            router.replace('/employers', { scroll: false });
+          }
+        })();
+      }
+    }
+    // Only run on mount
+  }, []);
+
+  // Listen for popstate (back button) to close sheet
+  useEffect(() => {
+    const handlePopState = () => {
+      setSheetOpen(false);
+      setSelectedEmployer(null);
+      setEmployerJobs([]);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const filteredEmployers = useMemo(() => {
     let filtered = employers;
     if (activeOrgType) {
@@ -94,141 +227,165 @@ export default function EmployersPage() {
     return filtered;
   }, [employers, activeOrgType, search]);
 
+  const handleJobClick = (job: EmployerJob) => {
+    if (job.slug) {
+      router.push(`/jobs/${job.slug}`);
+    }
+  };
+
+  return (
+    <div className="flex-1">
+      {/* Hero Banner */}
+      <section className="bg-gradient-to-br from-white to-gray-50 py-12 lg:py-16 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-3xl lg:text-4xl font-bold text-slate-800 mb-3 flex items-center justify-center gap-3">
+            <Building2 className="w-8 h-8 text-teal-600" />
+            Employer Directory
+          </h1>
+          <p className="text-gray-500 max-w-xl mx-auto mb-8">
+            Browse top employers hiring in Kenya — from startups to government agencies
+          </p>
+          <div className="max-w-md mx-auto">
+            <div className="flex items-center bg-white rounded-full border border-gray-300 shadow-sm p-1.5 focus-within:border-teal-400 focus-within:shadow-md transition-all">
+              <div className="flex-1 relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  placeholder="Search employers..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-12 pr-4 h-11 text-base rounded-full border-0 shadow-none focus-visible:ring-0 bg-transparent"
+                />
+              </div>
+              <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 h-11 rounded-full text-sm font-semibold">
+                <Search className="w-4 h-4 mr-2" />
+                Search
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-8 lg:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Org Type Filter Tabs */}
+          <div className="flex flex-wrap gap-2 mb-8">
+            {orgTypeFilters.map((tf) => (
+              <Button
+                key={tf.value}
+                variant={activeOrgType === tf.value ? 'default' : 'outline'}
+                className={
+                  activeOrgType === tf.value
+                    ? 'bg-teal-600 hover:bg-teal-700 text-white text-sm'
+                    : 'border-gray-200 text-gray-600 hover:text-teal-600 text-sm'
+                }
+                onClick={() => setActiveOrgType(tf.value)}
+              >
+                {tf.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* Count */}
+          {!loading && !error && (
+            <p className="text-sm text-gray-500 mb-6">
+              Showing <span className="font-semibold text-gray-900">{filteredEmployers.length}</span>{' '}
+              {filteredEmployers.length === 1 ? 'employer' : 'employers'}
+            </p>
+          )}
+
+          {/* Error */}
+          {error && !loading && (
+            <div className="text-center py-12">
+              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-4">{error}</p>
+              <Button onClick={() => window.location.reload()} className="bg-teal-600 hover:bg-teal-700 text-white">
+                Try Again
+              </Button>
+            </div>
+          )}
+
+          {/* Loading */}
+          {loading && (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="p-5 rounded-2xl border border-gray-100 text-center">
+                  <Skeleton className="w-16 h-16 rounded-full mx-auto mb-3" />
+                  <Skeleton className="h-4 w-3/4 mx-auto mb-2" />
+                  <Skeleton className="h-5 w-24 mx-auto rounded-full" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Empty */}
+          {!loading && !error && filteredEmployers.length === 0 && (
+            <div className="text-center py-16">
+              <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No employers found</h3>
+              <p className="text-gray-500 mb-4">Try adjusting your search or filters</p>
+              <Button
+                onClick={() => {
+                  setActiveOrgType('');
+                  setSearch('');
+                }}
+                className="bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                Clear Filters
+              </Button>
+            </div>
+          )}
+
+          {/* Employers Grid */}
+          {!loading && !error && filteredEmployers.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              {filteredEmployers.map((employer) => {
+                const gradient = getLogoGradient(employer.companyName);
+                const initials = getInitials(employer.companyName);
+                return (
+                  <div
+                    key={employer.id}
+                    className="group p-5 rounded-2xl border border-gray-100 bg-white hover:border-teal-200 hover:shadow-lg hover:shadow-teal-900/5 transition-all duration-300 text-center cursor-pointer"
+                    onClick={() => openEmployerSheet(employer)}
+                  >
+                    {/* Logo Circle */}
+                    <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-bold text-lg mx-auto mb-3 group-hover:scale-105 transition-transform`}>
+                      {initials}
+                    </div>
+                    <h3 className="font-semibold text-gray-900 text-sm mb-2 group-hover:text-teal-700 transition-colors truncate">
+                      {employer.companyName}
+                    </h3>
+                    <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200">
+                      {orgTypeLabel(employer.orgType)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <NewsletterSection />
+
+      {/* Employer Detail Sheet */}
+      <EmployerDetailSheet
+        employer={selectedEmployer}
+        open={sheetOpen}
+        onClose={closeEmployerSheet}
+        jobs={employerJobs}
+        onJobClick={handleJobClick}
+      />
+    </div>
+  );
+}
+
+export default function EmployersPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1">
-        {/* Hero Banner */}
-        <section className="bg-gradient-to-br from-white to-gray-50 py-12 lg:py-16 border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-3xl lg:text-4xl font-bold text-slate-800 mb-3 flex items-center justify-center gap-3">
-              <Building2 className="w-8 h-8 text-teal-600" />
-              Employer Directory
-            </h1>
-            <p className="text-gray-500 max-w-xl mx-auto mb-8">
-              Browse top employers hiring in Kenya — from startups to government agencies
-            </p>
-            <div className="max-w-md mx-auto">
-              <div className="flex items-center bg-white rounded-full border border-gray-300 shadow-sm p-1.5 focus-within:border-teal-400 focus-within:shadow-md transition-all">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <Input
-                    placeholder="Search employers..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-12 pr-4 h-11 text-base rounded-full border-0 shadow-none focus-visible:ring-0 bg-transparent"
-                  />
-                </div>
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 h-11 rounded-full text-sm font-semibold">
-                  <Search className="w-4 h-4 mr-2" />
-                  Search
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-8 lg:py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Org Type Filter Tabs */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {orgTypeFilters.map((tf) => (
-                <Button
-                  key={tf.value}
-                  variant={activeOrgType === tf.value ? 'default' : 'outline'}
-                  className={
-                    activeOrgType === tf.value
-                      ? 'bg-teal-600 hover:bg-teal-700 text-white text-sm'
-                      : 'border-gray-200 text-gray-600 hover:text-teal-600 text-sm'
-                  }
-                  onClick={() => setActiveOrgType(tf.value)}
-                >
-                  {tf.label}
-                </Button>
-              ))}
-            </div>
-
-            {/* Count */}
-            {!loading && !error && (
-              <p className="text-sm text-gray-500 mb-6">
-                Showing <span className="font-semibold text-gray-900">{filteredEmployers.length}</span>{' '}
-                {filteredEmployers.length === 1 ? 'employer' : 'employers'}
-              </p>
-            )}
-
-            {/* Error */}
-            {error && !loading && (
-              <div className="text-center py-12">
-                <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">{error}</p>
-                <Button onClick={() => window.location.reload()} className="bg-teal-600 hover:bg-teal-700 text-white">
-                  Try Again
-                </Button>
-              </div>
-            )}
-
-            {/* Loading */}
-            {loading && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <div key={i} className="p-5 rounded-2xl border border-gray-100 text-center">
-                    <Skeleton className="w-16 h-16 rounded-full mx-auto mb-3" />
-                    <Skeleton className="h-4 w-3/4 mx-auto mb-2" />
-                    <Skeleton className="h-5 w-24 mx-auto rounded-full" />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Empty */}
-            {!loading && !error && filteredEmployers.length === 0 && (
-              <div className="text-center py-16">
-                <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No employers found</h3>
-                <p className="text-gray-500 mb-4">Try adjusting your search or filters</p>
-                <Button
-                  onClick={() => {
-                    setActiveOrgType('');
-                    setSearch('');
-                  }}
-                  className="bg-teal-600 hover:bg-teal-700 text-white"
-                >
-                  Clear Filters
-                </Button>
-              </div>
-            )}
-
-            {/* Employers Grid */}
-            {!loading && !error && filteredEmployers.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                {filteredEmployers.map((employer) => {
-                  const gradient = getLogoGradient(employer.companyName);
-                  const initials = getInitials(employer.companyName);
-                  return (
-                    <div
-                      key={employer.id}
-                      className="group p-5 rounded-2xl border border-gray-100 bg-white hover:border-teal-200 hover:shadow-lg hover:shadow-teal-900/5 transition-all duration-300 text-center cursor-pointer"
-                    >
-                      {/* Logo Circle */}
-                      <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-bold text-lg mx-auto mb-3 group-hover:scale-105 transition-transform`}>
-                        {initials}
-                      </div>
-                      <h3 className="font-semibold text-gray-900 text-sm mb-2 group-hover:text-teal-700 transition-colors truncate">
-                        {employer.companyName}
-                      </h3>
-                      <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200">
-                        {orgTypeLabel(employer.orgType)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </section>
-
-        <NewsletterSection />
-      </main>
+      <Suspense fallback={<EmployersPageSkeleton />}>
+        <EmployersPageInner />
+      </Suspense>
       <Footer />
       <WhatsAppFloat />
     </div>

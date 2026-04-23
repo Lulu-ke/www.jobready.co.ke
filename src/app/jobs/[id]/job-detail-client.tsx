@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import {
-  Bookmark, Share2, ExternalLink, Briefcase,
-  GraduationCap, FileText, MessageCircle, ArrowRight
+  Bookmark, Share2, ExternalLink,
+  FileText, MessageCircle, ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -196,11 +196,8 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
                 </div>
 
                 {job.requirements && (
-                  <div className="mt-6 pt-4 border-t border-gray-200">
-                    <h3 className="font-semibold text-gray-800 text-lg mb-2 flex items-center gap-2">
-                      <GraduationCap className="w-5 h-5" style={{ color: '#5B21B6' }} />
-                      Requirements
-                    </h3>
+                  <div className="mt-6 pt-5 border-t border-gray-200">
+                    <h3 className="font-semibold text-gray-800 text-lg mb-3">Requirements</h3>
                     <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
                       {job.requirements}
                     </div>
@@ -208,8 +205,8 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
                 )}
 
                 {job.howToApply && (
-                  <div className="mt-6 pt-4 border-t border-gray-200" id="how-to-apply">
-                    <h3 className="font-semibold text-gray-800 text-lg mb-2">How to Apply</h3>
+                  <div className="mt-6 pt-5 border-t border-gray-200" id="how-to-apply">
+                    <h3 className="font-semibold text-gray-800 text-lg mb-3">How to Apply</h3>
                     <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
                       {job.howToApply}
                     </div>
