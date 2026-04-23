@@ -286,7 +286,7 @@ function JobsPageInner() {
             <div className="flex-1 min-w-0">
               {/* Result Count */}
               <div className="flex items-center justify-between mb-6">
-                <p className="text-sm text-gray-500">
+                <div className="text-sm text-gray-500">
                   {loading ? (
                     <Skeleton className="h-4 w-40 inline-block" />
                   ) : (
@@ -295,7 +295,7 @@ function JobsPageInner() {
                       <span className="font-semibold text-gray-900">{total.toLocaleString()}</span> jobs
                     </>
                   )}
-                </p>
+                </div>
                 <a
                   href="/opportunities"
                   className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"

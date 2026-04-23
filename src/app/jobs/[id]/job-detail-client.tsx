@@ -148,7 +148,7 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
                       <DollarSign className="w-4 h-4 text-gray-400" />
                       {job.salaryFormatted}
                     </span>
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center gap-1.5" suppressHydrationWarning>
                       <Clock className="w-4 h-4 text-gray-400" />
                       {format(new Date(job.postedAt), 'MMM d, yyyy')}
                     </span>

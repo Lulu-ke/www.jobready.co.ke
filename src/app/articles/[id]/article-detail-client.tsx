@@ -78,7 +78,7 @@ export default function ArticleDetailClient({ article }: ArticleDetailClientProp
                     {article.author}
                   </span>
                 )}
-                <span className="flex items-center gap-1.5">
+                <span className="flex items-center gap-1.5" suppressHydrationWarning>
                   <Calendar className="w-4 h-4 text-gray-400" />
                   {format(new Date(article.createdAt), 'MMMM d, yyyy')}
                 </span>
@@ -132,7 +132,7 @@ export default function ArticleDetailClient({ article }: ArticleDetailClientProp
               >
                 <ArrowLeft className="w-4 h-4 mr-2" /> Back to Articles
               </Button>
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-gray-400" suppressHydrationWarning>
                 Published {format(new Date(article.createdAt), 'MMM d, yyyy')}
               </span>
             </div>

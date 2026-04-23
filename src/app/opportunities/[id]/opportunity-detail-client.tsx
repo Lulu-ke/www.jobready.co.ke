@@ -150,7 +150,7 @@ export default function OpportunityDetailClient({ opportunity }: OpportunityDeta
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Deadline</p>
-                      <p className="text-sm font-semibold text-orange-600">
+                      <p className="text-sm font-semibold text-orange-600" suppressHydrationWarning>
                         {format(new Date(opportunity.deadline), 'MMM d, yyyy')}
                       </p>
                     </div>
