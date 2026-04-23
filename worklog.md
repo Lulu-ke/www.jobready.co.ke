@@ -115,3 +115,27 @@ Stage Summary:
 - 7 files changed, 240 insertions, 97 deletions
 - Commit: b3f0e57 "Fix: side-sheet modal close now stays on current page"
 - Closing a sheet on any page now correctly falls back to that same page
+
+---
+Task ID: 6
+Agent: Main Agent
+Task: Phase 6 — Missing Pages & Filtered Views
+
+Work Log:
+- Audited all dead links in header, footer, and legal bar (10 total)
+- Created shared InfoPageLayout component (blue gradient hero + breadcrumbs + content area)
+- Created shared LegalPageLayout component (TOC sidebar + IntersectionObserver scroll spy)
+- Built About Us page (/about) — mission, who we are, impact stats, values, CTA
+- Built Contact Us page (/contact) — form + 5 contact info cards
+- Built CV Services page (/cv-services) — 3 pricing tiers, how it works, testimonials, FAQ accordion
+- Built 6 legal pages: Privacy Policy, Terms of Service, Cookie Policy, Disclaimer, Refund Policy, Data Protection Notice
+- Built global search page (/search) with tabs (All, Jobs, Opportunities, Companies, Articles)
+- Built custom 404 page (not-found.tsx) with search + popular links
+- Built error boundary (error.tsx) with retry button
+- Updated all footer dead links (# → real routes)
+- Build passes clean (38 routes total, was 27)
+
+Stage Summary:
+- 16 files changed, 3143 insertions, 5 deletions
+- Commit: 13057e6 "Phase 6: Missing pages & filtered views — 11 new pages"
+- Routes: 38 total — 0 dead links remaining in navigation
