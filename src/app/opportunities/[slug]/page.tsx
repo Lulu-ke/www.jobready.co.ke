@@ -4,13 +4,24 @@ import type { Metadata } from 'next';
 import OpportunityDetailClient from './opportunity-detail-client';
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const opportunities = await db.opportunity.findMany({
+    select: { slug: true },
+    where: { isActive: true },
+  });
+
+  return opportunities.map((opportunity) => ({
+    slug: opportunity.slug,
+  }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
+  const { slug } = await params;
   const opportunity = await db.opportunity.findUnique({
-    where: { id },
+    where: { slug },
     include: {
       provider: { select: { companyName: true } },
     },
@@ -33,9 +44,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function OpportunityDetailPage({ params }: Props) {
-  const { id } = await params;
+  const { slug } = await params;
   const opportunity = await db.opportunity.findUnique({
-    where: { id },
+    where: { slug },
     include: {
       provider: {
         select: {
@@ -51,7 +62,27 @@ export default async function OpportunityDetailPage({ params }: Props) {
   });
   if (!opportunity) notFound();
 
-  const providerName = opportunity.provider?.companyName || 'Unknown Provider';
+  // Fetch related opportunities (same type, excluding current, limit 4)
+  const relatedOpportunities = await db.opportunity.findMany({
+    where: {
+      type: opportunity.type,
+      id: { not: opportunity.id },
+      isActive: true,
+    },
+    take: 4,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      provider: {
+        select: {
+          id: true,
+          companyName: true,
+          logoUrl: true,
+          orgType: true,
+          slug: true,
+        },
+      },
+    },
+  });
 
   // JSON-LD structured data for Offer
   const jsonLd = {
@@ -74,7 +105,10 @@ export default async function OpportunityDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <OpportunityDetailClient opportunity={JSON.parse(JSON.stringify(opportunity))} />
+      <OpportunityDetailClient
+        opportunity={JSON.parse(JSON.stringify(opportunity))}
+        relatedOpportunities={JSON.parse(JSON.stringify(relatedOpportunities))}
+      />
     </>
   );
 }

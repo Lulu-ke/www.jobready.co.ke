@@ -6,6 +6,7 @@ import { ArrowRight } from 'lucide-react';
 interface GovJob {
   id: string;
   title: string;
+  slug: string;
   company: string;
   county: string;
   closingDate: string | null;
@@ -60,7 +61,7 @@ export default function GovVacancies({ countyJobs, nationalJobs, onJobClick }: G
                             </button>
                           ) : (
                             <Link
-                              href={`/jobs/${job.id}`}
+                              href={`/jobs/${job.slug}`}
                               className="hover:text-teal-600 transition-colors no-underline text-gray-800 text-sm font-medium"
                             >
                               {job.county || ''} – {job.title}
@@ -112,7 +113,7 @@ export default function GovVacancies({ countyJobs, nationalJobs, onJobClick }: G
                             </button>
                           ) : (
                             <Link
-                              href={`/jobs/${job.id}`}
+                              href={`/jobs/${job.slug}`}
                               className="hover:text-teal-600 transition-colors no-underline text-gray-800 text-sm font-medium"
                             >
                               {job.company || ''} – {job.title}

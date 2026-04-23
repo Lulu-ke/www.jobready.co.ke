@@ -112,7 +112,7 @@ function FeaturedJobsSection({ featuredJobs, onJobClick }: { featuredJobs: Featu
                   ) : (
                     <Link
                       key={job.id}
-                      href={`/jobs/${job.id}`}
+                      href={`/jobs/${job.slug}`}
                       className="group block bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow no-underline"
                     >
                       <div className="relative">
@@ -179,6 +179,7 @@ function FeaturedJobsSection({ featuredJobs, onJobClick }: { featuredJobs: Featu
 interface LatestJob {
   id: string;
   title: string;
+  slug: string;
   company: string;
   county: string;
   closingDate: string | null;
@@ -208,7 +209,7 @@ function LatestJobsSection({ jobs, onJobClick }: { jobs: LatestJob[]; onJobClick
               </button>
             ) : (
               <Link
-                href={`/jobs/${job.id}`}
+                href={`/jobs/${job.slug}`}
                 className="clickable-text font-semibold text-gray-800 no-underline"
               >
                 {job.title}
@@ -241,6 +242,7 @@ function LatestJobsSection({ jobs, onJobClick }: { jobs: LatestJob[]; onJobClick
 interface TrendingJob {
   id: string;
   title: string;
+  slug: string;
   company: string;
 }
 
@@ -279,7 +281,7 @@ function TrendingNowSection({ jobs, onJobClick }: { jobs: TrendingJob[]; onJobCl
                   </button>
                 ) : (
                   <Link
-                    href={`/jobs/${job.id}`}
+                    href={`/jobs/${job.slug}`}
                     className="flex-1 text-gray-700 hover:text-teal-600 transition-colors no-underline text-sm"
                   >
                     {job.title} – {job.company}

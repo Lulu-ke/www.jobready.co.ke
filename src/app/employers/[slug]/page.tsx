@@ -77,11 +77,11 @@ interface JobData {
 
 export async function generateStaticParams() {
   const employers = await db.employer.findMany({
-    select: { id: true },
+    select: { slug: true },
   });
 
   return employers.map((employer) => ({
-    id: employer.id,
+    slug: employer.slug,
   }));
 }
 
@@ -90,11 +90,11 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
+  const { slug } = await params;
   const employer = await db.employer.findUnique({
-    where: { id },
+    where: { slug },
     select: {
       companyName: true,
       logoUrl: true,
@@ -114,12 +114,12 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `${SITE.url}/employers/${id}`,
+      canonical: `${SITE.url}/employers/${slug}`,
     },
     openGraph: {
       title,
       description,
-      url: `${SITE.url}/employers/${id}`,
+      url: `${SITE.url}/employers/${slug}`,
       siteName: SITE.name,
       images: ogImage ? [{ url: ogImage, width: 1200, height: 630 }] : undefined,
       type: 'profile',
@@ -138,13 +138,13 @@ export async function generateMetadata({
 export default async function EmployerDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await params;
+  const { slug } = await params;
 
   // Fetch employer
   const employer = await db.employer.findUnique({
-    where: { id },
+    where: { slug },
     select: {
       id: true,
       companyName: true,
@@ -163,7 +163,7 @@ export default async function EmployerDetailPage({
   // Fetch active jobs for this employer
   const rawJobs = await db.job.findMany({
     where: {
-      employerId: id,
+      employerId: employer.id,
       isActive: true,
     },
     orderBy: { postedAt: 'desc' },
@@ -202,7 +202,7 @@ export default async function EmployerDetailPage({
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: employer.companyName,
-    url: `${SITE.url}/employers/${id}`,
+    url: `${SITE.url}/employers/${slug}`,
     logo: employer.logoUrl || undefined,
     description: employer.description || undefined,
   };
@@ -227,7 +227,7 @@ export default async function EmployerDetailPage({
         '@type': 'ListItem',
         position: 3,
         name: employer.companyName,
-        item: `${SITE.url}/employers/${id}`,
+        item: `${SITE.url}/employers/${slug}`,
       },
     ],
   };

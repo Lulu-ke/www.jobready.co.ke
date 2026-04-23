@@ -20,7 +20,7 @@ interface OpportunityProvider {
 interface Opportunity {
   id: string;
   title: string;
-  slug?: string;
+  slug: string;
   type: string;
   description: string | null;
   amount: string | number | null;
@@ -252,7 +252,7 @@ export default function OpportunityDetailSheet({ opportunity, open, onClose }: O
           {/* View Full Page link */}
           <div className="pt-1 pb-4 border-t border-gray-100">
             <a
-              href={`/opportunities/${opportunity.id}`}
+              href={`/opportunities/${opportunity.slug}`}
               className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
             >
               View Full Page

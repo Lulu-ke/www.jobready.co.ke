@@ -4,13 +4,24 @@ import type { Metadata } from 'next';
 import UpdateDetailClient from './update-detail-client';
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const updates = await db.jobUpdate.findMany({
+    select: { slug: true },
+    where: { isPublished: true },
+  });
+
+  return updates.map((update) => ({
+    slug: update.slug,
+  }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
+  const { slug } = await params;
   const update = await db.jobUpdate.findUnique({
-    where: { id },
+    where: { slug },
     select: {
       title: true,
       type: true,
@@ -33,9 +44,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function UpdateDetailPage({ params }: Props) {
-  const { id } = await params;
+  const { slug } = await params;
   const update = await db.jobUpdate.findUnique({
-    where: { id },
+    where: { slug },
   });
   if (!update) notFound();
 

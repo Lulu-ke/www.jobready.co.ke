@@ -36,28 +36,28 @@ export async function GET() {
     // Fetch all active jobs
     const jobs = await db.job.findMany({
       where: { isActive: true },
-      select: { id: true, updatedAt: true },
+      select: { id: true, slug: true, updatedAt: true },
       orderBy: { updatedAt: 'desc' },
     })
 
     // Fetch all active opportunities
     const opportunities = await db.opportunity.findMany({
       where: { isActive: true },
-      select: { id: true, updatedAt: true },
+      select: { id: true, slug: true, updatedAt: true },
       orderBy: { updatedAt: 'desc' },
     })
 
     // Fetch all published articles
     const articles = await db.article.findMany({
       where: { published: true },
-      select: { id: true, updatedAt: true },
+      select: { id: true, slug: true, updatedAt: true },
       orderBy: { updatedAt: 'desc' },
     })
 
     // Fetch all published job updates
     const jobUpdates = await db.jobUpdate.findMany({
       where: { isPublished: true },
-      select: { id: true, updatedAt: true },
+      select: { id: true, slug: true, updatedAt: true },
       orderBy: { updatedAt: 'desc' },
     })
 
@@ -68,7 +68,7 @@ export async function GET() {
 
     // Fetch all employers
     const employers = await db.employer.findMany({
-      select: { id: true, createdAt: true },
+      select: { id: true, slug: true, createdAt: true },
     })
 
     const urls: SitemapEntry[] = []
@@ -86,7 +86,7 @@ export async function GET() {
     // Job pages
     for (const job of jobs) {
       urls.push({
-        loc: `${SITE_URL}/jobs/${job.id}`,
+        loc: `${SITE_URL}/jobs/${job.slug}`,
         lastmod: formatLastmod(job.updatedAt),
         changefreq: 'daily',
         priority: '0.8',
@@ -96,7 +96,7 @@ export async function GET() {
     // Opportunity pages
     for (const opp of opportunities) {
       urls.push({
-        loc: `${SITE_URL}/opportunities/${opp.id}`,
+        loc: `${SITE_URL}/opportunities/${opp.slug}`,
         lastmod: formatLastmod(opp.updatedAt),
         changefreq: 'weekly',
         priority: '0.7',
@@ -106,7 +106,7 @@ export async function GET() {
     // Article pages
     for (const article of articles) {
       urls.push({
-        loc: `${SITE_URL}/articles/${article.id}`,
+        loc: `${SITE_URL}/articles/${article.slug}`,
         lastmod: formatLastmod(article.updatedAt),
         changefreq: 'weekly',
         priority: '0.6',
@@ -116,7 +116,7 @@ export async function GET() {
     // Job update pages
     for (const update of jobUpdates) {
       urls.push({
-        loc: `${SITE_URL}/updates/${update.id}`,
+        loc: `${SITE_URL}/updates/${update.slug}`,
         lastmod: formatLastmod(update.updatedAt),
         changefreq: 'daily',
         priority: '0.7',
@@ -156,7 +156,7 @@ export async function GET() {
     // Employer detail pages
     for (const employer of employers) {
       urls.push({
-        loc: `${SITE_URL}/employers/${employer.id}`,
+        loc: `${SITE_URL}/employers/${employer.slug}`,
         lastmod: formatLastmod(employer.createdAt),
         changefreq: 'weekly',
         priority: '0.7',

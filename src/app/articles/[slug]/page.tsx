@@ -4,13 +4,24 @@ import type { Metadata } from 'next';
 import ArticleDetailClient from './article-detail-client';
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const articles = await db.article.findMany({
+    select: { slug: true },
+    where: { published: true },
+  });
+
+  return articles.map((article) => ({
+    slug: article.slug,
+  }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
+  const { slug } = await params;
   const article = await db.article.findUnique({
-    where: { id },
+    where: { slug },
     select: {
       title: true,
       excerpt: true,
@@ -34,11 +45,33 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ArticleDetailPage({ params }: Props) {
-  const { id } = await params;
+  const { slug } = await params;
   const article = await db.article.findUnique({
-    where: { id },
+    where: { slug },
   });
   if (!article) notFound();
+
+  // Fetch related articles from same category
+  const relatedArticles = article.category
+    ? await db.article.findMany({
+        where: {
+          category: article.category,
+          slug: { not: slug },
+          published: true,
+        },
+        take: 4,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          category: true,
+          author: true,
+          createdAt: true,
+        },
+      })
+    : [];
 
   // JSON-LD structured data for Article
   const jsonLd = {
@@ -66,7 +99,7 @@ export default async function ArticleDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ArticleDetailClient article={JSON.parse(JSON.stringify(article))} />
+      <ArticleDetailClient article={JSON.parse(JSON.stringify(article))} relatedArticles={JSON.parse(JSON.stringify(relatedArticles))} />
     </>
   );
 }

@@ -220,7 +220,7 @@ export default function CareerBlogNewsletter({ articles, onArticleClick }: Caree
                 ) : (
                   <Link
                     key={article.id}
-                    href={`/articles/${article.id}`}
+                    href={`/articles/${article.slug}`}
                     className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow group no-underline"
                   >
                     <div className="w-full h-40 bg-gradient-to-br from-purple-50 to-teal-50 flex items-center justify-center">

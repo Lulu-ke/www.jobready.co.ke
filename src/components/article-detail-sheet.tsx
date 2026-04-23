@@ -11,7 +11,7 @@ import { format } from 'date-fns';
 interface Article {
   id: string;
   title: string;
-  slug?: string;
+  slug: string;
   excerpt: string;
   content: string;
   category: string;
@@ -146,7 +146,7 @@ export default function ArticleDetailSheet({ article, open, onClose }: ArticleDe
           {/* View Full Page link */}
           <div className="pt-1 pb-4 border-t border-gray-100">
             <a
-              href={`/articles/${article.id}`}
+              href={`/articles/${article.slug}`}
               className="text-sm text-teal-600 hover:text-teal-700 font-medium flex items-center gap-1"
             >
               View Full Page

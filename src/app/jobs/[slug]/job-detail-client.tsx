@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import WhatsAppFloat from '@/components/whatsapp-float';
+import AdSlot from '@/components/ad-slot';
 import JobCard, { Job } from '@/components/job-card';
 import {
   experienceLevelLabel,
@@ -31,7 +32,7 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
   const [saved, setSaved] = useState(false);
 
   const handleJobClick = (j: Job) => {
-    router.push(`/jobs/${j.id}`);
+    router.push(`/jobs/${j.slug}`);
     window.scrollTo(0, 0);
   };
 
@@ -73,7 +74,7 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
   if (job.county) {
     breadcrumbItems.push({ name: job.county, href: `/jobs?county=${encodeURIComponent(job.county)}` });
   }
-  breadcrumbItems.push({ name: job.title, href: `/jobs/${job.id}` });
+  breadcrumbItems.push({ name: job.title, href: `/jobs/${job.slug}` });
 
   // Format dates
   const postedDate = job.postedAt ? format(new Date(job.postedAt), 'MMM d, yyyy') : '';
@@ -224,6 +225,11 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
                 )}
               </div>
 
+              {/* Ad Slot — Inline */}
+              <div className="mb-6">
+                <AdSlot slot="inline-1" />
+              </div>
+
               {/* ─── Share Strip ─── */}
               <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
                 <div className="flex items-center gap-3">
@@ -250,17 +256,17 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
             <div className="space-y-6">
               {/* Company About Card */}
               <div className="bg-white rounded-xl shadow-sm p-6">
-                <div className="flex items-center gap-4 mb-4">
+                <Link href={`/employers/${job.employer?.slug || job.employer?.id || ''}`} className="flex items-center gap-4 mb-4 group">
                   <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${logoColor} flex items-center justify-center text-white font-bold text-lg shrink-0`}>
                     {job.logo || initials}
                   </div>
                   <div>
-                    <h3 className="font-semibold" style={{ color: '#1E293B' }}>{companyName}</h3>
+                    <h3 className="font-semibold group-hover:text-teal-600 transition-colors" style={{ color: '#1E293B' }}>{companyName}</h3>
                     {job.employer?.orgType && (
                       <span className="text-xs text-gray-500">{orgTypeLabel(job.employer.orgType)}</span>
                     )}
                   </div>
-                </div>
+                </Link>
 
                 {job.employer?.description && (
                   <p className="text-sm text-gray-600 leading-relaxed mb-3">{job.employer.description}</p>
@@ -300,6 +306,9 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
                 </div>
               </div>
 
+              {/* Ad Slot — Sidebar 1 */}
+              <AdSlot slot="sidebar-1" />
+
               {/* Related Jobs Card */}
               {relatedJobs.length > 0 && (
                 <div className="bg-white rounded-xl shadow-sm p-6">
@@ -323,6 +332,9 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
                   </div>
                 </div>
               )}
+
+              {/* Ad Slot — Sidebar 2 */}
+              <AdSlot slot="sidebar-2" />
 
               {/* Career Advice cross-links */}
               <div className="bg-gradient-to-br from-blue-50 to-teal-50 rounded-xl p-5 border border-blue-100">

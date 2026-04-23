@@ -7,10 +7,10 @@ import { Clock, ArrowRight } from 'lucide-react';
 interface DeadlineJob {
   id: string;
   title: string;
+  slug: string;
   company: string;
   county: string;
   closingDate: string;
-  slug?: string;
 }
 
 function getCountdownText(deadline: string | null): string | null {
@@ -82,7 +82,7 @@ export default function DeadlineStrip({ jobs }: DeadlineStripProps) {
                 >
                   <div>
                     <Link
-                      href={`/jobs/${job.id}`}
+                      href={`/jobs/${job.slug}`}
                       className="font-semibold text-gray-800 hover:text-teal-600 transition-colors"
                     >
                       {job.title}

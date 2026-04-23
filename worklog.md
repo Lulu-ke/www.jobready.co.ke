@@ -22,3 +22,32 @@ Stage Summary:
 - JSON-LD structured data on county pages, category pages, type pages, employer pages, and root layout
 - Sitemap dynamically includes all new page types
 - All existing functionality preserved, zero regressions
+
+---
+Task ID: 2
+Agent: Main Agent + 4 parallel subagents
+Task: Phase 8 — Slug Migration, UI Redesign, Ad Slots, and Sheet Enhancements
+
+Work Log:
+- Created reusable AdSlot component (src/components/ad-slot.tsx) with 6 slot types and placeholder support for Google AdSense
+- Migrated ALL 5 detail page routes from [id] to [slug]: jobs, articles, opportunities, updates, employers
+- Each detail page now has generateStaticParams() for full SSG with slug-based URLs
+- Created middleware.ts with 301 redirect logic: CUID detection → DB slug lookup → 301 redirect
+- Updated sitemap.xml to use slugs for all entities
+- Updated feed.xml to use slugs for jobs and articles
+- Updated ALL internal links: job-card, entry-intern-location, latest-trending-section, deadline-strip, gov-vacancies, career-blog-newsletter, uni-cv-bursaries
+- Updated ALL sheet components: article-detail-sheet, opportunity-detail-sheet, job-update-detail-sheet, job-detail-sheet
+- Added 3 ad slots to Job Detail page: sidebar-1, sidebar-2, inline-1
+- Added employer page link to job detail company card
+- Completely redesigned Article Detail page: 2-column layout, breadcrumb, sidebar with TOC, related articles, ad slots, author bio, Read Next section
+- Completely redesigned Opportunity Detail page: 2-column layout, breadcrumb, sidebar with provider card, related opportunities, ad slots, CV Writing CTA
+- Added generateStaticParams to articles and updates detail pages (they were missing it)
+
+Stage Summary:
+- ALL URLs now use human-readable slugs (e.g., /jobs/senior-software-engineer-safaricom)
+- Old CUID-based URLs automatically 301 redirect to slug URLs via middleware
+- Job Detail: 3 ad placements (sidebar×2, inline×1)
+- Article Detail: Full 2-column blog layout with 3 ad placements, TOC, related articles, author bio
+- Opportunity Detail: Full 2-column layout with 2 ad placements, provider card, related opportunities
+- Sitemap and RSS feed use slug-based URLs
+- Build verified: 223+ static pages generated successfully, zero errors

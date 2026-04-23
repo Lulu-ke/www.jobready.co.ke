@@ -7,6 +7,7 @@ import { COUNTY_NAMES } from '@/lib/constants';
 interface EntryInternJob {
   id: string;
   title: string;
+  slug: string;
   company: string;
   county: string;
   closingDate: string | null;
@@ -62,7 +63,7 @@ export default function EntryInternLocation({ entryJobs, internJobs, locationCou
                     </button>
                   ) : (
                     <Link
-                      href={`/jobs/${job.id}`}
+                      href={`/jobs/${job.slug}`}
                       className="hover:text-teal-600 transition-colors no-underline text-sm text-gray-800 font-medium clickable-text"
                     >
                       {job.title} – {job.company}{job.county ? `, ${job.county}` : ''}
@@ -111,7 +112,7 @@ export default function EntryInternLocation({ entryJobs, internJobs, locationCou
                     </button>
                   ) : (
                     <Link
-                      href={`/jobs/${job.id}`}
+                      href={`/jobs/${job.slug}`}
                       className="hover:text-teal-600 transition-colors no-underline text-sm text-gray-800 font-medium clickable-text"
                     >
                       {job.title} – {job.company}{job.county ? `, ${job.county}` : ''}

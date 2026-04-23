@@ -10,6 +10,7 @@ import { formatDistanceToNow, format } from 'date-fns';
 interface JobUpdate {
   id: string;
   title: string;
+  slug: string;
   type: string;
   sourceName: string;
   sourceUrl?: string;
@@ -179,7 +180,7 @@ export default function JobUpdateDetailSheet({ update, open, onClose }: JobUpdat
           {/* View Full Page link */}
           <div className="pt-1 pb-4 border-t border-gray-100">
             <a
-              href={`/updates/${update.id}`}
+              href={`/updates/${update.slug}`}
               className="text-sm text-teal-600 hover:text-teal-700 font-medium flex items-center gap-1"
             >
               View Full Page

@@ -6,7 +6,7 @@ import { ArrowRight, MessageCircle } from 'lucide-react';
 interface OppItem {
   id: string;
   title: string;
-  slug?: string;
+  slug: string;
   deadline: string | null;
 }
 
@@ -43,7 +43,7 @@ export default function UniCvBursaries({ universityOpps, bursaryOpps, onOpportun
                     </button>
                   ) : (
                     <Link
-                      href={`/opportunities/${opp.id}`}
+                      href={`/opportunities/${opp.slug}`}
                       className="hover:text-teal-600 transition-colors no-underline text-sm text-gray-800 font-medium clickable-text"
                     >
                       {opp.title}
@@ -126,7 +126,7 @@ export default function UniCvBursaries({ universityOpps, bursaryOpps, onOpportun
                     </button>
                   ) : (
                     <Link
-                      href={`/opportunities/${opp.id}`}
+                      href={`/opportunities/${opp.slug}`}
                       className="hover:text-teal-600 transition-colors no-underline text-sm text-gray-800 font-medium clickable-text"
                     >
                       {opp.title}

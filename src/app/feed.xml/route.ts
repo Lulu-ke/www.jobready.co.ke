@@ -36,6 +36,7 @@ export async function GET() {
       where: { isActive: true },
       select: {
         id: true,
+        slug: true,
         title: true,
         description: true,
         postedAt: true,
@@ -50,6 +51,7 @@ export async function GET() {
       where: { published: true },
       select: {
         id: true,
+        slug: true,
         title: true,
         excerpt: true,
         createdAt: true,
@@ -62,7 +64,7 @@ export async function GET() {
     // Build feed items from jobs
     const jobItems: FeedItem[] = jobs.map((job) => ({
       title: job.title,
-      link: `${SITE_URL}/jobs/${job.id}`,
+      link: `${SITE_URL}/jobs/${job.slug}`,
       description: truncate(job.description, 500),
       pubDate: job.postedAt,
       category: job.type,
@@ -71,7 +73,7 @@ export async function GET() {
     // Build feed items from articles
     const articleItems: FeedItem[] = articles.map((article) => ({
       title: article.title,
-      link: `${SITE_URL}/articles/${article.id}`,
+      link: `${SITE_URL}/articles/${article.slug}`,
       description: article.excerpt,
       pubDate: article.createdAt,
       category: article.category,

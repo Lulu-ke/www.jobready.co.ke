@@ -4,13 +4,24 @@ import type { Metadata } from 'next';
 import JobDetailClient from './job-detail-client';
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const jobs = await db.job.findMany({
+    select: { slug: true },
+    where: { isActive: true },
+  });
+
+  return jobs.map((job) => ({
+    slug: job.slug,
+  }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
+  const { slug } = await params;
   const job = await db.job.findUnique({
-    where: { id },
+    where: { slug },
     include: {
       employer: { select: { companyName: true } },
       category: { select: { name: true } },
@@ -34,9 +45,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function JobDetailPage({ params }: Props) {
-  const { id } = await params;
+  const { slug } = await params;
   const job = await db.job.findUnique({
-    where: { id },
+    where: { slug },
     include: {
       employer: {
         select: {
@@ -64,7 +75,7 @@ export default async function JobDetailPage({ params }: Props) {
   // Fetch related jobs
   const relatedJobs = job.categoryId
     ? await db.job.findMany({
-        where: { categoryId: job.categoryId, id: { not: id }, isActive: true },
+        where: { categoryId: job.categoryId, id: { not: job.id }, isActive: true },
         take: 4,
         orderBy: { postedAt: 'desc' },
         include: {
