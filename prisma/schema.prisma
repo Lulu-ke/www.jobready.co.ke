@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider     = "mysql"
+  provider     = "sqlite"
   url          = env("DATABASE_URL")
-  relationMode = "prisma"
 }
 
 model Employer {
@@ -15,7 +14,7 @@ model Employer {
   email         String        @unique
   phone         String?
   logoUrl       String?
-  description   String?       @db.Text
+  description   String?       
   orgType       OrgType       @default(PRIVATE)
   createdAt     DateTime      @default(now())
   jobs          Job[]
@@ -31,7 +30,7 @@ model Category {
   icon        String
   color       String
   jobCount    Int      @default(0)
-  description String?  @db.Text
+  description String?  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   jobs        Job[]
@@ -41,9 +40,9 @@ model Job {
   id              String           @id @default(cuid())
   title           String
   slug            String           @unique
-  description     String           @db.Text
-  requirements    String           @db.Text
-  howToApply      String           @db.Text
+  description     String           
+  requirements    String           
+  howToApply      String           
   location        String
   county          String
   type            String           @default("Full-Time")
@@ -74,11 +73,11 @@ model Opportunity {
   title       String
   slug        String          @unique
   type        OpportunityType
-  description String?         @db.Text
+  description String?         
   providerId  String?
   amount      Float?
   deadline    DateTime?
-  link        String?         @db.Text
+  link        String?         
   isActive    Boolean         @default(true)
   views       Int             @default(0)
   createdAt   DateTime        @default(now())
@@ -90,8 +89,8 @@ model Article {
   id         String   @id @default(cuid())
   title      String
   slug       String   @unique
-  excerpt    String   @db.Text
-  content    String   @db.Text
+  excerpt    String   
+  content    String   
   category   String   @default("Career Advice")
   author     String?
   coverImage String?
@@ -111,22 +110,26 @@ model Subscriber {
 }
 
 model User {
-  id           String           @id @default(cuid())
-  name         String
-  email        String           @unique
-  phone        String?
-  password     String
-  role         UserRole         @default(JOB_SEEKER)
-  avatarUrl    String?
-  isVerified   Boolean          @default(false)
-  isActive     Boolean          @default(true)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  employerId   String?          @unique
-  employer     Employer?        @relation(fields: [employerId], references: [id])
-  savedJobs    SavedJob[]
-  applications JobApplication[]
-  payments     Payment[]
+  id            String           @id @default(cuid())
+  name          String
+  email         String           @unique
+  phone         String?
+  password      String
+  role          UserRole         @default(JOB_SEEKER)
+  avatarUrl     String?
+  emailVerified DateTime?
+  isVerified    Boolean          @default(false)
+  isActive      Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  employerId    String?          @unique
+  employer      Employer?        @relation(fields: [employerId], references: [id])
+  profile       Profile?
+  savedJobs     SavedJob[]
+  applications  JobApplication[]
+  jobAlerts     JobAlert[]
+  notifications Notification[]
+  payments      Payment[]
 }
 
 model SavedJob {
@@ -147,8 +150,8 @@ model JobApplication {
   applicantName  String
   applicantEmail String
   applicantPhone String?
-  cvUrl          String?           @db.Text
-  coverLetter    String?           @db.Text
+  cvUrl          String?           
+  coverLetter    String?           
   status         ApplicationStatus @default(pending)
   appliedAt      DateTime          @default(now())
   job            Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
@@ -188,7 +191,7 @@ model CareerService {
   id           String    @id @default(cuid())
   name         String
   slug         String    @unique
-  description  String    @db.Text
+  description  String    
   price        Float
   deliveryDays Int       @default(3)
   isActive     Boolean   @default(true)
@@ -254,12 +257,68 @@ enum PaymentStatus {
   expired
 }
 
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  title       String?
+  summary     String?  
+  skills      String?  // JSON array of skill strings
+  experience  Json?    // Array of { company, role, duration, description }
+  education   Json?    // Array of { institution, degree, field, year }
+  cvUrl       String?
+  cvFileName  String?
+  location    String?
+  county      String?
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model JobAlert {
+  id          String         @id @default(cuid())
+  userId      String
+  keywords    String?
+  location    String?
+  category    String?
+  type        String?
+  frequency   AlertFrequency @default(DAILY)
+  isActive    Boolean        @default(true)
+  lastSentAt  DateTime?
+  createdAt   DateTime       @default(now())
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String                @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String                
+  link      String?
+  isRead    Boolean               @default(false)
+  createdAt DateTime              @default(now())
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum AlertFrequency {
+  DAILY
+  WEEKLY
+  INSTANT
+}
+
+enum NotificationType {
+  APPLICATION_UPDATE
+  JOB_ALERT
+  SYSTEM
+}
+
 model JobUpdate {
   id          String     @id @default(cuid())
   title       String
   slug        String     @unique
-  content     String     @db.Text
-  sourceUrl   String?    @db.Text
+  content     String     
+  sourceUrl   String?    
   sourceName  String     @default("Unknown")
   type        UpdateType @default(GENERAL)
   isPublished Boolean    @default(true)
