@@ -18,9 +18,9 @@ const footerLinks = {
     { label: 'All Opportunities', href: '/opportunities' },
   ],
   'Company': [
-    { label: 'About Us', href: '#' },
+    { label: 'About Us', href: '/about' },
     { label: 'CV Writing Services', href: '/cv-services' },
-    { label: 'Contact Us', href: '#' },
+    { label: 'Contact Us', href: '/contact' },
     { label: 'Employers', href: '/employers' },
     { label: 'Privacy Policy', href: '/privacy' },
     { label: 'Terms of Service', href: '/terms' },
@@ -144,11 +144,11 @@ export default function Footer() {
             <span>&middot;</span>
             <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
             <span>&middot;</span>
-            <Link href="#" className="hover:text-white transition-colors">Cookies</Link>
+            <Link href="/cookies" className="hover:text-white transition-colors">Cookies</Link>
             <span>&middot;</span>
-            <Link href="#" className="hover:text-white transition-colors">Disclaimer</Link>
+            <Link href="/disclaimer" className="hover:text-white transition-colors">Disclaimer</Link>
             <span>&middot;</span>
-            <Link href="#" className="hover:text-white transition-colors">Refunds</Link>
+            <Link href="/refunds" className="hover:text-white transition-colors">Refunds</Link>
           </div>
         </div>
       </div>
