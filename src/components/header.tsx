@@ -2,10 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, Search, MessageCircle } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import { Menu, X, Search, MessageCircle, Bookmark, Briefcase } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
+function getInitials(name: string) {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { data: session } = useSession();
 
   const navLinks = [
     { label: 'Jobs', href: '/jobs' },
@@ -108,21 +121,64 @@ export default function Header() {
               WhatsApp
             </a>
 
-            {/* Sign In */}
-            <Link
-              href="#"
-              className="text-sm font-medium text-[#5B21B6] hover:text-[#4a1a94] transition px-3 py-1.5"
-            >
-              Sign In
-            </Link>
-
-            {/* Create Account */}
-            <Link
-              href="#"
-              className="text-white px-4 py-1.5 rounded-full text-sm font-semibold transition bg-[#5B21B6] hover:bg-[#4a1a94]"
-            >
-              Create Account
-            </Link>
+            {/* Auth: Logged In */}
+            {session?.user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 px-2 py-1 rounded-full hover:bg-gray-100 transition">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={session.user.image || undefined} alt={session.user.name} />
+                      <AvatarFallback className="bg-teal-600 text-white text-xs font-semibold">
+                        {getInitials(session.user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium text-gray-700 max-w-[100px] truncate hidden lg:block">
+                      {session.user.name?.split(' ')[0]}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52 rounded-xl">
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="cursor-pointer rounded-lg">
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/saved" className="cursor-pointer rounded-lg">
+                      <Bookmark className="w-4 h-4 mr-2" /> Saved Jobs
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/applications" className="cursor-pointer rounded-lg">
+                      <Briefcase className="w-4 h-4 mr-2" /> My Applications
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => signOut({ callbackUrl: '/' })}
+                    className="cursor-pointer rounded-lg text-red-600 focus:text-red-600 focus:bg-red-50"
+                  >
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                {/* Auth: Logged Out */}
+                <Link
+                  href="/login"
+                  className="text-sm font-medium text-[#5B21B6] hover:text-[#4a1a94] transition px-3 py-1.5"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/register"
+                  className="text-white px-4 py-1.5 rounded-full text-sm font-semibold transition bg-[#5B21B6] hover:bg-[#4a1a94]"
+                >
+                  Create Account
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -167,18 +223,47 @@ export default function Header() {
                 >
                   <MessageCircle className="w-4 h-4" /> WhatsApp
                 </a>
-                <Link
-                  href="#"
-                  className="text-center text-sm font-medium text-[#5B21B6] hover:text-[#4a1a94] transition px-3 py-2"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="#"
-                  className="text-center text-white px-4 py-2 rounded-full text-sm font-semibold transition bg-[#5B21B6] hover:bg-[#4a1a94]"
-                >
-                  Create Account
-                </Link>
+                {session?.user ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-50 transition"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={session.user.image || undefined} alt={session.user.name} />
+                        <AvatarFallback className="bg-teal-600 text-white text-xs font-semibold">
+                          {getInitials(session.user.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="text-left">
+                        <p className="text-sm font-medium text-gray-900">{session.user.name}</p>
+                        <p className="text-xs text-gray-500">Go to Dashboard</p>
+                      </div>
+                    </Link>
+                    <button
+                      onClick={() => { setIsMobileMenuOpen(false); signOut({ callbackUrl: '/' }); }}
+                      className="text-center text-sm font-medium text-red-600 hover:text-red-700 transition px-3 py-2"
+                    >
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="text-center text-sm font-medium text-[#5B21B6] hover:text-[#4a1a94] transition px-3 py-2"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="text-center text-white px-4 py-2 rounded-full text-sm font-semibold transition bg-[#5B21B6] hover:bg-[#4a1a94]"
+                    >
+                      Create Account
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

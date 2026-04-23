@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
 // CUID pattern: starts with 'cm' followed by lowercase alphanumeric chars, ~25 chars total
 const CUID_PATTERN = /^cm[a-z0-9]{20,24}$/;
@@ -82,6 +83,18 @@ async function getIdToSlug(model: string, id: string): Promise<string | null> {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // ── Dashboard auth protection ──
+  if (pathname.startsWith('/dashboard')) {
+    const token = await getToken({ req: request, secret: process.env.AUTH_SECRET });
+    if (!token) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('callbackUrl', '/dashboard');
+      return NextResponse.redirect(loginUrl);
+    }
+    return NextResponse.next();
+  }
+
+  // ── CUID-to-slug redirect ──
   // Match only /jobs/{segment}, /articles/{segment}, etc. — single segment only
   // This intentionally does NOT match nested routes like /jobs/county/nairobi
   const match = pathname.match(
@@ -116,8 +129,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Only match single-segment paths under these routes
-    // This explicitly excludes API routes, static files, and nested routes
+    // Dashboard routes — auth protection
+    '/dashboard/:path*',
+    // Only match single-segment paths under these routes for CUID redirect
     '/jobs/:path',
     '/articles/:path',
     '/opportunities/:path',

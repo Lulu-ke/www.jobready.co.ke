@@ -51,3 +51,52 @@ Stage Summary:
 - Opportunity Detail: Full 2-column layout with 2 ad placements, provider card, related opportunities
 - Sitemap and RSS feed use slug-based URLs
 - Build verified: 223+ static pages generated successfully, zero errors
+
+---
+Task ID: 2-2
+Agent: Main Agent
+Task: Batch 2 — Profile Builder, CV Upload & Dashboard for JobReady Kenya
+
+Work Log:
+- Created next-auth type declarations (`src/types/next-auth.d.ts`) for Session and JWT augmentation
+- Updated middleware (`src/middleware.ts`) to protect `/dashboard/*` routes using `getToken` from `next-auth/jwt` (edge-compatible), redirects unauthenticated users to `/login?callbackUrl=/dashboard`; preserved existing CUID-to-slug redirect logic
+- Built Dashboard Layout (`src/app/dashboard/layout.tsx`) as server component using `getServerSession(authOptions)` with redirect guard
+- Built DashboardShell client component (`src/app/dashboard/dashboard-shell.tsx`) with:
+  - React Context (`DashboardContext`) for sharing user data with child pages via `useDashboardUser()` hook
+  - Left sidebar (desktop) with user avatar/initials, nav links (Overview, Profile, CV, Saved Jobs, Applications, Alerts, Notifications), active link highlight (teal-600), Sign Out button
+  - Mobile top bar with hamburger trigger opening a Sheet (shadcn) sidebar sliding from left
+  - Consistent teal-600 / purple branding with rounded-xl nav items
+- Built 7 Dashboard Pages (all 'use client'):
+  1. **Overview** (`/dashboard/page.tsx`): Welcome card, 4 stats cards (Saved Jobs, Applications, Job Alerts, Profile Completion %), quick action buttons, recent applications list with status badges, skeleton loading
+  2. **Profile Builder** (`/dashboard/profile/page.tsx`): Personal info form (title, summary, location, county), tag-input skills with removable badges, dynamic experience list (company, role, duration, description), dynamic education list (institution, degree, field, year), save with toast feedback
+  3. **CV Management** (`/dashboard/cv/page.tsx`): Current CV display with filename/date, drag-and-drop upload area (PDF/DOC/DOCX, 5MB max), simulated progress bar, delete CV functionality, tips card
+  4. **Saved Jobs** (`/dashboard/saved/page.tsx`): Grid cards with job title, company, location, type badge, date saved, unsave button, empty state
+  5. **Applications** (`/dashboard/applications/page.tsx`): Desktop table + mobile responsive cards, status filter tabs (All/Pending/Reviewed/Shortlisted/Rejected), color-coded status badges
+  6. **Job Alerts** (`/dashboard/alerts/page.tsx`): List with keywords/location/category badges, frequency display, active/paused toggle (Switch), create alert form with keywords/location/category/frequency, delete per alert
+  7. **Notifications** (`/dashboard/notifications/page.tsx`): Type-based icons (APPLICATION_UPDATE, JOB_ALERT, SYSTEM), read/unread dot indicator, "Mark All Read" button, click-to-navigate for linked notifications, `formatDistanceToNow` timestamps
+- Built 6 API Routes (all using `getServerSession(authOptions)` for auth, returning JSON `{ success, data/error }`):
+  1. `/api/profile/route.ts`: GET (fetch user profile), PUT (upsert profile fields)
+  2. `/api/cv/route.ts`: GET (CV info), POST (file upload with type/size validation to `public/uploads/cvs/`), DELETE (remove file from disk + clear DB)
+  3. `/api/saved-jobs/route.ts`: GET (include job data), POST (save with duplicate check), DELETE (unsave)
+  4. `/api/applications/route.ts`: GET (with ?limit&?status query params, include job data), POST (create with user info from session, duplicate check via unique constraint)
+  5. `/api/alerts/route.ts`: GET, POST (create), PATCH (toggle active, update fields), DELETE (with ownership check)
+  6. `/api/notifications/route.ts`: GET (ordered desc), PATCH (mark individual or markAll)
+- Updated Header component (`src/components/header.tsx`):
+  - When logged in: Shows user Avatar (initials fallback) + name in a DropdownMenu with Dashboard, Saved Jobs, My Applications, Sign Out
+  - When logged out: Shows Sign In (/login) + Create Account (/register)
+  - Mobile menu: Shows user info + "Go to Dashboard" when logged in
+  - Preserved all existing nav links, search input, WhatsApp button, top bar
+- Updated Mobile Nav (`src/components/mobile-nav.tsx`):
+  - When logged in: Shows Dashboard tab (replaces Profile) linking to /dashboard via router.push
+  - Hidden when on /dashboard routes
+  - When logged out: Keeps current behavior
+
+Stage Summary:
+- Complete user dashboard with 7 pages and 6 API routes
+- Dashboard auth protection via middleware (getToken) + layout (getServerSession) double-guard
+- Profile Builder with dynamic experience/education sections and tag-based skills input
+- CV upload with drag-and-drop, validation, progress simulation, and disk cleanup
+- Application tracking with status filter tabs and responsive table/cards
+- Job alerts with create/toggle/delete and notifications with read/unread management
+- Auth-aware header with dropdown menu and mobile nav integration
+- Lint passes with zero errors, Prisma client generated successfully
