@@ -124,3 +124,38 @@ Stage Summary:
 - Cookie Consent Banner with granular preference controls
 - Back to Top button with smooth scroll
 - Build verified: ✓ Compiled successfully, zero errors, all pages generated
+---
+Task ID: 4
+Agent: Main Agent
+Task: Batch 4 - ATS CV Checker & AI Career Document Studio
+
+Work Log:
+- Read current project state (schema, layout, header, footer, auth, login, mobile nav, dashboard)
+- Fixed Vercel build error: wrapped generateStaticParams in try/catch for 5 slug pages (career-advice, jobs, companies, opportunities, updates)
+- Added CVScan and CareerDocument Prisma models with User relations
+- Ran prisma db push and prisma generate (fixed system DATABASE_URL override issue)
+- Created CV Checker layout with SEO metadata, BreadcrumbList JSON-LD
+- Created public CV Checker landing page (/cv-checker) with hero, dual textareas, email capture, How It Works, What We Check, FAQ with FAQPage JSON-LD, CTA
+- Created CV Checker result page (/cv-checker/result) with animated SVG score gauge, score breakdown, issues, improvements, skill gaps, email capture, social sharing
+- Created CV Scan API (POST /api/cv-scan) with AI analysis via z-ai-web-dev-sdk + fallback rule-based analysis
+- Created CV Scan GET API (/api/cv-scan/[id])
+- Created AI CV Suggest API (/api/ai/cv-suggest)
+- Created AI Cover Letter API (/api/ai/cover-letter)
+- Created AI Suggest Skills API (/api/ai/suggest-skills)
+- Created Career Documents API (GET/POST /api/career-documents, GET/PUT/DELETE /api/career-documents/[id])
+- Created Dashboard CV Builder with 3 templates, live preview, AI improve/suggest buttons, save/download PDF
+- Created Dashboard Cover Letter Generator with tone selector, AI generation, save/load/delete
+- Updated header: added CV Checker nav link with Sparkles icon
+- Updated footer: added Free CV Checker under For Job Seekers
+- Updated dashboard shell: added CV Builder and Cover Letter sidebar links
+- Created homepage CV Checker CTA banner component
+- Fixed AI SDK calls: changed zai.chat() to zai.createChatCompletion() with proper response parsing
+- Build verified: zero errors, zero warnings
+- Committed and pushed to GitHub (commit 4f789e5)
+
+Stage Summary:
+- 24 files changed, 3,001 insertions
+- 16 new files created, 8 existing files modified
+- 9 new routes: /cv-checker, /cv-checker/result, /dashboard/cv-builder, /dashboard/cover-letter, /api/cv-scan, /api/cv-scan/[id], /api/ai/cv-suggest, /api/ai/cover-letter, /api/ai/suggest-skills, /api/career-documents, /api/career-documents/[id]
+- Vercel build error fixed (generateStaticParams resilience)
+- All AI features use z-ai-web-dev-sdk createChatCompletion with proper error handling and fallbacks
