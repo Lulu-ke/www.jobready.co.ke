@@ -3,14 +3,200 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
 
-// ============================================
-// ENUMS
-// ============================================
+model Employer {
+  id            String        @id @default(cuid())
+  companyName   String
+  slug          String        @unique
+  email         String        @unique
+  phone         String?
+  logoUrl       String?
+  description   String?       @db.Text
+  orgType       OrgType       @default(PRIVATE)
+  createdAt     DateTime      @default(now())
+  jobs          Job[]
+  opportunities Opportunity[]
+  sponsoredAds  SponsoredAd[]
+  user          User?
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  icon        String
+  color       String
+  jobCount    Int      @default(0)
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  jobs        Job[]
+}
+
+model Job {
+  id              String           @id @default(cuid())
+  title           String
+  slug            String           @unique
+  description     String           @db.Text
+  requirements    String           @db.Text
+  howToApply      String           @db.Text
+  location        String
+  county          String
+  type            String           @default("Full-Time")
+  experienceLevel ExperienceLevel  @default(mid)
+  categoryId      String?
+  salaryMin       Int?
+  salaryMax       Int?
+  currency        String           @default("KSh")
+  isRemote        Boolean          @default(false)
+  isFeatured      Boolean          @default(false)
+  isActive        Boolean          @default(true)
+  closingDate     DateTime?
+  postedAt        DateTime         @default(now())
+  sourceUrl       String?
+  views           Int              @default(0)
+  employerId      String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  category        Category?        @relation(fields: [categoryId], references: [id])
+  employer        Employer?        @relation(fields: [employerId], references: [id])
+  savedJobs       SavedJob[]
+  applications    JobApplication[]
+  sponsoredAd     SponsoredAd?
+}
+
+model Opportunity {
+  id          String          @id @default(cuid())
+  title       String
+  slug        String          @unique
+  type        OpportunityType
+  description String?         @db.Text
+  providerId  String?
+  amount      Float?
+  deadline    DateTime?
+  link        String?         @db.Text
+  isActive    Boolean         @default(true)
+  views       Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  provider    Employer?       @relation(fields: [providerId], references: [id])
+}
+
+model Article {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  excerpt    String   @db.Text
+  content    String   @db.Text
+  category   String   @default("Career Advice")
+  author     String?
+  coverImage String?
+  published  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Subscriber {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String?
+  preferences String   @default("[]")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id           String           @id @default(cuid())
+  name         String
+  email        String           @unique
+  phone        String?
+  password     String
+  role         UserRole         @default(JOB_SEEKER)
+  avatarUrl    String?
+  isVerified   Boolean          @default(false)
+  isActive     Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  employerId   String?          @unique
+  employer     Employer?        @relation(fields: [employerId], references: [id])
+  savedJobs    SavedJob[]
+  applications JobApplication[]
+  payments     Payment[]
+}
+
+model SavedJob {
+  id        String   @id @default(cuid())
+  userId    String
+  jobId     String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+}
+
+model JobApplication {
+  id             String            @id @default(cuid())
+  jobId          String
+  userId         String?
+  applicantName  String
+  applicantEmail String
+  applicantPhone String?
+  cvUrl          String?           @db.Text
+  coverLetter    String?           @db.Text
+  status         ApplicationStatus @default(pending)
+  appliedAt      DateTime          @default(now())
+  job            Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user           User?             @relation(fields: [userId], references: [id])
+
+  @@unique([jobId, applicantEmail])
+}
+
+model SponsoredAd {
+  id            String             @id @default(cuid())
+  jobId         String             @unique
+  employerId    String
+  package       SponsorshipPackage @default(basic)
+  amountPaid    Float?
+  paymentStatus PaymentStatus      @default(pending)
+  startDate     DateTime
+  endDate       DateTime
+  createdAt     DateTime           @default(now())
+  job           Job                @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  employer      Employer           @relation(fields: [employerId], references: [id])
+}
+
+model Payment {
+  id        String         @id @default(cuid())
+  userId    String
+  serviceId String?
+  amount    Float
+  mpesaRef  String?
+  status    PaymentStatus  @default(pending)
+  paidAt    DateTime?
+  createdAt DateTime       @default(now())
+  user      User           @relation(fields: [userId], references: [id])
+  service   CareerService? @relation(fields: [serviceId], references: [id])
+}
+
+model CareerService {
+  id           String    @id @default(cuid())
+  name         String
+  slug         String    @unique
+  description  String    @db.Text
+  price        Float
+  deliveryDays Int       @default(3)
+  isActive     Boolean   @default(true)
+  displayOrder Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  payments     Payment[]
+}
 
 enum ExperienceLevel {
   entry
@@ -66,222 +252,4 @@ enum PaymentStatus {
   pending
   paid
   expired
-}
-
-// ============================================
-// MODELS — ACTIVE (Phase 2)
-// ============================================
-
-model Employer {
-  id          String   @id @default(cuid())
-  companyName String
-  slug        String   @unique
-  email       String   @unique
-  phone       String?
-  logoUrl     String?
-  description String? @db.Text
-  orgType     OrgType  @default(PRIVATE)
-  createdAt   DateTime @default(now())
-
-  jobs         Job[]
-  opportunities Opportunity[]
-  sponsoredAds SponsoredAd[]
-  user         User?
-}
-
-model Category {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String   @unique
-  icon        String
-  color       String
-  jobCount    Int      @default(0)
-  description String? @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  jobs Job[]
-}
-
-model Job {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  description String   @db.Text
-  requirements String   @db.Text
-  howToApply  String   @db.Text
-
-  location    String
-  county      String
-
-  type        String   @default("Full-Time")
-  experienceLevel ExperienceLevel @default(mid)
-
-  categoryId  String?
-  category    Category? @relation(fields: [categoryId], references: [id])
-
-  salaryMin   Int?
-  salaryMax   Int?
-  currency    String   @default("KSh")
-
-  isRemote    Boolean  @default(false)
-  isFeatured  Boolean  @default(false)
-  isActive    Boolean  @default(true)
-
-  closingDate DateTime?
-  postedAt    DateTime @default(now())
-
-  sourceUrl   String?
-  views       Int      @default(0)
-
-  employerId  String?
-  employer    Employer? @relation(fields: [employerId], references: [id])
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  savedJobs      SavedJob[]
-  applications   JobApplication[]
-  sponsoredAd    SponsoredAd?
-}
-
-model Opportunity {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  type        OpportunityType
-  description String? @db.Text
-
-  providerId  String?
-  provider    Employer? @relation(fields: [providerId], references: [id])
-
-  amount      Float?
-  deadline    DateTime?
-  link        String? @db.Text
-
-  isActive    Boolean  @default(true)
-  views       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model Article {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  excerpt     String   @db.Text
-  content     String   @db.Text
-  category    String   @default("Career Advice")
-  author      String?
-  coverImage  String?
-  published   Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model Subscriber {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  name        String?
-  preferences String   @default("[]")
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-// ============================================
-// MODELS — FUTURE (Phase 3+)
-// ============================================
-
-model User {
-  id          String   @id @default(cuid())
-  name        String
-  email       String   @unique
-  phone       String?
-  password    String
-  role        UserRole  @default(JOB_SEEKER)
-  avatarUrl   String?
-
-  isVerified  Boolean  @default(false)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  employerId  String?  @unique
-  employer    Employer? @relation(fields: [employerId], references: [id])
-
-  savedJobs    SavedJob[]
-  applications JobApplication[]
-  payments     Payment[]
-}
-
-model SavedJob {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobId     String
-  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-
-  @@unique([userId, jobId])
-}
-
-model JobApplication {
-  id             String   @id @default(cuid())
-  jobId          String
-  job            Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  userId         String?
-  user           User?    @relation(fields: [userId], references: [id])
-
-  applicantName  String
-  applicantEmail String
-  applicantPhone String?
-  cvUrl          String? @db.Text
-  coverLetter    String? @db.Text
-  status         ApplicationStatus @default(pending)
-  appliedAt      DateTime @default(now())
-
-  @@unique([jobId, applicantEmail])
-}
-
-model SponsoredAd {
-  id            String            @id @default(cuid())
-  jobId         String            @unique
-  job           Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  employerId    String
-  employer      Employer          @relation(fields: [employerId], references: [id])
-  package       SponsorshipPackage @default(basic)
-  amountPaid    Float?
-  paymentStatus PaymentStatus     @default(pending)
-  startDate     DateTime
-  endDate       DateTime
-  createdAt     DateTime          @default(now())
-}
-
-model Payment {
-  id          String         @id @default(cuid())
-  userId      String
-  user        User           @relation(fields: [userId], references: [id])
-  serviceId   String?
-  service     CareerService? @relation(fields: [serviceId], references: [id])
-  amount      Float
-  mpesaRef    String?
-  status      PaymentStatus  @default(pending)
-  paidAt      DateTime?
-  createdAt   DateTime       @default(now())
-}
-
-model CareerService {
-  id            String   @id @default(cuid())
-  name          String
-  slug          String   @unique
-  description   String   @db.Text
-  price         Float
-  deliveryDays  Int      @default(3)
-  isActive      Boolean  @default(true)
-  displayOrder  Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  payments Payment[]
 }
