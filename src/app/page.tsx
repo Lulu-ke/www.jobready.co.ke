@@ -14,6 +14,7 @@ import GovVacancies from '@/components/gov-vacancies';
 import EntryInternLocation from '@/components/entry-intern-location';
 import OpportunityGrid from '@/components/opportunity-grid';
 import UniCvBursaries from '@/components/uni-cv-bursaries';
+import CVCheckerCTA from '@/components/cv-checker-cta';
 import CareerBlogNewsletter from '@/components/career-blog-newsletter';
 import Footer from '@/components/footer';
 import WhatsAppFloat from '@/components/whatsapp-float';
@@ -555,6 +556,9 @@ function HomePageContent() {
           bursaryOpps={bursaryOpps}
           onOpportunityClick={handleOpportunityClick}
         />
+        <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
+          <CVCheckerCTA />
+        </div>
         <CareerBlogNewsletter
           articles={articles}
           onArticleClick={handleArticleClick}

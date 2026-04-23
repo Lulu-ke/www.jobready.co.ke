@@ -1,0 +1,542 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import {
+  Save,
+  Download,
+  Wand2,
+  Sparkles,
+  Plus,
+  Trash2,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Scan,
+  FileText,
+  Briefcase,
+  GraduationCap,
+  Star,
+  Award,
+  Globe,
+  Eye,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
+import { useDashboardUser } from '@/app/dashboard/dashboard-shell';
+
+/* ─── Types ─────────────────────────────────────────────── */
+interface Experience {
+  id: string;
+  company: string;
+  role: string;
+  startDate: string;
+  endDate: string;
+  current: boolean;
+  description: string;
+}
+
+interface Education {
+  id: string;
+  institution: string;
+  degree: string;
+  field: string;
+  startYear: string;
+  endYear: string;
+}
+
+interface Certification {
+  id: string;
+  name: string;
+  issuer: string;
+  year: string;
+}
+
+interface Language {
+  id: string;
+  name: string;
+  proficiency: string;
+}
+
+type Template = 'modern' | 'classic' | 'minimal';
+
+const uid = () => Math.random().toString(36).slice(2, 9);
+
+const TEMPLATES: { key: Template; label: string }[] = [
+  { key: 'modern', label: 'Modern' },
+  { key: 'classic', label: 'Classic' },
+  { key: 'minimal', label: 'Minimal' },
+];
+
+/* ─── Main Component ────────────────────────────────────── */
+export default function CVBuilderPage() {
+  const { data: session } = useSession();
+  const user = useDashboardUser();
+
+  const [name, setName] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [phone, setPhone] = useState('');
+  const [location, setLocation] = useState('');
+  const [linkedin, setLinkedin] = useState('');
+  const [portfolio, setPortfolio] = useState('');
+  const [summary, setSummary] = useState('');
+  const [suggestingSummary, setSuggestingSummary] = useState(false);
+  const [experience, setExperience] = useState<Experience[]>([]);
+  const [education, setEducation] = useState<Education[]>([]);
+  const [skills, setSkills] = useState<string[]>([]);
+  const [skillInput, setSkillInput] = useState('');
+  const [suggestingSkills, setSuggestingSkills] = useState(false);
+  const [roleInput, setRoleInput] = useState('');
+  const [certifications, setCertifications] = useState<Certification[]>([]);
+  const [languages, setLanguages] = useState<Language[]>([]);
+  const [template, setTemplate] = useState<Template>('modern');
+  const [saving, setSaving] = useState(false);
+
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    personal: true, summary: true, experience: true, education: true,
+    skills: true, certifications: true, languages: true,
+  });
+
+  const toggleSection = (key: string) => {
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // Load saved data
+  useEffect(() => {
+    async function loadSaved() {
+      try {
+        const res = await fetch('/api/career-documents?type=CV');
+        const data = await res.json();
+        if (data.success && data.documents && data.documents.length > 0) {
+          const doc = data.documents[0];
+          try {
+            const content = JSON.parse(doc.content);
+            if (content.name) setName(content.name);
+            if (content.email) setEmail(content.email);
+            if (content.phone) setPhone(content.phone);
+            if (content.location) setLocation(content.location);
+            if (content.linkedin) setLinkedin(content.linkedin);
+            if (content.portfolio) setPortfolio(content.portfolio);
+            if (content.summary) setSummary(content.summary);
+            if (Array.isArray(content.experience)) setExperience(content.experience);
+            if (Array.isArray(content.education)) setEducation(content.education);
+            if (Array.isArray(content.skills)) setSkills(content.skills);
+            if (Array.isArray(content.certifications)) setCertifications(content.certifications);
+            if (Array.isArray(content.languages)) setLanguages(content.languages);
+            if (content.template) setTemplate(content.template);
+          } catch { /* not parseable */ }
+        }
+      } catch { /* ignore */ }
+    }
+    loadSaved();
+  }, []);
+
+  // Load profile data
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const res = await fetch('/api/profile');
+        const data = await res.json();
+        if (data.success && data.profile) {
+          if (!name && data.profile.title) setName(data.profile.title);
+          if (!summary && data.profile.summary) setSummary(data.profile.summary);
+          if (skills.length === 0 && data.profile.skills) {
+            try { const parsed = JSON.parse(data.profile.skills); if (Array.isArray(parsed)) setSkills(parsed); } catch {}
+          }
+          if (data.profile.location && !location) setLocation(data.profile.location);
+          if (experience.length === 0 && data.profile.experience) {
+            try {
+              const parsed = JSON.parse(typeof data.profile.experience === 'string' ? data.profile.experience : JSON.stringify(data.profile.experience));
+              if (Array.isArray(parsed)) {
+                setExperience(parsed.map((e: any) => ({
+                  id: uid(), company: e.company || '', role: e.role || e.position || '',
+                  startDate: e.startDate || e.duration?.split('-')[0]?.trim() || '',
+                  endDate: e.endDate || e.duration?.split('-')[1]?.trim() || '',
+                  current: false, description: e.description || '',
+                })));
+              }
+            } catch {}
+          }
+        }
+      } catch {}
+    }
+    loadProfile();
+  }, []);
+
+  const addExperience = () => {
+    setExperience([...experience, { id: uid(), company: '', role: '', startDate: '', endDate: '', current: false, description: '' }]);
+  };
+  const updateExperience = (id: string, field: keyof Experience, value: any) => {
+    setExperience(experience.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
+  };
+  const removeExperience = (id: string) => { setExperience(experience.filter((e) => e.id !== id)); };
+
+  const addEducation = () => {
+    setEducation([...education, { id: uid(), institution: '', degree: '', field: '', startYear: '', endYear: '' }]);
+  };
+  const updateEducation = (id: string, field: keyof Education, value: string) => {
+    setEducation(education.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
+  };
+  const removeEducation = (id: string) => { setEducation(education.filter((e) => e.id !== id)); };
+
+  const addSkill = () => {
+    const s = skillInput.trim();
+    if (s && !skills.includes(s)) { setSkills([...skills, s]); setSkillInput(''); }
+  };
+  const removeSkill = (s: string) => { setSkills(skills.filter((sk) => sk !== s)); };
+
+  const suggestSkills = async () => {
+    if (!roleInput.trim()) { toast.error('Please enter your job role title.'); return; }
+    setSuggestingSkills(true);
+    try {
+      const res = await fetch('/api/ai/suggest-skills', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: roleInput.trim() }),
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.skills)) {
+        const newSkills = data.skills.filter((s: string) => !skills.includes(s));
+        setSkills([...skills, ...newSkills]);
+        toast.success(`Added ${newSkills.length} suggested skills.`);
+      } else { toast.error('Could not suggest skills.'); }
+    } catch { toast.error('Network error.'); }
+    setSuggestingSkills(false);
+  };
+
+  const addCertification = () => { setCertifications([...certifications, { id: uid(), name: '', issuer: '', year: '' }]); };
+  const updateCertification = (id: string, field: keyof Certification, value: string) => {
+    setCertifications(certifications.map((c) => (c.id === id ? { ...c, [field]: value } : c)));
+  };
+  const removeCertification = (id: string) => { setCertifications(certifications.filter((c) => c.id !== id)); };
+
+  const addLanguage = () => { setLanguages([...languages, { id: uid(), name: '', proficiency: 'Intermediate' }]); };
+  const updateLanguage = (id: string, field: keyof Language, value: string) => {
+    setLanguages(languages.map((l) => (l.id === id ? { ...l, [field]: value } : l)));
+  };
+  const removeLanguage = (id: string) => { setLanguages(languages.filter((l) => l.id !== id)); };
+
+  const suggestSummary = async () => {
+    const ctx: string[] = [];
+    if (experience.length > 0) ctx.push(experience.slice(0, 2).map((e) => `${e.role} at ${e.company}`).join(', '));
+    if (skills.length > 0) ctx.push(`Skills: ${skills.slice(0, 5).join(', ')}`);
+    setSuggestingSummary(true);
+    try {
+      const res = await fetch('/api/ai/cv-suggest', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'Professional Summary', text: summary || 'No summary provided.', context: ctx.join('. ') }),
+      });
+      const data = await res.json();
+      if (data.success && data.improvedText) { setSummary(data.improvedText); toast.success('Summary improved by AI.'); }
+      else { toast.error('Could not improve summary.'); }
+    } catch { toast.error('Network error.'); }
+    setSuggestingSummary(false);
+  };
+
+  const improveBullet = async (expId: string, description: string) => {
+    try {
+      const res = await fetch('/api/ai/cv-suggest', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'Work Experience Description', text: description }),
+      });
+      const data = await res.json();
+      if (data.success && data.improvedText) { updateExperience(expId, 'description', data.improvedText); toast.success('Description improved.'); }
+    } catch { toast.error('Could not improve description.'); }
+  };
+
+  const saveCV = async () => {
+    if (!session?.user?.id) { toast.error('You must be logged in.'); return; }
+    setSaving(true);
+    try {
+      const content = JSON.stringify({ name, email, phone, location, linkedin, portfolio, summary, experience, education, skills, certifications, languages, template });
+      const existingRes = await fetch('/api/career-documents?type=CV');
+      const existingData = await existingRes.json();
+      if (existingData.success && existingData.documents && existingData.documents.length > 0) {
+        await fetch(`/api/career-documents/${existingData.documents[0].id}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content, title: `${name || 'My'} - CV` }),
+        });
+      } else {
+        await fetch('/api/career-documents', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'CV', title: `${name || 'My'} - CV`, content }),
+        });
+      }
+      toast.success('CV saved successfully!');
+    } catch { toast.error('Failed to save CV.'); }
+    setSaving(false);
+  };
+
+  const downloadPDF = () => {
+    const pw = window.open('', '_blank');
+    if (!pw) return;
+    pw.document.write(`<!DOCTYPE html><html><head><title>${name || 'CV'}</title>
+      <style>body{font-family:'Segoe UI',Tahoma,sans-serif;margin:40px;color:#1a1a1a;line-height:1.5}h1{font-size:24px;margin-bottom:4px}h2{font-size:16px;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #0d9488;padding-bottom:4px;margin-top:20px;color:#0d9488}.contact{font-size:13px;color:#666;margin-bottom:16px}.contact span{margin-right:16px}.exp-item{margin-bottom:12px}.exp-header{font-size:14px;font-weight:600}.exp-sub{font-size:12px;color:#666}.exp-desc{font-size:13px;margin-top:4px;white-space:pre-line}.skills{display:flex;flex-wrap:wrap;gap:6px}.skill-tag{background:#f0fdfa;color:#0d9488;padding:2px 10px;border-radius:12px;font-size:12px;border:1px solid #ccfbf1}.list-item{font-size:13px;margin:2px 0}@media print{body{margin:20px}}</style></head><body>${buildPreviewHTML()}<script>window.onload=()=>window.print()</script></body></html>`);
+    pw.document.close();
+  };
+
+  const runATSCheck = () => {
+    const cvText = [name, email, phone, location, summary, ...experience.map((e) => `${e.role} at ${e.company}\n${e.description}`), ...education.map((e) => `${e.degree} in ${e.field} from ${e.institution}`), skills.join(', ')].filter(Boolean).join('\n');
+    if (cvText.length < 50) { toast.error('Add more content before checking.'); return; }
+    const form = document.createElement('form');
+    form.method = 'POST'; form.action = '/api/cv-scan';
+    const input = document.createElement('input'); input.type = 'hidden'; input.name = 'cvText'; input.value = cvText;
+    form.appendChild(input); document.body.appendChild(form); form.submit(); document.body.removeChild(form);
+  };
+
+  function buildPreviewHTML() {
+    const ts: Record<Template, string> = {
+      modern: 'h1{color:#0d9488}h2{border-bottom-color:#7c3aed;color:#7c3aed}.skill-tag{background:#f5f3ff;color:#7c3aed;border-color:#ede9fe}',
+      classic: 'h1{color:#1a1a1a}h2{border-bottom-color:#374151;color:#374151}.skill-tag{background:#f3f4f6;color:#374151;border-color:#d1d5db}',
+      minimal: 'h1{color:#6b7280;font-weight:300}h2{border-bottom-color:#d1d5db;color:#6b7280;font-weight:400;letter-spacing:2px}.skill-tag{background:#f9fafb;color:#6b7280;border-color:#e5e7eb}',
+    };
+    const cp: string[] = [];
+    if (email) cp.push(`<span>${email}</span>`);
+    if (phone) cp.push(`<span>${phone}</span>`);
+    if (location) cp.push(`<span>${location}</span>`);
+    let h = `<style>${ts[template]}</style>`;
+    h += `<h1>${name || 'Your Name'}</h1>`;
+    if (cp.length) h += `<div class="contact">${cp.join('')}</div>`;
+    if (summary) h += `<p style="margin-bottom:16px">${summary.replace(/\n/g, '<br>')}</p>`;
+    if (experience.length) {
+      h += '<h2>Work Experience</h2>';
+      experience.forEach((e) => { if (e.role || e.company) { h += `<div class="exp-item"><div class="exp-header">${e.role || 'Role'}</div><div class="exp-sub">${e.company || ''}${e.startDate ? ' | ' + e.startDate : ''}${e.endDate ? ' - ' + e.endDate : ''}${e.current ? ' - Present' : ''}</div>${e.description ? '<div class="exp-desc">' + e.description.replace(/\n/g, '<br>') + '</div>' : ''}</div>`; } });
+    }
+    if (education.length) {
+      h += '<h2>Education</h2>';
+      education.forEach((e) => { if (e.institution || e.degree) h += `<div class="list-item"><strong>${e.degree || ''} ${e.field ? 'in ' + e.field : ''}</strong> — ${e.institution || ''} ${e.endYear ? '(' + e.endYear + ')' : ''}</div>`; });
+    }
+    if (skills.length) h += `<h2>Skills</h2><div class="skills">${skills.map((s) => `<span class="skill-tag">${s}</span>`).join('')}</div>`;
+    if (certifications.length) { h += '<h2>Certifications</h2>'; certifications.forEach((c) => { if (c.name) h += `<div class="list-item"><strong>${c.name}</strong> — ${c.issuer || ''} ${c.year ? '(' + c.year + ')' : ''}</div>`; }); }
+    if (languages.length) { h += '<h2>Languages</h2>'; languages.forEach((l) => { if (l.name) h += `<div class="list-item">${l.name} — ${l.proficiency || ''}</div>`; }); }
+    return h;
+  }
+
+  const isOpen = (key: string) => openSections[key] !== false;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">CV Builder</h1>
+        <p className="text-gray-500 text-sm mt-1">Build your ATS-friendly CV with AI assistance</p>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Left Panel */}
+        <div className="flex-1 lg:max-w-[60%] space-y-1">
+          {/* Template Selector */}
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-sm font-medium text-gray-600">Template:</span>
+            <div className="flex gap-2">
+              {TEMPLATES.map((t) => (
+                <button key={t.key} onClick={() => setTemplate(t.key)} className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition ${template === t.key ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-600 border-gray-200 hover:border-teal-300'}`}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Personal Info */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden mb-4">
+            <button onClick={() => toggleSection('personal')} className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
+              <div className="flex items-center gap-2"><FileText className="w-4 h-4 text-teal-600" /><span className="text-sm font-semibold text-gray-800">Personal Information</span></div>
+              {isOpen('personal') ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+            </button>
+            {isOpen('personal') && <div className="p-4">
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div><Label className="text-xs">Full Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} className="text-sm" placeholder="John Kamau" /></div>
+                <div><Label className="text-xs">Email</Label><Input value={email} onChange={(e) => setEmail(e.target.value)} className="text-sm" placeholder="john@email.com" /></div>
+                <div><Label className="text-xs">Phone</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} className="text-sm" placeholder="+254 700 000 000" /></div>
+                <div><Label className="text-xs">Location</Label><Input value={location} onChange={(e) => setLocation(e.target.value)} className="text-sm" placeholder="Nairobi, Kenya" /></div>
+                <div><Label className="text-xs">LinkedIn URL</Label><Input value={linkedin} onChange={(e) => setLinkedin(e.target.value)} className="text-sm" placeholder="https://linkedin.com/in/..." /></div>
+                <div><Label className="text-xs">Portfolio URL</Label><Input value={portfolio} onChange={(e) => setPortfolio(e.target.value)} className="text-sm" placeholder="https://..." /></div>
+              </div>
+            </div>}
+          </div>
+
+          {/* Summary */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden mb-4">
+            <button onClick={() => toggleSection('summary')} className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
+              <div className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-purple-600" /><span className="text-sm font-semibold text-gray-800">Professional Summary</span></div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={suggestSummary} disabled={suggestingSummary} className="text-xs text-teal-600 hover:text-teal-700">{suggestingSummary ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />} AI Suggest</Button>
+                {isOpen('summary') ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+              </div>
+            </button>
+            {isOpen('summary') && <div className="p-4">
+              <Textarea value={summary} onChange={(e) => setSummary(e.target.value)} placeholder="Write a 2-3 line professional summary highlighting your key achievements..." className="min-h-[100px] text-sm" />
+            </div>}
+          </div>
+
+          {/* Experience */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden mb-4">
+            <button onClick={() => toggleSection('experience')} className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
+              <div className="flex items-center gap-2"><Briefcase className="w-4 h-4 text-teal-600" /><span className="text-sm font-semibold text-gray-800">Work Experience</span></div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={addExperience} className="text-xs text-teal-600"><Plus className="w-3 h-3 mr-1" /> Add</Button>
+                {isOpen('experience') ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+              </div>
+            </button>
+            {isOpen('experience') && <div className="p-4 space-y-3">
+              {experience.length === 0 && <p className="text-gray-400 text-xs text-center py-4">No experience added yet. Click &quot;Add&quot; to get started.</p>}
+              {experience.map((exp) => (
+                <div key={exp.id} className="border border-gray-100 rounded-lg p-3 bg-gray-50/50">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-xs font-semibold text-gray-700">{exp.role || 'New Experience'}</span>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => improveBullet(exp.id, exp.description)} className="text-xs text-purple-600 h-6"><Wand2 className="w-3 h-3 mr-1" /> AI</Button>
+                      <button onClick={() => removeExperience(exp.id)} className="text-red-400 hover:text-red-600 p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-2 mb-2">
+                    <Input value={exp.company} onChange={(e) => updateExperience(exp.id, 'company', e.target.value)} placeholder="Company" className="text-xs" />
+                    <Input value={exp.role} onChange={(e) => updateExperience(exp.id, 'role', e.target.value)} placeholder="Job Title" className="text-xs" />
+                    <Input value={exp.startDate} onChange={(e) => updateExperience(exp.id, 'startDate', e.target.value)} placeholder="Start (e.g. Jan 2022)" className="text-xs" />
+                    <Input value={exp.endDate} onChange={(e) => updateExperience(exp.id, 'endDate', e.target.value)} placeholder="End or Present" className="text-xs" disabled={exp.current} />
+                  </div>
+                  <label className="flex items-center gap-2 text-xs text-gray-500 mb-2"><input type="checkbox" checked={exp.current} onChange={(e) => updateExperience(exp.id, 'current', e.target.checked)} className="rounded" /> Currently here</label>
+                  <Textarea value={exp.description} onChange={(e) => updateExperience(exp.id, 'description', e.target.value)} placeholder="Responsibilities & achievements (• Led team of 5...)" className="min-h-[80px] text-xs" />
+                </div>
+              ))}
+            </div>}
+          </div>
+
+          {/* Education */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden mb-4">
+            <button onClick={() => toggleSection('education')} className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
+              <div className="flex items-center gap-2"><GraduationCap className="w-4 h-4 text-teal-600" /><span className="text-sm font-semibold text-gray-800">Education</span></div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={addEducation} className="text-xs text-teal-600"><Plus className="w-3 h-3 mr-1" /> Add</Button>
+                {isOpen('education') ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+              </div>
+            </button>
+            {isOpen('education') && <div className="p-4 space-y-3">
+              {education.length === 0 && <p className="text-gray-400 text-xs text-center py-4">No education added yet.</p>}
+              {education.map((edu) => (
+                <div key={edu.id} className="border border-gray-100 rounded-lg p-3 bg-gray-50/50">
+                  <div className="flex justify-end mb-2"><button onClick={() => removeEducation(edu.id)} className="text-red-400 hover:text-red-600 p-1"><Trash2 className="w-3.5 h-3.5" /></button></div>
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    <Input value={edu.institution} onChange={(e) => updateEducation(edu.id, 'institution', e.target.value)} placeholder="Institution" className="text-xs" />
+                    <Input value={edu.degree} onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)} placeholder="Degree (e.g. BSc)" className="text-xs" />
+                    <Input value={edu.field} onChange={(e) => updateEducation(edu.id, 'field', e.target.value)} placeholder="Field of Study" className="text-xs" />
+                    <div className="flex gap-2">
+                      <Input value={edu.startYear} onChange={(e) => updateEducation(edu.id, 'startYear', e.target.value)} placeholder="Start" className="text-xs" />
+                      <Input value={edu.endYear} onChange={(e) => updateEducation(edu.id, 'endYear', e.target.value)} placeholder="End" className="text-xs" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>}
+          </div>
+
+          {/* Skills */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden mb-4">
+            <button onClick={() => toggleSection('skills')} className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
+              <div className="flex items-center gap-2"><Star className="w-4 h-4 text-purple-600" /><span className="text-sm font-semibold text-gray-800">Skills</span></div>
+              {isOpen('skills') ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+            </button>
+            {isOpen('skills') && <div className="p-4">
+              <div className="flex flex-wrap gap-1.5 mb-3">{skills.map((s) => (
+                <Badge key={s} variant="secondary" className="text-xs gap-1 pr-1">{s}<button onClick={() => removeSkill(s)} className="hover:text-red-500"><X className="w-3 h-3" /></button></Badge>
+              ))}</div>
+              <div className="flex gap-2 mb-2">
+                <Input value={skillInput} onChange={(e) => setSkillInput(e.target.value)} placeholder="Type skill + Enter" className="text-xs flex-1" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } }} />
+                <Button variant="outline" size="sm" onClick={addSkill} className="text-xs"><Plus className="w-3 h-3" /></Button>
+              </div>
+              <div className="flex gap-2 mt-2">
+                <Input value={roleInput} onChange={(e) => setRoleInput(e.target.value)} placeholder="Job role for AI suggestions" className="text-xs flex-1" />
+                <Button variant="outline" size="sm" onClick={suggestSkills} disabled={suggestingSkills} className="text-xs text-purple-600 border-purple-200">{suggestingSkills ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />} AI Suggest</Button>
+              </div>
+            </div>}
+          </div>
+
+          {/* Certifications */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden mb-4">
+            <button onClick={() => toggleSection('certifications')} className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
+              <div className="flex items-center gap-2"><Award className="w-4 h-4 text-amber-500" /><span className="text-sm font-semibold text-gray-800">Certifications</span></div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={addCertification} className="text-xs text-teal-600"><Plus className="w-3 h-3 mr-1" /> Add</Button>
+                {isOpen('certifications') ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+              </div>
+            </button>
+            {isOpen('certifications') && <div className="p-4 space-y-2">
+              {certifications.length === 0 && <p className="text-gray-400 text-xs text-center py-4">No certifications added.</p>}
+              {certifications.map((cert) => (
+                <div key={cert.id} className="flex gap-2 items-end">
+                  <Input value={cert.name} onChange={(e) => updateCertification(cert.id, 'name', e.target.value)} placeholder="Name" className="text-xs flex-1" />
+                  <Input value={cert.issuer} onChange={(e) => updateCertification(cert.id, 'issuer', e.target.value)} placeholder="Issuer" className="text-xs" />
+                  <Input value={cert.year} onChange={(e) => updateCertification(cert.id, 'year', e.target.value)} placeholder="Year" className="text-xs w-20" />
+                  <button onClick={() => removeCertification(cert.id)} className="text-red-400 hover:text-red-600 p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              ))}
+            </div>}
+          </div>
+
+          {/* Languages */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden mb-4">
+            <button onClick={() => toggleSection('languages')} className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
+              <div className="flex items-center gap-2"><Globe className="w-4 h-4 text-teal-600" /><span className="text-sm font-semibold text-gray-800">Languages</span></div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={addLanguage} className="text-xs text-teal-600"><Plus className="w-3 h-3 mr-1" /> Add</Button>
+                {isOpen('languages') ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+              </div>
+            </button>
+            {isOpen('languages') && <div className="p-4 space-y-2">
+              {languages.length === 0 && <p className="text-gray-400 text-xs text-center py-4">No languages added.</p>}
+              {languages.map((lang) => (
+                <div key={lang.id} className="flex gap-2 items-end">
+                  <Input value={lang.name} onChange={(e) => updateLanguage(lang.id, 'name', e.target.value)} placeholder="Language" className="text-xs flex-1" />
+                  <Select value={lang.proficiency} onValueChange={(v) => updateLanguage(lang.id, 'proficiency', v)}>
+                    <SelectTrigger className="text-xs w-32"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Beginner">Beginner</SelectItem>
+                      <SelectItem value="Intermediate">Intermediate</SelectItem>
+                      <SelectItem value="Advanced">Advanced</SelectItem>
+                      <SelectItem value="Fluent">Fluent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <button onClick={() => removeLanguage(lang.id)} className="text-red-400 hover:text-red-600 p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              ))}
+            </div>}
+          </div>
+
+          {/* Sticky Action Bar */}
+          <div className="sticky bottom-0 bg-white border border-gray-200 rounded-xl p-3 flex flex-wrap gap-2 z-10 shadow-lg mt-4">
+            <Button onClick={saveCV} disabled={saving} className="bg-teal-600 hover:bg-teal-700 text-white text-sm">{saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />} Save</Button>
+            <Button variant="outline" onClick={downloadPDF} className="text-sm"><Download className="w-4 h-4 mr-1" /> Download PDF</Button>
+            <Button variant="outline" onClick={runATSCheck} className="text-sm text-purple-600 border-purple-200"><Scan className="w-4 h-4 mr-1" /> Run ATS Check</Button>
+          </div>
+        </div>
+
+        {/* Right Panel: Live Preview */}
+        <div className="lg:w-[40%]">
+          <div className="lg:sticky lg:top-20">
+            <Card className="shadow-lg border-0">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold text-gray-600 flex items-center gap-2"><Eye className="w-4 h-4" /> Live Preview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-white border border-gray-100 rounded-lg p-6 min-h-[600px] shadow-inner">
+                  <div dangerouslySetInnerHTML={{ __html: buildPreviewHTML() }} className="cv-preview" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

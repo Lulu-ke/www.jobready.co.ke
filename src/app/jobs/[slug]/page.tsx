@@ -9,14 +9,17 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const jobs = await db.job.findMany({
-    select: { slug: true },
-    where: { isActive: true },
-  });
-
-  return jobs.map((job) => ({
-    slug: job.slug,
-  }));
+  try {
+    const jobs = await db.job.findMany({
+      select: { slug: true },
+      where: { isActive: true },
+    });
+    return jobs.map((job) => ({
+      slug: job.slug,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

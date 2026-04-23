@@ -9,14 +9,17 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const opportunities = await db.opportunity.findMany({
-    select: { slug: true },
-    where: { isActive: true },
-  });
-
-  return opportunities.map((opportunity) => ({
-    slug: opportunity.slug,
-  }));
+  try {
+    const opportunities = await db.opportunity.findMany({
+      select: { slug: true },
+      where: { isActive: true },
+    });
+    return opportunities.map((opportunity) => ({
+      slug: opportunity.slug,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

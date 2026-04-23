@@ -15,6 +15,7 @@ import {
   LogOut,
   Menu,
   ChevronRight,
+  Mail,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -49,6 +50,8 @@ interface DashboardShellProps {
 const navLinks = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/dashboard/profile', label: 'Profile', icon: UserCircle },
+  { href: '/dashboard/cv-builder', label: 'CV Builder', icon: FileText },
+  { href: '/dashboard/cover-letter', label: 'Cover Letter', icon: Mail },
   { href: '/dashboard/cv', label: 'My CV', icon: FileText },
   { href: '/dashboard/saved', label: 'Saved Jobs', icon: Bookmark },
   { href: '/dashboard/applications', label: 'Applications', icon: Briefcase },

@@ -130,6 +130,8 @@ model User {
   jobAlerts     JobAlert[]
   notifications Notification[]
   payments      Payment[]
+  cvScans       CVScan[]
+  careerDocuments CareerDocument[]
 }
 
 model SavedJob {
@@ -332,4 +334,45 @@ enum UpdateType {
   CLOSING_EXTENDED
   CORRIGENDUM
   GENERAL
+}
+
+model CVScan {
+  id              String    @id @default(cuid())
+  userId          String?
+  email           String?
+  cvText          String    @db.LongText
+  jobDescription  String?   @db.Text
+  atsScore        Int       @default(0)
+  keywordMatch    Int       @default(0)
+  formatScore     Int       @default(0)
+  sectionScore    Int       @default(0)
+  readabilityScore Int      @default(0)
+  skillGaps       Json?
+  suggestions     Json?
+  improvements    Json?
+  issues          Json?
+  isAnalyzed      Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+
+  user            User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CareerDocument {
+  id            String          @id @default(cuid())
+  userId        String
+  type          CareerDocumentType @default(CV)
+  title         String
+  content       String          @db.LongText
+  version       Int             @default(1)
+  isPublic      Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum CareerDocumentType {
+  CV
+  COVER_LETTER
+  LINKEDIN_PROFILE
 }

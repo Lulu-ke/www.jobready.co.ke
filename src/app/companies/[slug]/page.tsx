@@ -76,13 +76,16 @@ interface JobData {
 // ─── Static Params ──────────────────────────────────────────────────────────
 
 export async function generateStaticParams() {
-  const employers = await db.employer.findMany({
-    select: { slug: true },
-  });
-
-  return employers.map((employer) => ({
-    slug: employer.slug,
-  }));
+  try {
+    const employers = await db.employer.findMany({
+      select: { slug: true },
+    });
+    return employers.map((employer) => ({
+      slug: employer.slug,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 // ─── Metadata ───────────────────────────────────────────────────────────────

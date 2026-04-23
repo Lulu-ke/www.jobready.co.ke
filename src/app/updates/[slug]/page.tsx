@@ -9,14 +9,17 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const updates = await db.jobUpdate.findMany({
-    select: { slug: true },
-    where: { isPublished: true },
-  });
-
-  return updates.map((update) => ({
-    slug: update.slug,
-  }));
+  try {
+    const updates = await db.jobUpdate.findMany({
+      select: { slug: true },
+      where: { isPublished: true },
+    });
+    return updates.map((update) => ({
+      slug: update.slug,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

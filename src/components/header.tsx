@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { Menu, X, Search, MessageCircle, Bookmark, Briefcase } from 'lucide-react';
+import { Menu, X, Search, MessageCircle, Bookmark, Briefcase, Sparkles } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -25,6 +25,7 @@ export default function Header() {
     { label: 'Opportunities', href: '/opportunities' },
     { label: 'Companies', href: '/companies' },
     { label: 'Career Advice', href: '/career-advice' },
+    { label: 'CV Checker', href: '/cv-checker' },
     { label: 'CV Services', href: '/cv-services' },
   ];
 

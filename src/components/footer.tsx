@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 const footerLinks = {
   'For Job Seekers': [
+    { label: 'Free CV Checker', href: '/cv-checker' },
     { label: 'Browse Jobs', href: '/jobs' },
     { label: 'Internships', href: '/jobs?type=Internship' },
     { label: 'Government Jobs', href: '/jobs?category=government' },
