@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/header';
 import Hero from '@/components/hero';
@@ -107,6 +107,9 @@ function HomePageContent() {
   // ── Sheet state: Updates ──
   const [selectedUpdate, setSelectedUpdate] = useState<any>(null);
   const [updateSheetOpen, setUpdateSheetOpen] = useState(false);
+
+  const pathname = usePathname();
+  const sheetOpenRef = useRef(false);
 
   // ── Fetch all data ──
   useEffect(() => {
@@ -246,11 +249,15 @@ function HomePageContent() {
   }
 
   // ── Sheet open/close handlers ──
+  // Uses router.replace(pathname) on close so the user stays on the current page.
+  // router.replace for open does NOT push a new history entry, so router.back()
+  // would navigate to the *previous* page — not what we want.
 
   const openJobSheet = useCallback(async (job: any) => {
     setSelectedJob(job);
     setJobSheetOpen(true);
-    router.replace(`/?view=job:${job.id}`, { scroll: false });
+    sheetOpenRef.current = true;
+    router.replace(`${pathname}?view=job:${job.id}`, { scroll: false });
     try {
       const res = await fetch(`/api/jobs/${job.id}`);
       if (res.ok) {
@@ -261,17 +268,19 @@ function HomePageContent() {
     } catch {
       // keep existing data
     }
-  }, [router]);
+  }, [router, pathname]);
 
   const closeJobSheet = useCallback(() => {
     setJobSheetOpen(false);
-    router.back();
-  }, [router]);
+    sheetOpenRef.current = false;
+    router.replace(pathname, { scroll: false });
+  }, [router, pathname]);
 
   const openOpportunitySheet = useCallback(async (opp: any) => {
     setSelectedOpportunity(opp);
     setOpportunitySheetOpen(true);
-    router.replace(`/?view=opp:${opp.id}`, { scroll: false });
+    sheetOpenRef.current = true;
+    router.replace(`${pathname}?view=opp:${opp.id}`, { scroll: false });
     try {
       const res = await fetch(`/api/opportunities/${opp.id}`);
       if (res.ok) {
@@ -281,17 +290,19 @@ function HomePageContent() {
     } catch {
       // keep existing data
     }
-  }, [router]);
+  }, [router, pathname]);
 
   const closeOpportunitySheet = useCallback(() => {
     setOpportunitySheetOpen(false);
-    router.back();
-  }, [router]);
+    sheetOpenRef.current = false;
+    router.replace(pathname, { scroll: false });
+  }, [router, pathname]);
 
   const openArticleSheet = useCallback(async (article: any) => {
     setSelectedArticle(article);
     setArticleSheetOpen(true);
-    router.replace(`/?view=art:${article.id}`, { scroll: false });
+    sheetOpenRef.current = true;
+    router.replace(`${pathname}?view=art:${article.id}`, { scroll: false });
     try {
       const res = await fetch(`/api/articles/${article.id}`);
       if (res.ok) {
@@ -301,17 +312,19 @@ function HomePageContent() {
     } catch {
       // keep existing data
     }
-  }, [router]);
+  }, [router, pathname]);
 
   const closeArticleSheet = useCallback(() => {
     setArticleSheetOpen(false);
-    router.back();
-  }, [router]);
+    sheetOpenRef.current = false;
+    router.replace(pathname, { scroll: false });
+  }, [router, pathname]);
 
   const openUpdateSheet = useCallback(async (update: any) => {
     setSelectedUpdate(update);
     setUpdateSheetOpen(true);
-    router.replace(`/?view=upd:${update.id}`, { scroll: false });
+    sheetOpenRef.current = true;
+    router.replace(`${pathname}?view=upd:${update.id}`, { scroll: false });
     try {
       const res = await fetch(`/api/updates/${update.id}`);
       if (res.ok) {
@@ -321,24 +334,28 @@ function HomePageContent() {
     } catch {
       // keep existing data
     }
-  }, [router]);
+  }, [router, pathname]);
 
   const closeUpdateSheet = useCallback(() => {
     setUpdateSheetOpen(false);
-    router.back();
-  }, [router]);
+    sheetOpenRef.current = false;
+    router.replace(pathname, { scroll: false });
+  }, [router, pathname]);
 
   // ── Close all sheets on popstate (back button) ──
   useEffect(() => {
     const handlePopState = () => {
-      setJobSheetOpen(false);
-      setOpportunitySheetOpen(false);
-      setArticleSheetOpen(false);
-      setUpdateSheetOpen(false);
-      setSelectedJob(null);
-      setSelectedOpportunity(null);
-      setSelectedArticle(null);
-      setSelectedUpdate(null);
+      if (sheetOpenRef.current) {
+        sheetOpenRef.current = false;
+        setJobSheetOpen(false);
+        setOpportunitySheetOpen(false);
+        setArticleSheetOpen(false);
+        setUpdateSheetOpen(false);
+        setSelectedJob(null);
+        setSelectedOpportunity(null);
+        setSelectedArticle(null);
+        setSelectedUpdate(null);
+      }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -370,15 +387,15 @@ function HomePageContent() {
                   setRelatedJobs(data.relatedJobs || []);
                 } else {
                   setJobSheetOpen(false);
-                  router.replace('/', { scroll: false });
+                  router.replace(pathname, { scroll: false });
                 }
               } else {
                 setJobSheetOpen(false);
-                router.replace('/', { scroll: false });
+                router.replace(pathname, { scroll: false });
               }
             } catch {
               setJobSheetOpen(false);
-              router.replace('/', { scroll: false });
+              router.replace(pathname, { scroll: false });
             }
           })();
         }
@@ -400,15 +417,15 @@ function HomePageContent() {
                   setSelectedOpportunity(data.opportunity);
                 } else {
                   setOpportunitySheetOpen(false);
-                  router.replace('/', { scroll: false });
+                  router.replace(pathname, { scroll: false });
                 }
               } else {
                 setOpportunitySheetOpen(false);
-                router.replace('/', { scroll: false });
+                router.replace(pathname, { scroll: false });
               }
             } catch {
               setOpportunitySheetOpen(false);
-              router.replace('/', { scroll: false });
+              router.replace(pathname, { scroll: false });
             }
           })();
         }
@@ -430,15 +447,15 @@ function HomePageContent() {
                   setSelectedArticle(data.article);
                 } else {
                   setArticleSheetOpen(false);
-                  router.replace('/', { scroll: false });
+                  router.replace(pathname, { scroll: false });
                 }
               } else {
                 setArticleSheetOpen(false);
-                router.replace('/', { scroll: false });
+                router.replace(pathname, { scroll: false });
               }
             } catch {
               setArticleSheetOpen(false);
-              router.replace('/', { scroll: false });
+              router.replace(pathname, { scroll: false });
             }
           })();
         }
@@ -460,15 +477,15 @@ function HomePageContent() {
                   setSelectedUpdate(data.update);
                 } else {
                   setUpdateSheetOpen(false);
-                  router.replace('/', { scroll: false });
+                  router.replace(pathname, { scroll: false });
                 }
               } else {
                 setUpdateSheetOpen(false);
-                router.replace('/', { scroll: false });
+                router.replace(pathname, { scroll: false });
               }
             } catch {
               setUpdateSheetOpen(false);
-              router.replace('/', { scroll: false });
+              router.replace(pathname, { scroll: false });
             }
           })();
         }
@@ -476,7 +493,7 @@ function HomePageContent() {
       }
       default:
         // Unknown type, clean up URL
-        router.replace('/', { scroll: false });
+        router.replace(pathname, { scroll: false });
         break;
     }
     // Only run on mount — intentionally empty deps so searchParams snapshot is taken once

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Search, Briefcase, Loader2, AlertCircle, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -158,11 +158,15 @@ function JobsPageInner() {
     setPage(1);
   };
 
+  const pathname = usePathname();
+  const sheetOpenRef = useRef(false);
+
   // Open detail sheet
   const openJobSheet = useCallback(async (job: Job) => {
     setSelectedJob(job);
     setDetailOpen(true);
-    router.replace(`/jobs?view=${job.id}`, { scroll: false });
+    sheetOpenRef.current = true;
+    router.replace(`${pathname}?view=${job.id}`, { scroll: false });
 
     // Fetch full details
     setDetailLoading(true);
@@ -178,20 +182,24 @@ function JobsPageInner() {
     } finally {
       setDetailLoading(false);
     }
-  }, [router]);
+  }, [router, pathname]);
 
-  // Close detail sheet — always return to the jobs listing
+  // Close detail sheet — stay on the current page
   const closeJobSheet = useCallback(() => {
     setDetailOpen(false);
     setSelectedJob(null);
-    router.replace('/jobs', { scroll: false });
-  }, [router]);
+    sheetOpenRef.current = false;
+    router.replace(pathname, { scroll: false });
+  }, [router, pathname]);
 
   // Listen for popstate (back button) to close sheet
   useEffect(() => {
     const handlePopState = () => {
-      setDetailOpen(false);
-      setSelectedJob(null);
+      if (sheetOpenRef.current) {
+        sheetOpenRef.current = false;
+        setDetailOpen(false);
+        setSelectedJob(null);
+      }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -219,15 +227,15 @@ function JobsPageInner() {
                 setRelatedJobs(data.relatedJobs || []);
               } else {
                 setDetailOpen(false);
-                router.replace('/jobs', { scroll: false });
+                router.replace(pathname, { scroll: false });
               }
             } else {
               setDetailOpen(false);
-              router.replace('/jobs', { scroll: false });
+              router.replace(pathname, { scroll: false });
             }
           } catch {
             setDetailOpen(false);
-            router.replace('/jobs', { scroll: false });
+            router.replace(pathname, { scroll: false });
           } finally {
             setDetailLoading(false);
           }

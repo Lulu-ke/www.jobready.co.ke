@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { BookOpen, Calendar, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
@@ -93,11 +93,15 @@ function ArticlesPageInner() {
     fetchArticles();
   }, []);
 
+  const pathname = usePathname();
+  const sheetOpenRef = useRef(false);
+
   // Open detail sheet
   const openArticleSheet = useCallback(async (article: Article) => {
     setSelectedArticle(article);
     setDetailOpen(true);
-    router.replace(`/articles?view=${article.id}`, { scroll: false });
+    sheetOpenRef.current = true;
+    router.replace(`${pathname}?view=${article.id}`, { scroll: false });
 
     // Fetch full details
     setDetailLoading(true);
@@ -112,19 +116,23 @@ function ArticlesPageInner() {
     } finally {
       setDetailLoading(false);
     }
-  }, [router]);
+  }, [router, pathname]);
 
-  // Close detail sheet
+  // Close detail sheet — stay on the current page
   const closeArticleSheet = useCallback(() => {
     setDetailOpen(false);
-    router.back();
-  }, [router]);
+    sheetOpenRef.current = false;
+    router.replace(pathname, { scroll: false });
+  }, [router, pathname]);
 
   // Listen for popstate (back button) to close sheet
   useEffect(() => {
     const handlePopState = () => {
-      setDetailOpen(false);
-      setSelectedArticle(null);
+      if (sheetOpenRef.current) {
+        sheetOpenRef.current = false;
+        setDetailOpen(false);
+        setSelectedArticle(null);
+      }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -150,15 +158,15 @@ function ArticlesPageInner() {
                 setSelectedArticle(data.article);
               } else {
                 setDetailOpen(false);
-                router.replace('/articles', { scroll: false });
+                router.replace(pathname, { scroll: false });
               }
             } else {
               setDetailOpen(false);
-              router.replace('/articles', { scroll: false });
+              router.replace(pathname, { scroll: false });
             }
           } catch {
             setDetailOpen(false);
-            router.replace('/articles', { scroll: false });
+            router.replace(pathname, { scroll: false });
           } finally {
             setDetailLoading(false);
           }

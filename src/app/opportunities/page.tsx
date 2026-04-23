@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Award, Clock, ExternalLink, Loader2, AlertCircle, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -143,11 +143,15 @@ function OpportunitiesPageInner() {
     setFilteredOpps(filtered);
   }, [opportunities, activeType, search]);
 
+  const pathname = usePathname();
+  const sheetOpenRef = useRef(false);
+
   // Open detail sheet
   const openOppSheet = useCallback(async (opp: Opportunity) => {
     setSelectedOpp(opp);
     setDetailOpen(true);
-    router.replace(`/opportunities?view=${opp.id}`, { scroll: false });
+    sheetOpenRef.current = true;
+    router.replace(`${pathname}?view=${opp.id}`, { scroll: false });
 
     // Fetch full details
     setDetailLoading(true);
@@ -162,19 +166,23 @@ function OpportunitiesPageInner() {
     } finally {
       setDetailLoading(false);
     }
-  }, [router]);
+  }, [router, pathname]);
 
-  // Close detail sheet
+  // Close detail sheet — stay on the current page
   const closeOppSheet = useCallback(() => {
     setDetailOpen(false);
-    router.back();
-  }, [router]);
+    sheetOpenRef.current = false;
+    router.replace(pathname, { scroll: false });
+  }, [router, pathname]);
 
   // Listen for popstate (back button) to close sheet
   useEffect(() => {
     const handlePopState = () => {
-      setDetailOpen(false);
-      setSelectedOpp(null);
+      if (sheetOpenRef.current) {
+        sheetOpenRef.current = false;
+        setDetailOpen(false);
+        setSelectedOpp(null);
+      }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -200,15 +208,15 @@ function OpportunitiesPageInner() {
                 setSelectedOpp(data.opportunity);
               } else {
                 setDetailOpen(false);
-                router.replace('/opportunities', { scroll: false });
+                router.replace(pathname, { scroll: false });
               }
             } else {
               setDetailOpen(false);
-              router.replace('/opportunities', { scroll: false });
+              router.replace(pathname, { scroll: false });
             }
           } catch {
             setDetailOpen(false);
-            router.replace('/opportunities', { scroll: false });
+            router.replace(pathname, { scroll: false });
           } finally {
             setDetailLoading(false);
           }

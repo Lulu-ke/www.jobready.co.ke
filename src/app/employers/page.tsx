@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useMemo, useCallback, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Search, Building2, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -131,12 +131,16 @@ function EmployersPageInner() {
     fetchEmployers();
   }, []);
 
+  const pathname = usePathname();
+  const sheetOpenRef = useRef(false);
+
   // Open employer detail sheet
   const openEmployerSheet = useCallback(async (employer: Employer) => {
     setSelectedEmployer(employer);
     setSheetOpen(true);
     setJobsLoading(true);
-    router.replace(`/employers?view=${employer.id}`, { scroll: false });
+    sheetOpenRef.current = true;
+    router.replace(`${pathname}?view=${employer.id}`, { scroll: false });
 
     try {
       // Fetch full employer details
@@ -163,15 +167,29 @@ function EmployersPageInner() {
     } finally {
       setJobsLoading(false);
     }
-  }, [router]);
+  }, [router, pathname]);
 
-  // Close employer detail sheet
+  // Close employer detail sheet — stay on the current page
   const closeEmployerSheet = useCallback(() => {
     setSheetOpen(false);
     setSelectedEmployer(null);
     setEmployerJobs([]);
-    router.replace('/employers', { scroll: false });
-  }, [router]);
+    sheetOpenRef.current = false;
+    router.replace(pathname, { scroll: false });
+  }, [router, pathname]);
+
+  // Listen for popstate (back button) to close sheet
+  useEffect(() => {
+    const handlePopState = () => {
+      if (sheetOpenRef.current) {
+        sheetOpenRef.current = false;
+        setSheetOpen(false);
+        setSelectedEmployer(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Auto-open sheet if ?view= is present
   useEffect(() => {
@@ -190,13 +208,13 @@ function EmployersPageInner() {
               if (data.employer) {
                 openEmployerSheet(data.employer);
               } else {
-                router.replace('/employers', { scroll: false });
+                router.replace(pathname, { scroll: false });
               }
             } else {
-              router.replace('/employers', { scroll: false });
+              router.replace(pathname, { scroll: false });
             }
           } catch {
-            router.replace('/employers', { scroll: false });
+            router.replace(pathname, { scroll: false });
           }
         })();
       }

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Bell, Calendar, ArrowRight, Loader2, AlertCircle, Building2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
@@ -139,11 +139,15 @@ function UpdatesPageInner() {
     fetchUpdates(activeTab);
   }, [activeTab, fetchUpdates]);
 
+  const pathname = usePathname();
+  const sheetOpenRef = useRef(false);
+
   // Open detail sheet
   const openUpdateSheet = useCallback(async (update: JobUpdate) => {
     setSelectedUpdate(update as JobUpdateDetail);
     setDetailOpen(true);
-    router.replace(`/updates?view=${update.id}`, { scroll: false });
+    sheetOpenRef.current = true;
+    router.replace(`${pathname}?view=${update.id}`, { scroll: false });
 
     // Fetch full details
     setDetailLoading(true);
@@ -158,19 +162,23 @@ function UpdatesPageInner() {
     } finally {
       setDetailLoading(false);
     }
-  }, [router]);
+  }, [router, pathname]);
 
-  // Close detail sheet
+  // Close detail sheet — stay on the current page
   const closeUpdateSheet = useCallback(() => {
     setDetailOpen(false);
-    router.back();
-  }, [router]);
+    sheetOpenRef.current = false;
+    router.replace(pathname, { scroll: false });
+  }, [router, pathname]);
 
   // Listen for popstate (back button) to close sheet
   useEffect(() => {
     const handlePopState = () => {
-      setDetailOpen(false);
-      setSelectedUpdate(null);
+      if (sheetOpenRef.current) {
+        sheetOpenRef.current = false;
+        setDetailOpen(false);
+        setSelectedUpdate(null);
+      }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -199,15 +207,15 @@ function UpdatesPageInner() {
                 } as JobUpdateDetail);
               } else {
                 setDetailOpen(false);
-                router.replace('/updates', { scroll: false });
+                router.replace(pathname, { scroll: false });
               }
             } else {
               setDetailOpen(false);
-              router.replace('/updates', { scroll: false });
+              router.replace(pathname, { scroll: false });
             }
           } catch {
             setDetailOpen(false);
-            router.replace('/updates', { scroll: false });
+            router.replace(pathname, { scroll: false });
           } finally {
             setDetailLoading(false);
           }
