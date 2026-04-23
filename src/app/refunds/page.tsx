@@ -1,7 +1,14 @@
+import type { Metadata } from 'next';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import WhatsAppFloat from '@/components/whatsapp-float';
 import LegalPageLayout from '@/components/legal-page-layout';
+
+export const metadata: Metadata = {
+  title: 'Refund Policy | JobReady Kenya',
+  description: 'Learn about JobReady Kenya\'s refund policy for CV writing and career services.',
+  alternates: { canonical: 'https://www.jobready.co.ke/refunds' },
+};
 
 const sections = [
   {

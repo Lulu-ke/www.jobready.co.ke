@@ -1,7 +1,14 @@
+import type { Metadata } from 'next';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import WhatsAppFloat from '@/components/whatsapp-float';
 import LegalPageLayout from '@/components/legal-page-layout';
+
+export const metadata: Metadata = {
+  title: 'Data Protection Policy | JobReady Kenya',
+  description: 'How JobReady Kenya handles and protects your personal data in compliance with Kenya\'s data protection laws.',
+  alternates: { canonical: 'https://www.jobready.co.ke/data-protection' },
+};
 
 const sections = [
   {

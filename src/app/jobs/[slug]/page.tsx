@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { SITE } from '@/lib/constants';
 import JobDetailClient from './job-detail-client';
 
 interface Props {
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       category: { select: { name: true } },
     },
   });
-  if (!job) return { title: 'Job Not Found' };
+  if (!job) return { title: 'Job Not Found | JobReady Kenya' };
 
   const company = job.employer?.companyName || 'Unknown Company';
   const category = typeof job.category === 'object' ? job.category?.name : '';
@@ -35,6 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${job.title} at ${company} | JobReady Kenya`,
     description: `${(job.description || '').substring(0, 160)} Apply now on JobReady Kenya.`,
+    alternates: { canonical: `${SITE.url}/jobs/${slug}` },
     openGraph: {
       title: `${job.title} at ${company}`,
       description: `${(job.description || '').substring(0, 160)}`,
@@ -171,11 +173,25 @@ export default async function JobDetailPage({ params }: Props) {
       : undefined,
   };
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.url },
+      { '@type': 'ListItem', position: 2, name: 'Jobs', item: `${SITE.url}/jobs` },
+      { '@type': 'ListItem', position: 3, name: job.title, item: `${SITE.url}/jobs/${slug}` },
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <JobDetailClient job={formattedJob} relatedJobs={formattedRelated} />
     </>

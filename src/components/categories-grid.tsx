@@ -81,8 +81,9 @@ export default function CategoriesGrid({ categories }: CategoriesGridProps) {
             {categories.map((category) => {
               const IconComponent = iconMap[category.icon] || Briefcase;
               return (
-                <button
+                <Link
                   key={category.slug}
+                  href={`/jobs/category/${category.slug}`}
                   onClick={() => handleCategoryClick(category)}
                   className="flex-shrink-0 w-32 md:w-36 bg-white rounded-xl shadow-sm p-4 text-center hover:shadow-md transition-shadow no-underline group cursor-pointer"
                 >
@@ -95,7 +96,7 @@ export default function CategoriesGrid({ categories }: CategoriesGridProps) {
                   <p className="text-sm font-medium mt-2" style={{ color: '#1E293B' }}>
                     {category.name}
                   </p>
-                </button>
+                </Link>
               );
             })}
           </div>

@@ -1,7 +1,14 @@
+import type { Metadata } from 'next';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import WhatsAppFloat from '@/components/whatsapp-float';
 import LegalPageLayout from '@/components/legal-page-layout';
+
+export const metadata: Metadata = {
+  title: 'Cookie Policy | JobReady Kenya',
+  description: 'Learn how JobReady Kenya uses cookies and tracking technologies to improve your browsing experience.',
+  alternates: { canonical: 'https://www.jobready.co.ke/cookies' },
+};
 
 const sections = [
   {

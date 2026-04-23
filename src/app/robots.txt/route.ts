@@ -6,6 +6,7 @@ export async function GET() {
   const robotsTxt = `User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /search
 Disallow: /dashboard/
 Disallow: /admin/
 Sitemap: ${SITE_URL}/sitemap.xml

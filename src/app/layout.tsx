@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   description: "Kenya's #1 job board. Browse 2,500+ jobs from top employers including Safaricom, Equity Bank, KCB, and more. Find your dream career today.",
   keywords: ["jobs in Kenya", "Kenyan jobs", "job board Kenya", "careers Kenya", "Safaricom jobs", "NGO jobs Kenya", "government jobs Kenya", "scholarships Kenya", "internships Kenya"],
   authors: [{ name: "JobReady Kenya" }],
+  alternates: {
+    canonical: 'https://www.jobready.co.ke',
+  },
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
   },
@@ -28,6 +31,8 @@ export const metadata: Metadata = {
     siteName: "JobReady Kenya",
     locale: "en_KE",
     type: "website",
+    url: 'https://www.jobready.co.ke',
+    images: [{ url: 'https://www.jobready.co.ke/og-default.png', width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
@@ -69,6 +74,7 @@ export default function RootLayout({
             }),
           }}
         />
+        <link rel="alternate" type="application/rss+xml" title="JobReady Kenya RSS Feed" href="https://www.jobready.co.ke/feed.xml" />
         {children}
         <Toaster />
       </body>

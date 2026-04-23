@@ -7,7 +7,7 @@ const SITE_URL = 'https://www.jobready.co.ke'
 interface SitemapEntry {
   loc: string
   lastmod?: string
-  changefreq: 'daily' | 'weekly' | 'monthly'
+  changefreq: 'daily' | 'weekly' | 'monthly' | 'yearly'
   priority: string
 }
 
@@ -81,6 +81,16 @@ export async function GET() {
       { loc: `${SITE_URL}/employers`, lastmod: today, changefreq: 'monthly', priority: '0.7' },
       { loc: `${SITE_URL}/articles`, lastmod: today, changefreq: 'monthly', priority: '0.7' },
       { loc: `${SITE_URL}/updates`, lastmod: today, changefreq: 'monthly', priority: '0.7' },
+      { loc: `${SITE_URL}/about`, lastmod: today, changefreq: 'monthly', priority: '0.5' },
+      { loc: `${SITE_URL}/contact`, lastmod: today, changefreq: 'monthly', priority: '0.5' },
+      { loc: `${SITE_URL}/cv-services`, lastmod: today, changefreq: 'monthly', priority: '0.8' },
+      { loc: `${SITE_URL}/search`, lastmod: today, changefreq: 'monthly', priority: '0.3' },
+      { loc: `${SITE_URL}/privacy`, lastmod: today, changefreq: 'yearly', priority: '0.3' },
+      { loc: `${SITE_URL}/terms`, lastmod: today, changefreq: 'yearly', priority: '0.3' },
+      { loc: `${SITE_URL}/cookies`, lastmod: today, changefreq: 'yearly', priority: '0.2' },
+      { loc: `${SITE_URL}/disclaimer`, lastmod: today, changefreq: 'yearly', priority: '0.2' },
+      { loc: `${SITE_URL}/refunds`, lastmod: today, changefreq: 'yearly', priority: '0.2' },
+      { loc: `${SITE_URL}/data-protection`, lastmod: today, changefreq: 'yearly', priority: '0.2' },
     )
 
     // Job pages

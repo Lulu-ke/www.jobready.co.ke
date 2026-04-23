@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { SITE } from '@/lib/constants';
 import OpportunityDetailClient from './opportunity-detail-client';
 
 interface Props {
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       provider: { select: { companyName: true } },
     },
   });
-  if (!opportunity) return { title: 'Opportunity Not Found' };
+  if (!opportunity) return { title: 'Opportunity Not Found | JobReady Kenya' };
 
   const provider = opportunity.provider?.companyName || 'Unknown Provider';
   const typeLabel = opportunity.type.charAt(0).toUpperCase() + opportunity.type.slice(1).replace(/_/g, ' ');
@@ -34,6 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${opportunity.title} | JobReady Kenya`,
     description: `${(opportunity.description || '').substring(0, 160)} ${typeLabel} on JobReady Kenya.`,
+    alternates: { canonical: `${SITE.url}/opportunities/${slug}` },
     openGraph: {
       title: `${opportunity.title} - ${typeLabel}`,
       description: `${(opportunity.description || '').substring(0, 160)}`,
@@ -99,11 +101,25 @@ export default async function OpportunityDetailPage({ params }: Props) {
       : undefined,
   };
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.url },
+      { '@type': 'ListItem', position: 2, name: 'Opportunities', item: `${SITE.url}/opportunities` },
+      { '@type': 'ListItem', position: 3, name: opportunity.title, item: `${SITE.url}/opportunities/${slug}` },
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <OpportunityDetailClient
         opportunity={JSON.parse(JSON.stringify(opportunity))}

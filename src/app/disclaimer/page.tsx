@@ -1,7 +1,14 @@
+import type { Metadata } from 'next';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import WhatsAppFloat from '@/components/whatsapp-float';
 import LegalPageLayout from '@/components/legal-page-layout';
+
+export const metadata: Metadata = {
+  title: 'Disclaimer | JobReady Kenya',
+  description: 'Important disclaimers about the information and services provided on JobReady Kenya.',
+  alternates: { canonical: 'https://www.jobready.co.ke/disclaimer' },
+};
 
 const sections = [
   {

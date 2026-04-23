@@ -1,7 +1,14 @@
+import type { Metadata } from 'next';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import WhatsAppFloat from '@/components/whatsapp-float';
 import LegalPageLayout from '@/components/legal-page-layout';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | JobReady Kenya',
+  description: 'Review the terms and conditions for using JobReady Kenya\'s job board and career services.',
+  alternates: { canonical: 'https://www.jobready.co.ke/terms' },
+};
 
 const sections = [
   {

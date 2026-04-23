@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { SITE } from '@/lib/constants';
 import UpdateDetailClient from './update-detail-client';
 
 interface Props {
@@ -29,11 +30,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       createdAt: true,
     },
   });
-  if (!update) return { title: 'Update Not Found' };
+  if (!update) return { title: 'Update Not Found | JobReady Kenya' };
 
   return {
     title: `${update.title} | JobReady Kenya`,
     description: `${update.title} – Official update from ${update.sourceName} on JobReady Kenya.`,
+    alternates: { canonical: `${SITE.url}/updates/${slug}` },
     openGraph: {
       title: update.title,
       description: `Official update from ${update.sourceName}`,
@@ -68,11 +70,25 @@ export default async function UpdateDetailPage({ params }: Props) {
     },
   };
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.url },
+      { '@type': 'ListItem', position: 2, name: 'Updates', item: `${SITE.url}/updates` },
+      { '@type': 'ListItem', position: 3, name: update.title, item: `${SITE.url}/updates/${slug}` },
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <UpdateDetailClient update={JSON.parse(JSON.stringify(update))} />
     </>

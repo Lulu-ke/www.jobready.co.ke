@@ -1,7 +1,14 @@
+import type { Metadata } from 'next';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import WhatsAppFloat from '@/components/whatsapp-float';
 import LegalPageLayout from '@/components/legal-page-layout';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | JobReady Kenya',
+  description: 'Read JobReady Kenya\'s privacy policy to understand how we collect, use, and protect your personal data.',
+  alternates: { canonical: 'https://www.jobready.co.ke/privacy' },
+};
 
 const sections = [
   {
