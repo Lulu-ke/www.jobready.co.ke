@@ -282,7 +282,7 @@ function JobsPageInner() {
       {/* Main Content */}
       <section className="py-8 lg:py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-8">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
             {/* Sidebar Filters */}
             <JobFilters
               filters={filters}
