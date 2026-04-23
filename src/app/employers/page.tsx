@@ -99,24 +99,30 @@ export default function EmployersPage() {
       <Header />
       <main className="flex-1">
         {/* Hero Banner */}
-        <section className="bg-gradient-to-br from-teal-600 via-teal-700 to-purple-700 py-12 lg:py-16">
+        <section className="bg-gradient-to-br from-white to-gray-50 py-12 lg:py-16 border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-3xl lg:text-4xl font-bold text-white mb-3 flex items-center justify-center gap-3">
-              <Building2 className="w-8 h-8" />
+            <h1 className="text-3xl lg:text-4xl font-bold text-slate-800 mb-3 flex items-center justify-center gap-3">
+              <Building2 className="w-8 h-8 text-teal-600" />
               Employer Directory
             </h1>
-            <p className="text-teal-100 max-w-xl mx-auto mb-8">
+            <p className="text-gray-500 max-w-xl mx-auto mb-8">
               Browse top employers hiring in Kenya — from startups to government agencies
             </p>
             <div className="max-w-md mx-auto">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  placeholder="Search employers..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-12 pr-4 h-12 text-base rounded-xl border-0 shadow-lg bg-white"
-                />
+              <div className="flex items-center bg-white rounded-full border border-gray-300 shadow-sm p-1.5 focus-within:border-teal-400 focus-within:shadow-md transition-all">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    placeholder="Search employers..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-12 pr-4 h-11 text-base rounded-full border-0 shadow-none focus-visible:ring-0 bg-transparent"
+                  />
+                </div>
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 h-11 rounded-full text-sm font-semibold">
+                  <Search className="w-4 h-4 mr-2" />
+                  Search
+                </Button>
               </div>
             </div>
           </div>

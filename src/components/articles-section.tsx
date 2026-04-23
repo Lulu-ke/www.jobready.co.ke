@@ -20,7 +20,7 @@ interface ArticlesSectionProps {
 
 export default function ArticlesSection({ articles }: ArticlesSectionProps) {
   return (
-    <section id="articles" className="scroll-mt-20 bg-gray-50/50 py-12 lg:py-16">
+    <section id="articles" className="scroll-mt-20 py-12 lg:py-16 bg-gradient-to-br from-white to-gray-50/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -28,7 +28,7 @@ export default function ArticlesSection({ articles }: ArticlesSectionProps) {
           viewport={{ once: true }}
           className="text-center mb-10"
         >
-          <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 flex items-center justify-center gap-2">
+          <h2 className="text-2xl lg:text-3xl font-bold text-slate-800 flex items-center justify-center gap-2">
             <BookOpen className="w-7 h-7 text-teal-600" />
             Career Advice
           </h2>
@@ -45,17 +45,17 @@ export default function ArticlesSection({ articles }: ArticlesSectionProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg hover:shadow-teal-900/5 hover:border-teal-200 transition-all duration-300 cursor-pointer"
+              className="group bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md border border-gray-100 hover:border-teal-200 transition-all duration-200 cursor-pointer"
             >
               {/* Colored header bar */}
-              <div className="h-2 bg-gradient-to-r from-teal-500 to-purple-500" />
+              <div className="h-1.5 bg-gradient-to-r from-teal-500 to-teal-400" />
 
               <div className="p-5">
-                <Badge variant="secondary" className="text-[10px] mb-3 bg-teal-50 text-teal-700">
+                <Badge variant="secondary" className="text-[10px] mb-3 bg-teal-50 text-teal-700 border-0">
                   {article.category}
                 </Badge>
 
-                <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-teal-700 transition-colors line-clamp-2">
+                <h3 className="font-semibold text-slate-800 mb-2 group-hover:text-teal-700 transition-colors line-clamp-2">
                   {article.title}
                 </h3>
 

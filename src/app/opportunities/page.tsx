@@ -59,12 +59,12 @@ function getTypeColor(type: string) {
 function OpportunitiesListSkeleton() {
   return (
     <div className="flex-1">
-      <section className="bg-gradient-to-br from-purple-600 via-purple-700 to-teal-700 py-12 lg:py-16">
+      <section className="bg-gradient-to-br from-white to-gray-50 py-12 lg:py-16 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Skeleton className="h-10 w-64 mx-auto mb-3 rounded-lg" />
           <Skeleton className="h-5 w-80 mx-auto mb-8 rounded-lg" />
           <div className="max-w-md mx-auto">
-            <Skeleton className="h-12 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-full" />
           </div>
         </div>
       </section>
@@ -221,24 +221,30 @@ function OpportunitiesPageInner() {
   return (
     <div className="flex-1">
       {/* Hero Banner */}
-      <section className="bg-gradient-to-br from-purple-600 via-purple-700 to-teal-700 py-12 lg:py-16">
+      <section className="bg-gradient-to-br from-white to-gray-50 py-12 lg:py-16 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-3 flex items-center justify-center gap-3">
-            <Award className="w-8 h-8" />
+          <h1 className="text-3xl lg:text-4xl font-bold text-slate-800 mb-3 flex items-center justify-center gap-3">
+            <Award className="w-8 h-8" style={{ color: 'rgb(91, 33, 182)' }} />
             Opportunities &amp; Funding
           </h1>
-          <p className="text-purple-100 max-w-xl mx-auto mb-8">
+          <p className="text-gray-500 max-w-xl mx-auto mb-8">
             Scholarships, internships, bursaries, and more for Kenyan students and professionals
           </p>
           <div className="max-w-md mx-auto">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <Input
-                placeholder="Search opportunities..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-12 pr-4 h-12 text-base rounded-xl border-0 shadow-lg bg-white"
-              />
+            <div className="flex items-center bg-white rounded-full border border-gray-300 shadow-sm p-1.5 focus-within:border-purple-400 focus-within:shadow-md transition-all">
+              <div className="flex-1 relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  placeholder="Search opportunities..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-12 pr-4 h-11 text-base rounded-full border-0 shadow-none focus-visible:ring-0 bg-transparent"
+                />
+              </div>
+              <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 h-11 rounded-full text-sm font-semibold">
+                <Search className="w-4 h-4 mr-2" />
+                Search
+              </Button>
             </div>
           </div>
         </div>
@@ -318,7 +324,7 @@ function OpportunitiesPageInner() {
               {filteredOpps.map((opp) => (
                 <div
                   key={opp.id}
-                  className="group p-5 rounded-2xl border border-gray-100 bg-white hover:border-purple-200 hover:shadow-lg hover:shadow-purple-900/5 transition-all duration-300 cursor-pointer"
+                  className="group p-5 rounded-xl shadow-sm border border-gray-100 bg-white hover:border-purple-200 hover:shadow-md transition-all duration-200 cursor-pointer"
                   onClick={() => openOppSheet(opp)}
                 >
                   <div className="flex items-center gap-2 mb-3">

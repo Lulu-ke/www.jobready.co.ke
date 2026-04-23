@@ -47,14 +47,14 @@ function JobsPageContent() {
 function JobsListSkeleton() {
   return (
     <div className="flex-1">
-      <section className="bg-gradient-to-br from-teal-600 via-teal-700 to-purple-700 py-12 lg:py-16">
+      <section className="bg-gradient-to-br from-white to-gray-50 py-12 lg:py-16 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <Skeleton className="h-10 w-64 mx-auto mb-3 rounded-lg" />
             <Skeleton className="h-5 w-80 mx-auto rounded-lg" />
           </div>
           <div className="max-w-2xl mx-auto">
-            <Skeleton className="h-12 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-full" />
           </div>
         </div>
       </section>
@@ -62,7 +62,7 @@ function JobsListSkeleton() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="p-5 rounded-2xl border border-gray-100">
+              <div key={i} className="p-5 rounded-xl border border-gray-100 bg-white shadow-sm">
                 <div className="flex items-start gap-4">
                   <Skeleton className="w-12 h-12 rounded-xl shrink-0" />
                   <div className="flex-1 space-y-3">
@@ -243,35 +243,43 @@ function JobsPageInner() {
   return (
     <div className="flex-1">
       {/* Hero Banner */}
-      <section className="bg-gradient-to-br from-teal-600 via-teal-700 to-purple-700 py-12 lg:py-16">
+      <section className="bg-gradient-to-br from-white to-gray-50 py-12 lg:py-16 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl lg:text-4xl font-bold text-white mb-3 flex items-center justify-center gap-3">
-              <Briefcase className="w-8 h-8" />
+            <h1 className="text-3xl lg:text-4xl font-bold text-slate-800 mb-3 flex items-center justify-center gap-3">
+              <Briefcase className="w-8 h-8 text-teal-600" />
               Find Your Dream Job
             </h1>
-            <p className="text-teal-100 max-w-xl mx-auto">
+            <p className="text-gray-500 max-w-xl mx-auto">
               Browse {total > 0 ? total.toLocaleString() : 'thousands of'} opportunities from top Kenyan employers
             </p>
           </div>
 
           {/* Search Bar */}
           <div className="max-w-2xl mx-auto">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <Input
-                placeholder="Search by job title, company, or keyword..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange({ ...filters, search: e.target.value })}
-                className="pl-12 pr-4 h-12 text-base rounded-xl border-0 shadow-lg bg-white"
-              />
+            <div className="flex items-center bg-white rounded-full border border-gray-300 shadow-sm p-1.5 focus-within:border-teal-400 focus-within:shadow-md transition-all">
+              <div className="flex-1 relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  placeholder="Search by job title, company, or keyword..."
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange({ ...filters, search: e.target.value })}
+                  className="pl-12 pr-4 h-11 text-base rounded-full border-0 shadow-none focus-visible:ring-0 bg-transparent"
+                />
+              </div>
+              <Button
+                className="bg-orange-500 hover:bg-orange-600 text-white px-6 h-11 rounded-full text-sm font-semibold"
+              >
+                <Search className="w-4 h-4 mr-2" />
+                Search
+              </Button>
             </div>
           </div>
         </div>
       </section>
 
       {/* Main Content */}
-      <section className="py-8 lg:py-12">
+      <section className="py-8 lg:py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-8">
             {/* Sidebar Filters */}
@@ -291,8 +299,8 @@ function JobsPageInner() {
                     <Skeleton className="h-4 w-40 inline-block" />
                   ) : (
                     <>
-                      Showing <span className="font-semibold text-gray-900">{jobs.length}</span> of{' '}
-                      <span className="font-semibold text-gray-900">{total.toLocaleString()}</span> jobs
+                      Showing <span className="font-semibold text-slate-800">{jobs.length}</span> of{' '}
+                      <span className="font-semibold text-slate-800">{total.toLocaleString()}</span> jobs
                     </>
                   )}
                 </div>
@@ -319,7 +327,7 @@ function JobsPageInner() {
               {!loading && !error && jobs.length === 0 && (
                 <div className="text-center py-16">
                   <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No jobs found</h3>
+                  <h3 className="text-lg font-semibold text-slate-800 mb-2">No jobs found</h3>
                   <p className="text-gray-500 mb-4">Try adjusting your filters or search terms</p>
                   <Button
                     onClick={() =>
@@ -345,7 +353,7 @@ function JobsPageInner() {
               {loading && (
                 <div className="space-y-4">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="p-5 rounded-2xl border border-gray-100">
+                    <div key={i} className="p-5 rounded-xl bg-white border border-gray-100 shadow-sm">
                       <div className="flex items-start gap-4">
                         <Skeleton className="w-12 h-12 rounded-xl shrink-0" />
                         <div className="flex-1 space-y-3">

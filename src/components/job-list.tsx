@@ -127,12 +127,14 @@ export default function JobList({ initialSearch }: JobListProps) {
   const hasMore = jobs.length < total;
 
   return (
-    <section id="jobs" className="scroll-mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+    <section id="jobs" className="scroll-mt-20 bg-white py-12 lg:py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">Browse Jobs</h2>
+            <h2 className="text-2xl lg:text-3xl font-bold text-slate-800">
+              Featured Jobs
+            </h2>
             <p className="text-gray-500 mt-1">
               {loading ? 'Loading...' : `${total.toLocaleString()} jobs found`}
               {filters.search && ` for "${filters.search}"`}
@@ -144,7 +146,7 @@ export default function JobList({ initialSearch }: JobListProps) {
         </div>
 
         <div className="flex flex-col lg:flex-row lg:gap-8 gap-4">
-          {/* Filters Sidebar — desktop only, mobile handled inside JobFilters */}
+          {/* Filters Sidebar */}
           <JobFilters
             filters={filters}
             onFilterChange={handleFilterChange}
@@ -165,7 +167,7 @@ export default function JobList({ initialSearch }: JobListProps) {
             {loading ? (
               <div className="grid gap-4">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-gray-100">
+                  <div key={i} className="flex items-start gap-4 p-5 rounded-xl bg-white border border-gray-100 shadow-sm">
                     <Skeleton className="w-12 h-12 rounded-xl" />
                     <div className="flex-1 space-y-2">
                       <Skeleton className="h-4 w-3/4" />
@@ -181,10 +183,10 @@ export default function JobList({ initialSearch }: JobListProps) {
               </div>
             ) : jobs.length === 0 ? (
               <div className="text-center py-16">
-                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4">
                   <AlertCircle className="w-8 h-8 text-gray-300" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">No jobs found</h3>
+                <h3 className="font-semibold text-slate-800 mb-2">No jobs found</h3>
                 <p className="text-gray-500 text-sm mb-6">
                   Try adjusting your search or filter criteria
                 </p>
@@ -212,7 +214,6 @@ export default function JobList({ initialSearch }: JobListProps) {
                   variant="outline"
                   onClick={() => {
                     setPage((p) => p + 1);
-                    // fetchJobs with append will be triggered by the useEffect
                   }}
                   disabled={loadingMore}
                   className="px-8"

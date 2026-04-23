@@ -31,7 +31,7 @@ interface ArticleDetail extends Article {
 function ArticlesListSkeleton() {
   return (
     <div className="flex-1">
-      <section className="bg-gradient-to-br from-teal-600 via-teal-700 to-purple-700 py-12 lg:py-16">
+      <section className="bg-gradient-to-br from-white to-gray-50 py-12 lg:py-16 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Skeleton className="h-10 w-64 mx-auto mb-3 rounded-lg" />
           <Skeleton className="h-5 w-80 mx-auto rounded-lg" />
@@ -171,13 +171,13 @@ function ArticlesPageInner() {
   return (
     <div className="flex-1">
       {/* Hero Banner */}
-      <section className="bg-gradient-to-br from-teal-600 via-teal-700 to-purple-700 py-12 lg:py-16">
+      <section className="bg-gradient-to-br from-white to-gray-50 py-12 lg:py-16 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-3 flex items-center justify-center gap-3">
-            <BookOpen className="w-8 h-8" />
+          <h1 className="text-3xl lg:text-4xl font-bold text-slate-800 mb-3 flex items-center justify-center gap-3">
+            <BookOpen className="w-8 h-8 text-teal-600" />
             Career Advice &amp; Insights
           </h1>
-          <p className="text-teal-100 max-w-xl mx-auto">
+          <p className="text-gray-500 max-w-xl mx-auto">
             Expert tips, guides, and resources to help you navigate your career in Kenya
           </p>
         </div>
@@ -235,11 +235,11 @@ function ArticlesPageInner() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.05 }}
-                  className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg hover:shadow-teal-900/5 hover:border-teal-200 transition-all duration-300 cursor-pointer"
+                  className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:border-teal-200 transition-all duration-200 cursor-pointer"
                   onClick={() => openArticleSheet(article)}
                 >
                   {/* Colored header bar */}
-                  <div className="h-2 bg-gradient-to-r from-teal-500 to-purple-500" />
+                  <div className="h-1.5 bg-gradient-to-r from-teal-500 to-teal-400" />
 
                   <div className="p-5">
                     <Badge variant="secondary" className="text-[10px] mb-3 bg-teal-50 text-teal-700">

@@ -61,13 +61,13 @@ function getLogoColor(name: string): string {
 
 function getExperienceLevelColor(level: string): string {
   const colors: Record<string, string> = {
-    entry: 'bg-teal-100 text-teal-700 border-teal-200',
-    internship: 'bg-purple-100 text-purple-700 border-purple-200',
-    casual: 'bg-gray-100 text-gray-700 border-gray-200',
-    mid: 'bg-amber-100 text-amber-700 border-amber-200',
-    senior: 'bg-orange-100 text-orange-700 border-orange-200',
+    entry: 'bg-teal-50 text-teal-700 border-teal-200',
+    internship: 'bg-purple-50 text-purple-700 border-purple-200',
+    casual: 'bg-gray-50 text-gray-700 border-gray-200',
+    mid: 'bg-amber-50 text-amber-700 border-amber-200',
+    senior: 'bg-orange-50 text-orange-700 border-orange-200',
   };
-  return colors[level] || 'bg-gray-100 text-gray-700 border-gray-200';
+  return colors[level] || 'bg-gray-50 text-gray-700 border-gray-200';
 }
 
 function getCategoryName(category: Job['category']): string {
@@ -78,19 +78,19 @@ function getCategoryName(category: Job['category']): string {
 
 function getOrgTypeColor(orgType: string): string {
   const colors: Record<string, string> = {
-    PRIVATE: 'bg-slate-100 text-slate-700',
-    SMALL_BUSINESS: 'bg-blue-100 text-blue-700',
-    STARTUP: 'bg-violet-100 text-violet-700',
-    NGO: 'bg-emerald-100 text-emerald-700',
-    INTERNATIONAL_ORG: 'bg-cyan-100 text-cyan-700',
-    NATIONAL_GOV: 'bg-amber-100 text-amber-700',
-    COUNTY_GOV: 'bg-orange-100 text-orange-700',
-    STATE_CORPORATION: 'bg-rose-100 text-rose-700',
-    EDUCATION: 'bg-indigo-100 text-indigo-700',
-    FOUNDATION: 'bg-pink-100 text-pink-700',
-    RELIGIOUS_ORG: 'bg-purple-100 text-purple-700',
+    PRIVATE: 'bg-slate-50 text-slate-700 border-slate-200',
+    SMALL_BUSINESS: 'bg-blue-50 text-blue-700 border-blue-200',
+    STARTUP: 'bg-violet-50 text-violet-700 border-violet-200',
+    NGO: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    INTERNATIONAL_ORG: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+    NATIONAL_GOV: 'bg-amber-50 text-amber-700 border-amber-200',
+    COUNTY_GOV: 'bg-orange-50 text-orange-700 border-orange-200',
+    STATE_CORPORATION: 'bg-rose-50 text-rose-700 border-rose-200',
+    EDUCATION: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    FOUNDATION: 'bg-pink-50 text-pink-700 border-pink-200',
+    RELIGIOUS_ORG: 'bg-purple-50 text-purple-700 border-purple-200',
   };
-  return colors[orgType] || 'bg-gray-100 text-gray-700';
+  return colors[orgType] || 'bg-gray-50 text-gray-700 border-gray-200';
 }
 
 export default function JobDetailSheet({ job, open, onClose, onJobClick, relatedJobs }: JobDetailSheetProps) {
@@ -110,23 +110,22 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      {/* [&>button]:hidden hides the default tiny Radix close button */}
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto custom-scrollbar p-0 [&>button]:hidden">
-        {/* Sticky header with prominent close button */}
-        <SheetHeader className="sticky top-0 bg-white z-10 px-5 py-4 border-b border-gray-100">
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto custom-scrollbar p-0 [&>button]:hidden bg-white">
+        {/* Sticky header */}
+        <SheetHeader className="sticky top-0 bg-white/95 backdrop-blur-sm z-10 px-5 py-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <SheetTitle className="text-base font-semibold text-gray-900 truncate flex-1 min-w-0">
+            <SheetTitle className="text-base font-semibold text-slate-800 truncate flex-1 min-w-0">
               {job.title}
             </SheetTitle>
             <div className="flex items-center gap-1.5 shrink-0">
               <Button
                 variant="outline"
                 size="icon"
-                className="w-10 h-10 rounded-full border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+                className="w-9 h-9 rounded-full border-gray-200 hover:bg-gray-50 transition-colors"
                 onClick={onClose}
                 aria-label="Close"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -138,14 +137,14 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
           </div>
         </SheetHeader>
 
-        <div className="px-5 py-5 space-y-6">
+        <div className="px-5 py-5 space-y-5">
           {/* Company Info */}
           <div className="flex items-center gap-4">
             <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${logoColor} flex items-center justify-center text-white font-bold text-lg shrink-0`}>
               {job.logo || job.company.substring(0, 2).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <h3 className="font-semibold text-gray-900">{job.company}</h3>
+              <h3 className="font-semibold text-slate-800">{job.company}</h3>
               <div className="flex items-center gap-2 mt-0.5">
                 {job.employer?.orgType && (
                   <Badge variant="outline" className={`text-[10px] ${getOrgTypeColor(job.employer.orgType)}`}>
@@ -162,32 +161,32 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
 
           {/* Quick Info */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50/80 border border-gray-100">
               <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
               <div className="min-w-0">
-                <p className="text-xs text-gray-400">Location</p>
-                <p className="text-sm font-medium text-gray-700 truncate">{job.location}</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-wide">Location</p>
+                <p className="text-sm font-medium text-slate-800 truncate">{job.location}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50/80 border border-gray-100">
               <DollarSign className="w-4 h-4 text-gray-400 shrink-0" />
               <div className="min-w-0">
-                <p className="text-xs text-gray-400">Salary</p>
-                <p className="text-sm font-medium text-gray-700 truncate">{job.salaryFormatted}</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-wide">Salary</p>
+                <p className="text-sm font-medium text-slate-800 truncate">{job.salaryFormatted}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50/80 border border-gray-100">
               <Clock className="w-4 h-4 text-gray-400 shrink-0" />
               <div>
-                <p className="text-xs text-gray-400">Type</p>
-                <p className="text-sm font-medium text-gray-700">{job.type}</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-wide">Type</p>
+                <p className="text-sm font-medium text-slate-800">{job.type}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50/80 border border-gray-100">
               <Clock className="w-4 h-4 text-gray-400 shrink-0" />
               <div>
-                <p className="text-xs text-gray-400">Posted</p>
-                <p className="text-sm font-medium text-gray-700">{timeAgo}</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-wide">Posted</p>
+                <p className="text-sm font-medium text-slate-800">{timeAgo}</p>
               </div>
             </div>
           </div>
@@ -195,7 +194,7 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
           {/* Tags */}
           <div className="flex flex-wrap gap-2">
             {categoryName && (
-              <Badge variant="outline" className="border-teal-200 text-teal-700 bg-teal-50">
+              <Badge variant="outline" className="border-gray-200 text-gray-600 bg-gray-50">
                 {categoryName}
               </Badge>
             )}
@@ -206,7 +205,7 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
               </Badge>
             )}
             {job.isRemote && (
-              <Badge variant="outline" className="border-cyan-200 text-cyan-700 bg-cyan-50">
+              <Badge variant="outline" className="border-teal-200 text-teal-700 bg-teal-50">
                 <Wifi className="w-3 h-3 mr-1" /> Remote Friendly
               </Badge>
             )}
@@ -216,7 +215,7 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
               </Badge>
             )}
             {job.closingDate && (
-              <Badge variant="outline" className="border-orange-200 text-orange-700 bg-orange-50">
+              <Badge variant="outline" className="border-amber-200 text-amber-700 bg-amber-50">
                 Closes {format(new Date(job.closingDate), 'MMM d, yyyy')}
               </Badge>
             )}
@@ -225,16 +224,14 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
           <Separator />
 
           {/* Description */}
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Job Description</h4>
+          <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <h4 className="font-semibold text-slate-800 mb-3 text-sm">Job Description</h4>
             <p className="text-sm text-gray-600 leading-relaxed">{job.description}</p>
           </div>
 
-          <Separator />
-
           {/* Requirements */}
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Requirements</h4>
+          <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <h4 className="font-semibold text-slate-800 mb-3 text-sm">Requirements</h4>
             <ul className="space-y-2">
               {job.requirements.split('. ').filter(Boolean).map((req, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
@@ -245,23 +242,21 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
             </ul>
           </div>
 
-          <Separator />
-
           {/* How to Apply */}
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3">How to Apply</h4>
+          <div className="bg-teal-50/30 rounded-xl border border-teal-200 p-5">
+            <h4 className="font-semibold text-slate-800 mb-3 text-sm">How to Apply</h4>
             <p className="text-sm text-gray-600 leading-relaxed">{job.howToApply}</p>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-2 pb-4">
-            <Button className="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-3 text-base font-semibold">
+          <div className="flex flex-col sm:flex-row gap-3 pt-1 pb-2">
+            <Button className="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-3 text-base font-semibold rounded-xl">
               Apply Now
               <ExternalLink className="w-4 h-4 ml-2" />
             </Button>
             <Button
               variant="outline"
-              className="flex-1 py-3 text-base"
+              className="flex-1 py-3 text-base rounded-xl border-gray-200"
               onClick={shareWhatsApp}
             >
               <Share2 className="w-4 h-4 mr-2 text-green-600" />
@@ -269,8 +264,8 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
             </Button>
           </div>
 
-          {/* Bottom actions: Save */}
-          <div className="flex gap-2 pt-1 pb-4 border-t border-gray-100">
+          {/* Save */}
+          <div className="flex gap-2 pb-2">
             <Button
               variant="ghost"
               className="flex-1 text-gray-500 hover:text-teal-600"
@@ -284,19 +279,19 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
           {/* Related Jobs */}
           {relatedJobs.length > 0 && (
             <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Similar Jobs</h4>
-              <div className="space-y-3">
+              <h4 className="font-semibold text-slate-800 mb-4 text-sm">Similar Jobs</h4>
+              <div className="space-y-2">
                 {relatedJobs.slice(0, 3).map((rj) => (
                   <div
                     key={rj.id}
                     onClick={() => onJobClick(rj)}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 hover:shadow-sm cursor-pointer transition-all border border-transparent hover:border-gray-200"
                   >
                     <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${getLogoColor(rj.company)} flex items-center justify-center text-white font-bold text-xs shrink-0`}>
                       {rj.logo || rj.company.substring(0, 2).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{rj.title}</p>
+                      <p className="text-sm font-medium text-slate-800 truncate">{rj.title}</p>
                       <p className="text-xs text-gray-500">{rj.company} &middot; {rj.location}</p>
                     </div>
                     <span className="text-xs text-teal-600 font-medium shrink-0">{rj.salaryFormatted}</span>

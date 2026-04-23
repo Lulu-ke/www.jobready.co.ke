@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Menu, X, Search, Briefcase, User } from 'lucide-react';
+import { Menu, X, Briefcase, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Header() {
@@ -33,22 +33,20 @@ export default function Header() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled
-            ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100'
-            : 'bg-transparent'
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white border-b ${
+          isScrolled ? 'shadow-sm' : 'border-gray-100'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 lg:h-20">
+          <div className="flex items-center justify-between h-16 lg:h-[72px]">
             {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-purple-600 flex items-center justify-center">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
                 <Briefcase className="w-5 h-5 text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold leading-tight gradient-text">JobReady</span>
-                <span className="text-[10px] text-muted-foreground leading-none tracking-wider uppercase">Kenya</span>
+                <span className="text-lg font-bold leading-tight text-slate-800">JobReady</span>
+                <span className="text-[10px] text-gray-400 leading-none tracking-wider uppercase">Kenya</span>
               </div>
             </div>
 
@@ -58,7 +56,7 @@ export default function Header() {
                 <button
                   key={link.href}
                   onClick={() => scrollToSection(link.href)}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-teal-600 rounded-lg hover:bg-teal-50 transition-all"
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-teal-600 rounded-lg hover:bg-gray-50 transition-all"
                 >
                   {link.label}
                 </button>
@@ -67,7 +65,7 @@ export default function Header() {
 
             {/* Desktop Actions */}
             <div className="hidden lg:flex items-center gap-3">
-              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-teal-600">
+              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
                 <User className="w-4 h-4 mr-2" />
                 Sign In
               </Button>
@@ -92,14 +90,14 @@ export default function Header() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="lg:hidden bg-white border-b border-gray-100 shadow-lg"
+            className="lg:hidden bg-white border-t border-gray-100 shadow-lg"
           >
-            <div className="px-4 py-4 space-y-2">
+            <div className="px-4 py-4 space-y-1">
               {navLinks.map((link) => (
                 <button
                   key={link.href}
                   onClick={() => scrollToSection(link.href)}
-                  className="block w-full text-left px-4 py-3 text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all"
+                  className="block w-full text-left px-4 py-3 text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-gray-50 rounded-lg transition-all"
                 >
                   {link.label}
                 </button>
@@ -119,7 +117,7 @@ export default function Header() {
       </header>
 
       {/* Spacer */}
-      <div className="h-16 lg:h-20" />
+      <div className="h-16 lg:h-[72px]" />
     </>
   );
 }

@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
@@ -65,14 +64,14 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
 
   function getTypeColor(type: string): string {
     const colors: Record<string, string> = {
-      'Full-Time': 'bg-green-100 text-green-700 border-green-200',
-      'Part-Time': 'bg-blue-100 text-blue-700 border-blue-200',
-      'Contract': 'bg-orange-100 text-orange-700 border-orange-200',
-      'Internship': 'bg-purple-100 text-purple-700 border-purple-200',
-      'Fixed-Term': 'bg-amber-100 text-amber-700 border-amber-200',
-      'Remote': 'bg-cyan-100 text-cyan-700 border-cyan-200',
+      'Full-Time': 'bg-green-50 text-green-700 border-green-200',
+      'Part-Time': 'bg-blue-50 text-blue-700 border-blue-200',
+      'Contract': 'bg-orange-50 text-orange-700 border-orange-200',
+      'Internship': 'bg-purple-50 text-purple-700 border-purple-200',
+      'Fixed-Term': 'bg-amber-50 text-amber-700 border-amber-200',
+      'Remote': 'bg-cyan-50 text-cyan-700 border-cyan-200',
     };
-    return colors[type] || 'bg-gray-100 text-gray-700 border-gray-200';
+    return colors[type] || 'bg-gray-50 text-gray-700 border-gray-200';
   }
 
   const companyName = job.company || job.employer?.companyName || 'Unknown Company';
@@ -80,11 +79,11 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
   const initials = getInitials(companyName);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header />
       <main className="flex-1">
         {/* Top Bar */}
-        <div className="bg-gray-50 border-b border-gray-100">
+        <div className="bg-white border-b border-gray-100">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Button
               variant="ghost"
@@ -98,11 +97,8 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           {/* Job Header Card */}
-          <Card className="rounded-2xl border border-gray-100 overflow-hidden mb-8">
-            {/* Gradient top bar */}
-            <div className="h-1.5 bg-gradient-to-r from-teal-500 to-purple-500" />
-
-            <CardContent className="p-6 lg:p-8">
+          <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden mb-8">
+            <div className="p-6 lg:p-8">
               <div className="flex items-start gap-4">
                 {/* Company Logo */}
                 <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${logoColor} flex items-center justify-center text-white font-bold text-lg shrink-0`}>
@@ -113,12 +109,12 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
                   {/* Badges */}
                   <div className="flex items-center gap-2 flex-wrap mb-2">
                     {job.isFeatured && (
-                      <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-2 py-0.5">
+                      <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] px-2 py-0.5">
                         <Star className="w-3 h-3 mr-1 fill-amber-500" /> Featured
                       </Badge>
                     )}
                     {job.isUrgent && (
-                      <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px] px-2 py-0.5">
+                      <Badge className="bg-red-50 text-red-700 border-red-200 text-[10px] px-2 py-0.5">
                         <Zap className="w-3 h-3 mr-1" /> Urgently Hiring
                       </Badge>
                     )}
@@ -130,7 +126,7 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
                   </div>
 
                   {/* Title */}
-                  <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-1">{job.title}</h1>
+                  <h1 className="text-xl lg:text-2xl font-bold text-slate-800 mb-1">{job.title}</h1>
 
                   {/* Company */}
                   <div className="flex items-center gap-1.5 text-gray-500 text-sm mb-4">
@@ -165,19 +161,19 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
                       {job.type}
                     </Badge>
                     {job.experienceLevel && (
-                      <Badge variant="outline" className="text-[11px] bg-teal-100 text-teal-700 border-teal-200">
+                      <Badge variant="outline" className="text-[11px] bg-amber-50 text-amber-700 border-amber-200">
                         <TrendingUp className="w-3 h-3 mr-1" />
                         {experienceLevelLabel(job.experienceLevel)}
                       </Badge>
                     )}
                     {job.closingDate && (
-                      <Badge variant="outline" className="text-[11px] bg-orange-100 text-orange-700 border-orange-200">
+                      <Badge variant="outline" className="text-[11px] bg-orange-50 text-orange-700 border-orange-200">
                         <Clock className="w-3 h-3 mr-1" />
                         {formatClosingDate(job.closingDate)}
                       </Badge>
                     )}
                     {job.category && typeof job.category !== 'string' && job.category.name && (
-                      <Badge variant="outline" className="text-[11px] text-gray-500">
+                      <Badge variant="outline" className="text-[11px] text-gray-500 border-gray-200 bg-gray-50">
                         {job.category.name}
                       </Badge>
                     )}
@@ -187,70 +183,64 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-gray-100">
-                <Button onClick={scrollToApply} className="bg-teal-600 hover:bg-teal-700 text-white">
+                <Button onClick={scrollToApply} className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl">
                   Apply Now
                 </Button>
                 <Button
                   variant="outline"
-                  className="border-gray-200"
+                  className="border-gray-200 rounded-xl"
                   onClick={() => setSaved(!saved)}
                 >
                   <Bookmark className={`w-4 h-4 mr-2 ${saved ? 'fill-teal-500 text-teal-500' : ''}`} />
                   {saved ? 'Saved' : 'Save Job'}
                 </Button>
-                <Button variant="outline" className="border-gray-200">
+                <Button variant="outline" className="border-gray-200 rounded-xl">
                   <Share2 className="w-4 h-4 mr-2" /> Share
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Job Details */}
           <div className="space-y-6 lg:space-y-8">
             {/* Description */}
-            <Card className="rounded-2xl border border-gray-100">
-              <CardContent className="p-6 lg:p-8">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Briefcase className="w-5 h-5 text-teal-600" />
-                  Job Description
-                </h2>
-                <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                  {job.description}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 lg:p-8">
+              <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <Briefcase className="w-5 h-5 text-teal-600" />
+                Job Description
+              </h2>
+              <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+                {job.description}
+              </div>
+            </div>
 
             {/* Requirements */}
             {job.requirements && (
-              <Card className="rounded-2xl border border-gray-100">
-                <CardContent className="p-6 lg:p-8">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5 text-teal-600" />
-                    Requirements
-                  </h2>
-                  <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                    {job.requirements}
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 lg:p-8">
+                <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5 text-teal-600" />
+                  Requirements
+                </h2>
+                <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+                  {job.requirements}
+                </div>
+              </div>
             )}
 
             {/* How to Apply */}
             {job.howToApply && (
-              <Card id="how-to-apply" className="rounded-2xl border border-teal-200 bg-teal-50/30">
-                <CardContent className="p-6 lg:p-8">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <ExternalLink className="w-5 h-5 text-teal-600" />
-                    How to Apply
-                  </h2>
-                  <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                    {job.howToApply}
-                  </div>
-                  <Button className="bg-teal-600 hover:bg-teal-700 text-white mt-6">
-                    Apply for this Position
-                  </Button>
-                </CardContent>
-              </Card>
+              <div id="how-to-apply" className="bg-teal-50/30 rounded-xl border border-teal-200 p-6 lg:p-8">
+                <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                  <ExternalLink className="w-5 h-5 text-teal-600" />
+                  How to Apply
+                </h2>
+                <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+                  {job.howToApply}
+                </div>
+                <Button className="bg-teal-600 hover:bg-teal-700 text-white mt-6 rounded-xl">
+                  Apply for this Position
+                </Button>
+              </div>
             )}
           </div>
 
@@ -258,7 +248,7 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
           {relatedJobs.length > 0 && (
             <div className="mt-12">
               <Separator className="mb-8" />
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Related Jobs</h2>
+              <h2 className="text-xl font-bold text-slate-800 mb-6">Related Jobs</h2>
               <div className="space-y-4">
                 {relatedJobs.map((rj) => (
                   <JobCard key={rj.id} job={rj} onClick={handleJobClick} />

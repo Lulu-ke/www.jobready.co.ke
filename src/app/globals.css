@@ -115,6 +115,15 @@
   background: #9ca3af;
 }
 
+/* Hide scrollbar utility */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Marquee animation */
 @keyframes marquee {
   0% { transform: translateX(0); }
@@ -127,19 +136,6 @@
   animation-play-state: paused;
 }
 
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, #0d9488 0%, #7e22ce 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Hero gradient background */
-.hero-gradient {
-  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 25%, #f5f3ff 50%, #ede9fe 75%, #f0fdfa 100%);
-}
-
 /* Pulse animation for urgent badge */
 @keyframes pulse-badge {
   0%, 100% { opacity: 1; }
@@ -149,11 +145,8 @@
   animation: pulse-badge 2s ease-in-out infinite;
 }
 
-/* Float animation */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+/* Carousel scroll container */
+.carousel-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
