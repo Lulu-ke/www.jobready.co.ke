@@ -420,6 +420,9 @@ export default function CVCheckerPage() {
             setPaymentLoading(false);
             setShowPaymentModal(false);
 
+            // Extract creditId from status response for auto-scan
+            const freshCreditId = data.credit?.id || undefined;
+
             // Refresh credits
             try {
               const params = new URLSearchParams();
@@ -433,8 +436,8 @@ export default function CVCheckerPage() {
               // ignore
             }
 
-            // Auto-proceed with scan
-            proceedWithScan();
+            // Auto-proceed with scan, passing the new creditId
+            proceedWithScan(freshCreditId);
           } else if (data.status === 'FAILED' || data.status === 'CANCELLED') {
             stopPolling();
             setPaymentWaiting(false);
@@ -497,7 +500,7 @@ export default function CVCheckerPage() {
   // Proceed with scan
   // ──────────────────────────────────────────────────────────────────────────
 
-  const proceedWithScan = useCallback(async () => {
+  const proceedWithScan = useCallback(async (overrideCreditId?: string) => {
     if (effectiveCvText.trim().length < 50) {
       setError('Please provide at least 50 characters of CV text.');
       return;
@@ -515,6 +518,7 @@ export default function CVCheckerPage() {
           jobDescription: jobDescription.trim() || undefined,
           email: email.trim() || undefined,
           phone: phone.trim() || undefined,
+          creditId: overrideCreditId || undefined,
         }),
       });
 

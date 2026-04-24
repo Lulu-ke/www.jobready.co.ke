@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { normalizePhone } from '@/lib/phone';
 
 interface CallbackMetadataItem {
   Name: string;
@@ -124,9 +125,10 @@ export async function POST(request: NextRequest) {
         });
       } else {
         // Handle scan credits purchase
+        const normalizedPhone = normalizePhone(phoneNumber) || payment.phone;
         const credit = await db.scanCredit.create({
           data: {
-            phone: phoneNumber,
+            phone: normalizedPhone,
             totalScans: 4,
             scansUsed: 0,
             amountPaid: amount,

@@ -3,6 +3,7 @@ import ZAI from 'z-ai-web-dev-sdk';
 import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { normalizePhone } from '@/lib/phone';
 
 export async function POST(request: NextRequest) {
   try {
@@ -137,10 +138,31 @@ export async function POST(request: NextRequest) {
     } else {
       // Anonymous user — must have credit
       if (!creditId) {
-        return NextResponse.json(
-          { success: false, error: 'Payment required. Please purchase scan credits.', code: 'PAYMENT_REQUIRED' },
-          { status: 402 }
-        );
+        // Try auto-find by phone number (normalize to 254 format)
+        const normalizedPhone = normalizePhone(phone);
+        if (normalizedPhone) {
+          const phoneCredit = await db.scanCredit.findFirst({
+            where: {
+              phone: normalizedPhone,
+              isActive: true,
+              scansUsed: { lt: db.scanCredit.fields.totalScans },
+            },
+            orderBy: { createdAt: 'desc' },
+          });
+          if (phoneCredit) {
+            creditId = phoneCredit.id;
+          } else {
+            return NextResponse.json(
+              { success: false, error: 'Payment required. Please purchase scan credits.', code: 'PAYMENT_REQUIRED' },
+              { status: 402 }
+            );
+          }
+        } else {
+          return NextResponse.json(
+            { success: false, error: 'Payment required. Please purchase scan credits.', code: 'PAYMENT_REQUIRED' },
+            { status: 402 }
+          );
+        }
       }
 
       const credit = await db.scanCredit.findUnique({

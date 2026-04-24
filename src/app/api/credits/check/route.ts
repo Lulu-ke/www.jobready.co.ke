@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { normalizePhone } from '@/lib/phone';
 
 interface CreditsResponse {
   hasCredits: boolean;
@@ -30,12 +31,15 @@ export async function GET(request: NextRequest) {
 
     // ── Phone-based check (anonymous or paid-credits flow) ──
     if (phone) {
-      const activeCredits = await db.scanCredit.findMany({
-        where: {
-          phone,
-          isActive: true,
-        },
-      });
+      const normalizedPhone = normalizePhone(phone);
+      const activeCredits = normalizedPhone
+        ? await db.scanCredit.findMany({
+            where: {
+              phone: normalizedPhone,
+              isActive: true,
+            },
+          })
+        : [];
 
       const totalRemaining = activeCredits.reduce(
         (sum, credit) => sum + (credit.totalScans - credit.scansUsed),

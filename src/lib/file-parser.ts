@@ -44,18 +44,24 @@ export async function parseCVFile(
   if (isPdfType(mimeType, ext)) {
     try {
       const pdfParse = await import('pdf-parse')
-      // pdf-parse v2 uses a class-based API
+      // pdf-parse v2 uses a class-based API: new PDFParse({ data: buffer })
       const PDFParse = (pdfParse as any).PDFParse
       if (!PDFParse) {
         throw new Error('pdf-parse module not loaded correctly')
       }
-      const pdf = new PDFParse(new Uint8Array(buffer))
-      await pdf.load()
+      const pdf = new PDFParse({ data: buffer })
       const rawResult = await pdf.getText()
-      // v2 returns { pages: [{ text }] }
-      const text = typeof rawResult === 'string'
-        ? rawResult.trim()
-        : (rawResult?.pages?.map((p: any) => p.text).join('\n') || '').trim()
+      // TextResult has: { pages: [{ text, num }], text: string }
+      let text = ''
+      if (rawResult && typeof rawResult === 'object') {
+        text = rawResult.text || rawResult.pages?.map((p: any) => p.text).join('\n') || ''
+      } else if (typeof rawResult === 'string') {
+        text = rawResult
+      }
+      text = text.trim()
+
+      // Cleanup the parser to free resources
+      try { await pdf.destroy() } catch { /* ignore */ }
 
       if (text.length < 50) {
         return {
