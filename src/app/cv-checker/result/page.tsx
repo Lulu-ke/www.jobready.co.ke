@@ -18,12 +18,18 @@ import {
   Loader2,
   TrendingUp,
   Scan,
+  FileDown,
+  Clock,
+  User,
+  Crown,
+  Zap,
+  BarChart3,
+  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from 'next-auth/react';
 
@@ -42,6 +48,11 @@ interface ScanData {
   issues: any[] | null;
   isAnalyzed: boolean;
   createdAt: string;
+  scanType?: 'anonymous' | 'member_free' | 'member_paid' | 'pro';
+  phone?: string | null;
+  fileName?: string | null;
+  scansRemaining?: number | null;
+  totalScans?: number | null;
 }
 
 function getScoreColor(score: number) {
@@ -54,6 +65,30 @@ function getScoreLabel(score: number) {
   if (score < 50) return 'Needs Improvement';
   if (score <= 75) return 'Good';
   return 'Excellent';
+}
+
+function formatScanDate(dateStr: string) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-KE', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function getScanTypeBadge(type?: string) {
+  switch (type) {
+    case 'pro':
+      return { label: 'Pro Scan', variant: 'default' as const, className: 'bg-amber-500 hover:bg-amber-600 text-white border-0' };
+    case 'member_paid':
+      return { label: 'Member Paid', variant: 'secondary' as const, className: 'bg-teal-100 text-teal-800 border-teal-200' };
+    case 'member_free':
+      return { label: 'Member Free', variant: 'secondary' as const, className: 'bg-blue-100 text-blue-800 border-blue-200' };
+    default:
+      return { label: 'Anonymous', variant: 'outline' as const, className: 'bg-gray-100 text-gray-600 border-gray-200' };
+  }
 }
 
 function ScoreGauge({ score }: { score: number }) {
@@ -133,6 +168,7 @@ function ResultContent() {
   const [loading, setLoading] = useState(!!id);
   const [error, setError] = useState(!id ? 'No scan ID provided.' : '');
   const [copied, setCopied] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -156,6 +192,28 @@ function ResultContent() {
     return () => { cancelled = true; };
   }, [id]);
 
+  const handleDownloadPDF = async () => {
+    setPdfLoading(true);
+    try {
+      const res = await fetch(`/api/cv-scan/${id}/pdf`);
+      if (!res.ok) throw new Error('Failed to generate PDF');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cv-check-report-${scan?.atsScore || 'result'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      // Fallback: open in new tab
+      window.open(`/api/cv-scan/${id}/pdf`, '_blank');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
@@ -174,9 +232,12 @@ function ResultContent() {
       case 'linkedin':
         window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
         break;
-      case 'whatsapp':
-        window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
+      case 'whatsapp': {
+        const summary = `ATS Score: ${scan?.atsScore || 0}/100\nKeyword Match: ${scan?.keywordMatch || 0}/100\nFormat: ${scan?.formatScore || 0}/100\nSections: ${scan?.sectionScore || 0}/100`;
+        const waText = encodeURIComponent(`I just checked my CV with JobReady Kenya's ATS Checker!\n\n${summary}\n\nCheck yours: `);
+        window.open(`https://wa.me/?text=${waText}${url}`, '_blank');
         break;
+      }
     }
   };
 
@@ -186,10 +247,14 @@ function ResultContent() {
         <div className="flex flex-col items-center gap-6">
           <Skeleton className="w-44 h-44 rounded-full" />
           <Skeleton className="h-6 w-48" />
-          <div className="grid sm:grid-cols-2 gap-4 w-full mt-4">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full mt-4">
+            {[1, 2, 3, 4, 5].map((i) => (
               <Skeleton key={i} className="h-28 rounded-xl" />
             ))}
+          </div>
+          <div className="w-full mt-4 space-y-4">
+            <Skeleton className="h-64 rounded-xl" />
+            <Skeleton className="h-48 rounded-xl" />
           </div>
         </div>
       </div>
@@ -228,6 +293,9 @@ function ResultContent() {
     (i: any) => i.category === 'ATS Red Flags'
   );
 
+  const isPro = scan.scanType === 'pro';
+  const isLoggedIn = !!session?.user;
+
   const scoreCards = [
     {
       label: 'ATS Compatibility',
@@ -253,26 +321,126 @@ function ResultContent() {
       icon: BookOpen,
       color: getScoreColor(scan.sectionScore),
     },
+    {
+      label: 'Readability',
+      score: scan.readabilityScore,
+      icon: BarChart3,
+      color: getScoreColor(scan.readabilityScore),
+    },
   ];
+
+  const scanTypeBadge = getScanTypeBadge(scan.scanType);
+  const scanPct = scan.scansRemaining != null && scan.totalScans != null && scan.totalScans > 0
+    ? (scan.scansRemaining / scan.totalScans) * 100
+    : null;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Back link */}
       <Link
         href="/cv-checker"
-        className="inline-flex items-center gap-1 text-sm text-teal-600 hover:text-teal-700 font-medium mb-8"
+        className="inline-flex items-center gap-1 text-sm text-teal-600 hover:text-teal-700 font-medium mb-4"
       >
         <ArrowLeft className="w-4 h-4" />
         Check Another CV
       </Link>
+
+      {/* Credit / Scan Info Bar */}
+      <Card className="mb-6 border-0 shadow-sm">
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant={scanTypeBadge.variant} className={scanTypeBadge.className}>
+                {scanTypeBadge.label}
+              </Badge>
+              {scan.fileName && (
+                <span className="text-xs text-gray-500 truncate max-w-[180px]" title={scan.fileName}>
+                  {scan.fileName}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 sm:ml-auto">
+              <Clock className="w-3.5 h-3.5" />
+              {formatScanDate(scan.createdAt)}
+            </div>
+            {scan.scansRemaining != null && scan.totalScans != null && (
+              <div className="flex items-center gap-2 ml-auto sm:ml-0">
+                <span className="text-xs text-gray-600 font-medium whitespace-nowrap">
+                  {scan.scansRemaining} scan{scan.scansRemaining !== 1 ? 's' : ''} remaining
+                </span>
+                {scanPct !== null && (
+                  <div className="w-20">
+                    <Progress value={scanPct} className="h-1.5" />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Toolbar: PDF Download + Share buttons */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-8">
+        <Button
+          onClick={handleDownloadPDF}
+          disabled={pdfLoading}
+          variant="outline"
+          className="border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-800"
+        >
+          {pdfLoading ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <FileDown className="w-4 h-4 mr-2" />
+          )}
+          {pdfLoading ? 'Generating PDF...' : 'Download PDF Report'}
+        </Button>
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400 mr-1 flex items-center gap-1">
+            <Share2 className="w-3.5 h-3.5" />
+            Share:
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleShare('whatsapp')}
+            className="text-green-600 hover:text-green-700 hover:bg-green-50 h-8 px-2.5"
+          >
+            WhatsApp
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleShare('twitter')}
+            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 h-8 px-2.5"
+          >
+            Twitter
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleShare('linkedin')}
+            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 px-2.5"
+          >
+            LinkedIn
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleCopyLink} className="h-8 px-2.5">
+            {copied ? (
+              <CheckCircle2 className="w-4 h-4 text-green-500" />
+            ) : (
+              <Copy className="w-4 h-4 text-gray-500" />
+            )}
+          </Button>
+        </div>
+      </div>
 
       {/* Score Gauge */}
       <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 text-center">
         <ScoreGauge score={scan.atsScore} />
       </div>
 
-      {/* Score Breakdown */}
-      <div className="grid sm:grid-cols-2 gap-4 mb-8">
+      {/* Score Breakdown — 5 cards in a responsive grid */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {scoreCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -294,10 +462,7 @@ function ResultContent() {
                     </p>
                   </div>
                 </div>
-                <Progress
-                  value={card.score}
-                  className="h-2"
-                />
+                <Progress value={card.score} className="h-2" />
               </CardContent>
             </Card>
           );
@@ -460,86 +625,113 @@ function ResultContent() {
         </Card>
       )}
 
-      {/* Email Capture for non-logged-in */}
-      {!session?.user && (
-        <Card className="mb-8 border-0 shadow-sm bg-gradient-to-r from-teal-50 to-purple-50">
-          <CardContent className="p-6 text-center">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">
-              Want detailed AI suggestions for your CV?
-            </h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Create a free account to get personalized AI improvements.
-            </p>
-            <Link href="/register">
-              <Button className="bg-teal-600 hover:bg-teal-700 text-white">
-                Get AI Suggestions — Free
-              </Button>
-            </Link>
+      {/* Upsell CTA — Session-aware */}
+      {!isLoggedIn && (
+        <Card className="mb-8 border-0 shadow-sm bg-gradient-to-r from-teal-50 to-purple-50 overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
+                <User className="w-5 h-5 text-teal-700" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">
+                  Save your results and get cheaper scans
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Create a free account to keep your scan history and unlock member pricing.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 items-start">
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-gray-400 line-through">KES 100/4 scans</span>
+                      <span className="text-xs text-gray-400">(no account)</span>
+                    </div>
+                    <ArrowLeft className="w-4 h-4 text-teal-500 rotate-180" />
+                    <div className="flex items-center gap-1.5 font-medium text-teal-700">
+                      <span>KES 40/scan + 1 free</span>
+                      <span className="text-xs text-teal-600">(with account)</span>
+                    </div>
+                  </div>
+                  <Link href="/register" className="sm:ml-auto">
+                    <Button className="bg-teal-600 hover:bg-teal-700 text-white">
+                      Create Free Account
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {/* CTA */}
-      <Card className="mb-8 border-0 shadow-sm">
-        <CardContent className="p-6 text-center">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            {session?.user ? (
-              <Link href="/dashboard">
-                <Button className="bg-teal-600 hover:bg-teal-700 text-white">
-                  Go to Dashboard
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/cv-services">
-                <Button className="bg-purple-700 hover:bg-purple-800 text-white">
-                  Get AI-Powered CV Rewrite — KES 200
-                </Button>
-              </Link>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {isLoggedIn && !isPro && (
+        <Card className="mb-8 border-0 shadow-sm bg-gradient-to-r from-amber-50 to-purple-50 overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <Crown className="w-5 h-5 text-amber-700" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">
+                  Upgrade to Pro for unlimited scanning
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  {scan.scansRemaining != null
+                    ? `You've used ${(scan.totalScans ?? 0) - scan.scansRemaining} scan${(scan.totalScans ?? 0) - scan.scansRemaining !== 1 ? 's' : ''}. Pro members get 4 scans daily for only KES 500/month.`
+                    : 'Pro members get 4 scans daily for only KES 500/month.'}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                  <div className="flex items-center gap-3 text-sm">
+                    <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 font-medium">
+                      <Zap className="w-3 h-3 mr-1" />
+                      4 scans/day
+                    </Badge>
+                    <Badge variant="outline" className="border-purple-300 text-purple-700 bg-purple-50 font-medium">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      Priority analysis
+                    </Badge>
+                  </div>
+                  <Link href="/pricing" className="sm:ml-auto">
+                    <Button className="bg-purple-700 hover:bg-purple-800 text-white">
+                      Upgrade to Pro — KES 500/month
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Share */}
-      <Card className="mb-8 border-0 shadow-sm">
-        <CardContent className="p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <Share2 className="w-4 h-4" />
-            Share Your Results
-          </h3>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleShare('twitter')}
-            >
-              Twitter
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleShare('linkedin')}
-            >
-              LinkedIn
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleShare('whatsapp')}
-            >
-              WhatsApp
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleCopyLink}>
-              {copied ? (
-                <CheckCircle2 className="w-4 h-4 mr-1 text-green-500" />
-              ) : (
-                <Copy className="w-4 h-4 mr-1" />
-              )}
-              {copied ? 'Copied!' : 'Copy Link'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {isLoggedIn && isPro && (
+        <Card className="mb-8 border-0 shadow-sm bg-gradient-to-r from-amber-50 to-yellow-50 overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <Crown className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">
+                  You&apos;re a Pro member!
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {scan.scansRemaining != null
+                    ? `You have ${scan.scansRemaining} scan${scan.scansRemaining !== 1 ? 's' : ''} remaining today. They reset at midnight.`
+                    : 'Enjoy unlimited scanning power. Your daily scans reset at midnight.'}
+                </p>
+                {scanPct !== null && (
+                  <div className="mt-3 flex items-center gap-3 max-w-xs">
+                    <Progress value={scanPct} className="h-2 flex-1" />
+                    <span className="text-xs text-gray-500 font-medium whitespace-nowrap">
+                      {scan.scansRemaining}/{scan.totalScans}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Check Another */}
       <div className="text-center pb-8">

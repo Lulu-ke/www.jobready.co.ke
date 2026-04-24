@@ -136,6 +136,9 @@ model User {
   payments      Payment[]
   cvScans       CVScan[]
   careerDocuments CareerDocument[]
+  scanCredits   ScanCredit[]
+  mpesaPayments MpesaPayment[]
+  proSubscription ProSubscription?
 }
 
 model SavedJob {
@@ -283,6 +286,95 @@ enum PaymentStatus {
   pending
   paid
   expired
+  failed
+}
+
+enum ScanType {
+  ANONYMOUS_PAID
+  LOGGED_IN_FREE
+  LOGGED_IN_PAID
+  PRO
+}
+
+model ScanCredit {
+  id              String    @id @default(cuid())
+  userId          String?
+  phone           String?
+  email           String?
+  totalScans      Int       @default(4)
+  scansUsed       Int       @default(0)
+  scanType        ScanType  @default(ANONYMOUS_PAID)
+  amountPaid      Float     @default(100)
+  mpesaRef        String?
+  isActive        Boolean   @default(true)
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cvScans         CVScan[]
+  mpesaPayments   MpesaPayment[]
+}
+
+model MpesaPayment {
+  id              String         @id @default(cuid())
+  userId          String?
+  phone           String
+  amount          Float
+  mpesaRef        String?
+  merchantReqId   String?
+  checkoutReqId   String?
+  status          MpesaStatus    @default(PENDING)
+  resultDesc      String?
+  callbackRaw     Json?
+  purpose         String        @default("scan_credits")
+  creditId        String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  credit          ScanCredit?   @relation(fields: [creditId], references: [id])
+  user            User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum MpesaStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
+model ProSubscription {
+  id              String         @id @default(cuid())
+  userId          String         @unique
+  status          SubStatus      @default(ACTIVE)
+  amountPaid      Float          @default(500)
+  mpesaRef        String?
+  dailyScanLimit  Int            @default(4)
+  scansToday      Int            @default(0)
+  lastScanDate    DateTime?
+  currentPeriodStart DateTime    @default(now())
+  currentPeriodEnd   DateTime
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum SubStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model SmsLog {
+  id              String    @id @default(cuid())
+  phone           String
+  message         String    @db.Text
+  otp             String?
+  purpose         String    @default("phone_verification")
+  status          String    @default("sent")
+  gatewayRef      String?
+  createdAt       DateTime  @default(now())
 }
 
 model Profile {
@@ -366,8 +458,10 @@ model CVScan {
   id              String    @id @default(cuid())
   userId          String?
   email           String?
+  phone           String?
   cvText          String    @db.LongText
   jobDescription  String?   @db.Text
+  fileName        String?
   atsScore        Int       @default(0)
   keywordMatch    Int       @default(0)
   formatScore     Int       @default(0)
@@ -377,10 +471,13 @@ model CVScan {
   suggestions     Json?
   improvements    Json?
   issues          Json?
+  scanType        ScanType  @default(ANONYMOUS_PAID)
+  creditId        String?
   isAnalyzed      Boolean   @default(false)
   createdAt       DateTime  @default(now())
 
-  user            User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credit          ScanCredit? @relation(fields: [creditId], references: [id])
 }
 
 model CareerDocument {
