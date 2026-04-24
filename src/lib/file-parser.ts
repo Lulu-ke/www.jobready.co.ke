@@ -27,57 +27,22 @@ function isDocxType(mimeType: string, ext: string): boolean {
 // ─── PDF text extraction using pdfjs-dist directly ───────────────────────────
 // We use pdfjs-dist/legacy/build/pdf.mjs instead of pdf-parse v2 because
 // pdf-parse v2 depends on @napi-rs/canvas (native module) which fails in
-// Vercel serverless.  pdfjs-dist is pure JS and works everywhere.
-
-let workerSrcResolved = false
-
-async function ensureWorkerSrc(pdfjs: any): Promise<void> {
-  if (workerSrcResolved || pdfjs.GlobalWorkerOptions.workerSrc) return
-
-  // Try multiple strategies to locate the pdfjs worker file
-  const candidates = [
-    // 1. require.resolve via createRequire (works in most Node envs)
-    async () => {
-      const { createRequire } = await import('module')
-      const req = createRequire(import.meta.url)
-      return req.resolve('pdfjs-dist/legacy/build/pdf.worker.min.mjs')
-    },
-    // 2. Relative to process.cwd()/node_modules
-    async () => {
-      const nodePath = await import('path')
-      return nodePath.join(
-        process.cwd(),
-        'node_modules',
-        'pdfjs-dist',
-        'legacy',
-        'build',
-        'pdf.worker.min.mjs',
-      )
-    },
-  ]
-
-  for (const strategy of candidates) {
-    try {
-      const src = await strategy()
-      // Verify the file exists
-      const fs = await import('fs')
-      fs.accessSync(src)
-      pdfjs.GlobalWorkerOptions.workerSrc = src
-      workerSrcResolved = true
-      return
-    } catch {
-      // Try next strategy
-    }
-  }
-
-  // All strategies failed — the workerSrc is already set or pdfjs will fail.
-  // This shouldn't happen in a properly deployed environment.
-  workerSrcResolved = true
-}
+// Vercel serverless.
+//
+// In Node.js environments (including Vercel serverless), pdfjs-dist v5
+// automatically detects the Node runtime and disables the web worker,
+// using a "fake worker" that runs on the main thread. It then dynamically
+// imports the worker module via `import(workerSrc)`. We must NOT override
+// workerSrc — the default `"./pdf.worker.mjs"` resolves correctly relative
+// to pdfjs-dist's own build directory.
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
-  await ensureWorkerSrc(pdfjs)
+
+  // Do NOT set GlobalWorkerOptions.workerSrc — let pdfjs use its default.
+  // In Node.js it defaults to "./pdf.worker.mjs" which resolves relative
+  // to the pdfjs-dist build directory, and the fake worker uses dynamic
+  // import() which works in both local and Vercel environments.
 
   const data = new Uint8Array(buffer)
   const doc = await pdfjs.getDocument({
