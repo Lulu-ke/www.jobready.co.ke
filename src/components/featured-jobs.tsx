@@ -38,7 +38,6 @@ export interface JobData {
   salaryMax: number | null;
   salaryFormatted: string;
   description: string;
-  requirements: string;
   howToApply: string;
   isRemote: boolean;
   isFeatured: boolean;

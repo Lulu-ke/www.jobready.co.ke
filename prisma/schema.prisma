@@ -41,7 +41,6 @@ model Job {
   title           String
   slug            String           @unique
   description     String           @db.Text
-  requirements    String           @db.Text
   howToApply      String           @db.Text
   location        String
   county          String

@@ -196,15 +196,6 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
                   {job.description}
                 </div>
 
-                {job.requirements && (
-                  <div className="mt-6 pt-5 border-t border-gray-200">
-                    <h3 className="font-semibold text-gray-800 text-lg mb-3">Requirements</h3>
-                    <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                      {job.requirements}
-                    </div>
-                  </div>
-                )}
-
                 {job.howToApply && (
                   <div className="mt-6 pt-5 border-t border-gray-200" id="how-to-apply">
                     <h3 className="font-semibold text-gray-800 text-lg mb-3">How to Apply</h3>

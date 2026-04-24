@@ -339,8 +339,9 @@ async function seed() {
       data: {
         title: job.title,
         slug,
-        description: job.description,
-        requirements: job.requirements,
+        description: job.requirements
+          ? `${job.description}\n\nRequirements:\n${job.requirements}`
+          : job.description,
         howToApply: job.howToApply,
         location: job.location,
         county: job.county,
