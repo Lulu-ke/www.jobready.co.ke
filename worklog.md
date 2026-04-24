@@ -159,3 +159,48 @@ Stage Summary:
 - 9 new routes: /cv-checker, /cv-checker/result, /dashboard/cv-builder, /dashboard/cover-letter, /api/cv-scan, /api/cv-scan/[id], /api/ai/cv-suggest, /api/ai/cover-letter, /api/ai/suggest-skills, /api/career-documents, /api/career-documents/[id]
 - Vercel build error fixed (generateStaticParams resilience)
 - All AI features use z-ai-web-dev-sdk createChatCompletion with proper error handling and fallbacks
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Implement auth-gated saves for jobs/opportunities/articles + views tracking
+
+Work Log:
+- Read all detail sheet components (job, opportunity, article) and existing save APIs
+- Added `views Int @default(0)` to Article model in Prisma schema
+- Created SavedOpportunity and SavedArticle models with User/Opportunity/Article relations
+- Ran prisma db push and prisma generate
+- Created AuthModal component (/src/components/auth-modal.tsx):
+  - Reusable Dialog with Sign In / Sign Up tabs
+  - Google OAuth support (returns to current page after OAuth)
+  - Credential login/register with validation
+  - Contextual title/subtitle props
+  - onSuccess callback for post-auth action execution
+  - pendingActionRef pattern for auto-executing save after auth
+- Created save/unsave APIs:
+  - /api/saved-opportunities (GET/POST/DELETE)
+  - /api/saved-articles (GET/POST/DELETE)
+  - /api/saved-jobs/check (batch check)
+  - /api/saved-opportunities/check (batch check)
+  - /api/saved-articles/check (batch check)
+- Updated JobDetailSheet with:
+  - Real save/unsave via API (was client-only useState)
+  - Auth check via useSession
+  - Auth modal trigger when not authenticated
+  - Batch saved-status check when sheet opens
+  - Toast notifications on save/unsave
+- Updated OpportunityDetailSheet with same pattern
+- Updated ArticleDetailSheet with same pattern
+- Added views tracking (fire-and-forget increment) to:
+  - /api/jobs/[slug] - increments Job.views
+  - /api/opportunities/[slug] - increments Opportunity.views
+  - /api/articles/[slug] - increments Article.views
+- Build verified: zero errors
+- Committed (f300052) and pushed to GitHub
+
+Stage Summary:
+- 13 files changed, 1,493 insertions
+- 6 new files created (1 component + 5 API routes)
+- 8 existing files modified
+- All save buttons are now auth-gated with modal (no redirect)
+- Views tracking active for jobs, opportunities, and articles
