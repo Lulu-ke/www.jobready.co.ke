@@ -24,12 +24,48 @@ function isDocxType(mimeType: string, ext: string): boolean {
   )
 }
 
+// ─── PDF text extraction using pdfjs-dist directly ───────────────────────────
+// We use pdfjs-dist/legacy/build/pdf.mjs instead of pdf-parse v2 because
+// pdf-parse v2 depends on @napi-rs/canvas (native module) which fails in
+// Vercel serverless.  pdfjs-dist is pure JS and works everywhere.
+
+async function extractPdfText(buffer: Buffer): Promise<string> {
+  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
+
+  const data = new Uint8Array(buffer)
+  const doc = await pdfjs.getDocument({ data }).promise
+
+  const pageTexts: string[] = []
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i)
+    const textContent = await page.getTextContent()
+    const lines: string[] = []
+    let lastY: number | null = null
+
+    for (const item of textContent.items) {
+      if (!('str' in item) || !item.str) continue
+      const y = item.transform?.[5] ?? 0
+
+      // New line when Y position changes significantly (new text line)
+      if (lastY !== null && Math.abs(y - lastY) > 2) {
+        lines.push('\n')
+      }
+      lastY = y
+      lines.push(item.str)
+    }
+    pageTexts.push(lines.join(''))
+    page.cleanup()
+  }
+
+  return pageTexts.join('\n\n')
+}
+
 // ─── parseCVFile ─────────────────────────────────────────────────────────────
 
 /**
  * Parse a CV file (PDF or DOCX) and extract its raw text content.
  *
- * Uses dynamic imports so mammoth/pdf-parse only load when actually needed
+ * Uses dynamic imports so mammoth/pdfjs-dist only load when actually needed
  * (avoids crashes in serverless / edge environments).
  */
 export async function parseCVFile(
@@ -43,25 +79,7 @@ export async function parseCVFile(
   // ── PDF ──────────────────────────────────────────────────────────────────
   if (isPdfType(mimeType, ext)) {
     try {
-      const pdfParse = await import('pdf-parse')
-      // pdf-parse v2 uses a class-based API: new PDFParse({ data: buffer })
-      const PDFParse = (pdfParse as any).PDFParse
-      if (!PDFParse) {
-        throw new Error('pdf-parse module not loaded correctly')
-      }
-      const pdf = new PDFParse({ data: buffer })
-      const rawResult = await pdf.getText()
-      // TextResult has: { pages: [{ text, num }], text: string }
-      let text = ''
-      if (rawResult && typeof rawResult === 'object') {
-        text = rawResult.text || rawResult.pages?.map((p: any) => p.text).join('\n') || ''
-      } else if (typeof rawResult === 'string') {
-        text = rawResult
-      }
-      text = text.trim()
-
-      // Cleanup the parser to free resources
-      try { await pdf.destroy() } catch { /* ignore */ }
+      const text = await extractPdfText(buffer).then(t => t.trim())
 
       if (text.length < 50) {
         return {
