@@ -1,40 +1,7 @@
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface ParseResult {
-  text: string
-  error?: string
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function getFileExtension(fileName: string): string {
-  const lastDot = fileName.lastIndexOf('.')
-  if (lastDot === -1) return ''
-  return fileName.slice(lastDot).toLowerCase()
-}
-
-function isPdfType(mimeType: string, ext: string): boolean {
-  return mimeType === 'application/pdf' || ext === '.pdf'
-}
-
-function isDocxType(mimeType: string, ext: string): boolean {
-  return (
-    mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-    ext === '.docx'
-  )
-}
-
 // ─── DOMMatrix polyfill for Node.js / Vercel serverless ───────────────────────
 // pdfjs-dist v5 uses DOMMatrix for page transforms. In browser environments it's
 // available globally, but in Node.js serverless (Vercel) it's missing.
 // We provide a minimal 2D-only polyfill that covers pdfjs's text-extraction needs.
-
-// ─── DOMMatrix polyfill for Node.js / Vercel serverless ───────────────────────
-// pdfjs-dist v5 uses DOMMatrix for page transforms. In browser environments it's
-// available globally, but in Node.js serverless (Vercel) it's missing.
-// We provide a minimal 2D-only polyfill that covers pdfjs's text-extraction needs.
-// IMPORTANT: This must run before any pdfjs import, as the fake worker also
-// creates a separate module context that reads globalThis.DOMMatrix.
 
 const _polyfillDOMMatrix = () => {
   if (typeof globalThis.DOMMatrix === 'undefined') {
@@ -92,25 +59,87 @@ const _polyfillDOMMatrix = () => {
 }
 _polyfillDOMMatrix()
 
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface ParseResult {
+  text: string
+  error?: string
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function getFileExtension(fileName: string): string {
+  const lastDot = fileName.lastIndexOf('.')
+  if (lastDot === -1) return ''
+  return fileName.slice(lastDot).toLowerCase()
+}
+
+function isPdfType(mimeType: string, ext: string): boolean {
+  return mimeType === 'application/pdf' || ext === '.pdf'
+}
+
+function isDocxType(mimeType: string, ext: string): boolean {
+  return (
+    mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+    ext === '.docx'
+  )
+}
+
 // ─── PDF text extraction using pdfjs-dist directly ───────────────────────────
 // We use pdfjs-dist/legacy/build/pdf.mjs instead of pdf-parse v2 because
 // pdf-parse v2 depends on @napi-rs/canvas (native module) which fails in
 // Vercel serverless.
 //
-// In Node.js environments (including Vercel serverless), pdfjs-dist v5
-// automatically detects the Node runtime and disables the web worker,
-// using a "fake worker" that runs on the main thread. It then dynamically
-// imports the worker module via `import(workerSrc)`. We must NOT override
-// workerSrc — the default `"./pdf.worker.mjs"` resolves correctly relative
-// to pdfjs-dist's own build directory.
+// pdfjs-dist v5 in Node.js auto-disables the web worker and uses a "fake worker"
+// that does `await import(workerSrc)` to load the worker code. The workerSrc
+// defaults to "./pdf.worker.mjs" (relative to the pdfjs build dir), but in
+// Vercel standalone mode this file may not exist.
+//
+// We resolve workerSrc to the file in public/ which IS included in standalone.
+
+async function ensurePdfjsWorker(pdfjs: any): Promise<void> {
+  if (pdfjs.GlobalWorkerOptions.workerSrc) return
+
+  const workerCandidates = [
+    // 1. public/ directory (included in standalone output)
+    async () => {
+      const nodePath = await import('path')
+      const nodeFs = await import('fs')
+      const candidate = nodePath.join(process.cwd(), 'public', 'pdf.worker.min.mjs')
+      nodeFs.accessSync(candidate)
+      return candidate
+    },
+    // 2. node_modules (works in local dev)
+    async () => {
+      const nodePath = await import('path')
+      const nodeFs = await import('fs')
+      const candidate = nodePath.join(
+        process.cwd(), 'node_modules', 'pdfjs-dist', 'legacy', 'build', 'pdf.worker.min.mjs',
+      )
+      nodeFs.accessSync(candidate)
+      return candidate
+    },
+    // 3. require.resolve fallback
+    async () => {
+      const { createRequire } = await import('module')
+      const req = createRequire(import.meta.url)
+      return req.resolve('pdfjs-dist/legacy/build/pdf.worker.min.mjs')
+    },
+  ]
+
+  for (const strategy of workerCandidates) {
+    try {
+      pdfjs.GlobalWorkerOptions.workerSrc = await strategy()
+      return
+    } catch {
+      // Try next
+    }
+  }
+}
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
-
-  // Do NOT set GlobalWorkerOptions.workerSrc — let pdfjs use its default.
-  // In Node.js it defaults to "./pdf.worker.mjs" which resolves relative
-  // to the pdfjs-dist build directory, and the fake worker uses dynamic
-  // import() which works in both local and Vercel environments.
+  await ensurePdfjsWorker(pdfjs)
 
   const data = new Uint8Array(buffer)
   const doc = await pdfjs.getDocument({
