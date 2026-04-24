@@ -34,3 +34,25 @@ Stage Summary:
 - Database schema pushed successfully
 - 20+ new/modified files created
 - Complete pricing system: Anonymous KES 100/4 scans, Logged-in 1 free + KES 40/scan, Pro KES 500/month
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix CV checker - PDF parsing failures, creditId flow, phone normalization
+
+Work Log:
+- Diagnosed pdf-parse v2 API mismatch: constructor takes { data: buffer } not raw Uint8Array
+- Fixed file-parser.ts PDF constructor call and TextResult handling
+- Found proceedWithScan() wasn't passing creditId to cv-scan API
+- Updated page.tsx to extract creditId from M-Pesa status response and forward to proceedWithScan
+- Found phone format mismatch: M-Pesa stores 254XXXXXXXXX, users type 0712345678
+- Created shared normalizePhone() utility in src/lib/phone.ts
+- Applied normalization to: mpesa callback, cv-scan route, credits/check route
+- Added anonymous user auto-find by normalized phone in cv-scan route
+- Build verified clean, pushed to GitHub
+
+Stage Summary:
+- 3 critical bugs fixed and pushed (commit 1d13e48)
+- PDF parsing: constructor fix + proper TextResult extraction + resource cleanup
+- Payment flow: creditId now properly forwarded after M-Pesa success
+- Phone normalization: shared utility ensures consistent 254XXXXXXXXX format
+- Vercel will auto-deploy from push
