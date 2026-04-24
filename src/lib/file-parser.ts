@@ -141,11 +141,12 @@ export async function parseCVFile(
       }
 
       return { text }
-    } catch (error) {
-      console.error('[file-parser] PDF parse error:', error)
+    } catch (error: any) {
+      const errMsg = error?.message || String(error)
+      console.error('[file-parser] PDF parse error:', errMsg, error?.stack?.substring(0, 500))
       return {
         text: '',
-        error: 'Failed to parse PDF. The file may be corrupted or password-protected.',
+        error: `Failed to parse PDF: ${errMsg}`,
       }
     }
   }

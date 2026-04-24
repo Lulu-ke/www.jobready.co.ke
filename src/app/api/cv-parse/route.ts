@@ -78,7 +78,16 @@ export async function POST(request: NextRequest) {
 
     // ── Parse the file ──────────────────────────────────────────────────────
     const buffer = Buffer.from(await file.arrayBuffer());
-    const result = await parseCVFile(buffer, fileName, file.type);
+    let result: any;
+    try {
+      result = await parseCVFile(buffer, fileName, file.type);
+    } catch (parseErr: any) {
+      console.error('[CV Parse] parseCVFile threw:', parseErr?.message, parseErr?.stack?.substring(0, 500));
+      return NextResponse.json(
+        { success: false, error: `Parse error: ${parseErr?.message || 'Unknown'}` },
+        { status: 500 },
+      );
+    }
 
     if (result.error) {
       return NextResponse.json(
