@@ -44,9 +44,18 @@ export async function parseCVFile(
   if (isPdfType(mimeType, ext)) {
     try {
       const pdfParse = await import('pdf-parse')
-      const pdf = (pdfParse as any).default || pdfParse
-      const result = await pdf(buffer)
-      const text = (result.text || '').trim()
+      // pdf-parse v2 uses a class-based API
+      const PDFParse = (pdfParse as any).PDFParse
+      if (!PDFParse) {
+        throw new Error('pdf-parse module not loaded correctly')
+      }
+      const pdf = new PDFParse(new Uint8Array(buffer))
+      await pdf.load()
+      const rawResult = await pdf.getText()
+      // v2 returns { pages: [{ text }] }
+      const text = typeof rawResult === 'string'
+        ? rawResult.trim()
+        : (rawResult?.pages?.map((p: any) => p.text).join('\n') || '').trim()
 
       if (text.length < 50) {
         return {
