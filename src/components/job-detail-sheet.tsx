@@ -45,7 +45,7 @@ interface JobDetailSheetProps {
   relatedJobs: Job[];
 }
 
-function getLogoColor(name: string): string {
+function getLogoColor(name: string | null | undefined): string {
   const colors = [
     'from-teal-400 to-teal-600',
     'from-purple-400 to-purple-600',
@@ -54,6 +54,7 @@ function getLogoColor(name: string): string {
     'from-blue-400 to-blue-600',
     'from-green-400 to-green-600',
   ];
+  if (!name) return colors[0];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -207,9 +208,9 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
             </div>
             <div className="flex items-center gap-2 mt-1">
               <div className={`w-5 h-5 rounded-md bg-gradient-to-br ${logoColor} flex items-center justify-center text-white font-bold text-[8px]`}>
-                {job.logo || job.company.substring(0, 2).toUpperCase()}
+                {job.logo || (job.company ? job.company.substring(0, 2).toUpperCase() : '??')}
               </div>
-              <span className="text-sm text-gray-500 truncate">{job.company} &middot; {job.location}</span>
+              <span className="text-sm text-gray-500 truncate">{job.company || 'Unknown'} &middot; {job.location}</span>
             </div>
           </SheetHeader>
 
@@ -217,10 +218,10 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
             {/* Company Info */}
             <div className="flex items-center gap-4">
               <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${logoColor} flex items-center justify-center text-white font-bold text-lg shrink-0`}>
-                {job.logo || job.company.substring(0, 2).toUpperCase()}
+                {job.logo || (job.company ? job.company.substring(0, 2).toUpperCase() : '??')}
               </div>
               <div className="min-w-0">
-                <h3 className="font-semibold text-slate-800">{job.company}</h3>
+                <h3 className="font-semibold text-slate-800">{job.company || 'Unknown Company'}</h3>
                 <div className="flex items-center gap-2 mt-0.5">
                   {job.employer?.orgType && (
                     <Badge variant="outline" className={`text-[10px] ${getOrgTypeColor(job.employer.orgType)}`}>
@@ -356,11 +357,11 @@ export default function JobDetailSheet({ job, open, onClose, onJobClick, related
                       className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 hover:shadow-sm cursor-pointer transition-all border border-transparent hover:border-gray-200"
                     >
                       <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${getLogoColor(rj.company)} flex items-center justify-center text-white font-bold text-xs shrink-0`}>
-                        {rj.logo || rj.company.substring(0, 2).toUpperCase()}
+                        {rj.logo || (rj.company ? rj.company.substring(0, 2).toUpperCase() : '??')}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-slate-800 truncate">{rj.title}</p>
-                        <p className="text-xs text-gray-500">{rj.company} &middot; {rj.location}</p>
+                        <p className="text-xs text-gray-500">{rj.company || 'Unknown'} &middot; {rj.location}</p>
                       </div>
                       <span className="text-xs text-teal-600 font-medium shrink-0">{rj.salaryFormatted}</span>
                     </div>

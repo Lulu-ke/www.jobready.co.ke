@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     const formattedOpportunities = opportunities.map((opp) => ({
       ...opp,
-      providerName: opp.provider?.companyName || null,
+      providerName: opp.provider?.companyName || 'Unknown',
       providerLogo: opp.provider?.logoUrl || null,
     }));
 

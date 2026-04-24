@@ -15,7 +15,7 @@ interface EmployerMarqueeProps {
   employers: Employer[];
 }
 
-function getLogoColor(name: string): string {
+function getLogoColor(name: string | null | undefined): string {
   const colors = [
     'from-teal-400 to-teal-600',
     'from-purple-400 to-purple-600',
@@ -28,6 +28,7 @@ function getLogoColor(name: string): string {
     'from-indigo-400 to-indigo-600',
     'from-emerald-400 to-emerald-600',
   ];
+  if (!name) return colors[0];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);

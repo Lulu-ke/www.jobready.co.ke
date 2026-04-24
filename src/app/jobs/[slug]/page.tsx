@@ -106,7 +106,7 @@ export default async function JobDetailPage({ params }: Props) {
 
   const formattedJob = {
     ...job,
-    company: job.employer?.companyName || null,
+    company: job.employer?.companyName || 'Unknown Company',
     logo: job.employer?.logoUrl || null,
     isUrgent: job.closingDate
       ? job.closingDate <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -121,7 +121,7 @@ export default async function JobDetailPage({ params }: Props) {
 
   const formattedRelated = relatedJobs.map((rj) => ({
     ...rj,
-    company: rj.employer?.companyName || null,
+    company: rj.employer?.companyName || 'Unknown Company',
     logo: rj.employer?.logoUrl || null,
     isUrgent: rj.closingDate
       ? rj.closingDate <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)

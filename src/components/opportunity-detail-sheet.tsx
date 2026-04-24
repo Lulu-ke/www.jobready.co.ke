@@ -38,7 +38,7 @@ interface OpportunityDetailSheetProps {
   onClose: () => void;
 }
 
-function getLogoColor(name: string): string {
+function getLogoColor(name: string | null | undefined): string {
   const colors = [
     'from-purple-400 to-purple-600',
     'from-teal-400 to-teal-600',
@@ -49,6 +49,7 @@ function getLogoColor(name: string): string {
     'from-amber-400 to-amber-600',
     'from-cyan-400 to-cyan-600',
   ];
+  if (!name) return colors[0];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);

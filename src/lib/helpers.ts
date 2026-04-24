@@ -21,7 +21,8 @@ export function formatRelativeDate(date: string | Date): string {
   }
 }
 
-export function getInitials(name: string): string {
+export function getInitials(name: string | null | undefined): string {
+  if (!name) return '??';
   return name
     .split(' ')
     .map((w) => w[0])
@@ -30,7 +31,7 @@ export function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-export function getCategoryColor(name: string): string {
+export function getCategoryColor(name: string | null | undefined): string {
   const colors: Record<string, string> = {
     'IT & Technology': 'bg-cyan-100 text-cyan-700',
     'Finance & Accounting': 'bg-emerald-100 text-emerald-700',
@@ -49,10 +50,10 @@ export function getCategoryColor(name: string): string {
     'Hospitality': 'bg-yellow-100 text-yellow-700',
     'NGO & Development': 'bg-purple-100 text-purple-700',
   };
-  return colors[name] || 'bg-gray-100 text-gray-700';
+  return (name && colors[name]) || 'bg-gray-100 text-gray-700';
 }
 
-export function getCompanyColor(name: string): string {
+export function getCompanyColor(name: string | null | undefined): string {
   const colors = [
     'bg-teal-500',
     'bg-emerald-500',
@@ -65,6 +66,7 @@ export function getCompanyColor(name: string): string {
     'bg-lime-500',
     'bg-fuchsia-500',
   ];
+  if (!name) return colors[0];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);

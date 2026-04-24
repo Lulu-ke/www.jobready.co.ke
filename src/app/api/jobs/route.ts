@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
 
     const formattedJobs = jobs.map((job) => ({
       ...job,
-      company: job.employer?.companyName || null,
+      company: job.employer?.companyName || 'Unknown Company',
       logo: job.employer?.logoUrl || null,
       isUrgent: deriveIsUrgent(job.closingDate),
       salaryFormatted: formatSalary(job.salaryMin, job.salaryMax, job.currency),

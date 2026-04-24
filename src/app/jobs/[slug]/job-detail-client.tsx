@@ -41,7 +41,7 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
-  function getLogoColor(name: string): string {
+  function getLogoColor(name: string | null | undefined): string {
     const colors = [
       'from-teal-400 to-teal-600',
       'from-purple-400 to-purple-600',
@@ -54,6 +54,7 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
       'from-amber-400 to-amber-600',
       'from-cyan-400 to-cyan-600',
     ];
+    if (!name) return colors[0];
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -312,11 +313,11 @@ export default function JobDetailClient({ job, relatedJobs }: JobDetailClientPro
                         className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 hover:shadow-sm cursor-pointer transition-all border border-transparent hover:border-gray-200"
                       >
                         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${getLogoColor(rj.company)} flex items-center justify-center text-white font-bold text-xs shrink-0`}>
-                          {rj.logo || rj.company.substring(0, 2).toUpperCase()}
+                          {rj.logo || (rj.company ? rj.company.substring(0, 2).toUpperCase() : '??')}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">{rj.title}</p>
-                          <p className="text-xs text-gray-500">{rj.company} &middot; {rj.location}</p>
+                          <p className="text-xs text-gray-500">{rj.company || 'Unknown'} &middot; {rj.location}</p>
                         </div>
                       </div>
                     ))}

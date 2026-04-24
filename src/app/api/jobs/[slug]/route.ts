@@ -69,7 +69,7 @@ export async function GET(
 
     const formattedJob = {
       ...job,
-      company: job.employer?.companyName || null,
+      company: job.employer?.companyName || 'Unknown Company',
       logo: job.employer?.logoUrl || null,
       isUrgent: deriveIsUrgent(job.closingDate),
       salaryFormatted: formatSalary(job.salaryMin, job.salaryMax, job.currency),
@@ -108,7 +108,7 @@ export async function GET(
 
     const formattedRelatedJobs = relatedJobs.map((rj) => ({
       ...rj,
-      company: rj.employer?.companyName || null,
+      company: rj.employer?.companyName || 'Unknown Company',
       logo: rj.employer?.logoUrl || null,
       isUrgent: deriveIsUrgent(rj.closingDate),
       salaryFormatted: formatSalary(rj.salaryMin, rj.salaryMax, rj.currency),
