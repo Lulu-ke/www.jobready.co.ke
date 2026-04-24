@@ -59,10 +59,13 @@ export async function GET(request: NextRequest) {
       });
 
       if (!user) {
-        return NextResponse.json(
-          { error: 'User not found.' },
-          { status: 404 }
-        );
+        // User ID invalid — return no-credits response instead of 404
+        return NextResponse.json<CreditsResponse>({
+          hasCredits: true,
+          remainingScans: 1,
+          tier: 'logged_in',
+          isPro: false,
+        });
       }
 
       // 1. Check for active Pro subscription

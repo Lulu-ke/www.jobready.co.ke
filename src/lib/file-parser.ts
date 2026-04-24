@@ -1,9 +1,3 @@
-import * as pdfParse from 'pdf-parse'
-import mammoth from 'mammoth'
-
-// pdf-parse ESM workaround
-const pdf = (pdfParse as any).default || pdfParse
-
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface ParseResult {
@@ -35,11 +29,8 @@ function isDocxType(mimeType: string, ext: string): boolean {
 /**
  * Parse a CV file (PDF or DOCX) and extract its raw text content.
  *
- * Supports:
- *   - PDF  (application/pdf / .pdf)
- *   - DOCX (application/vnd.openxmlformats-officedocument.wordprocessingml.document / .docx)
- *
- * Returns `{ text, error? }`. If parsing succeeds, `error` is undefined.
+ * Uses dynamic imports so mammoth/pdf-parse only load when actually needed
+ * (avoids crashes in serverless / edge environments).
  */
 export async function parseCVFile(
   file: Buffer | Uint8Array,
@@ -52,8 +43,10 @@ export async function parseCVFile(
   // ── PDF ──────────────────────────────────────────────────────────────────
   if (isPdfType(mimeType, ext)) {
     try {
+      const pdfParse = await import('pdf-parse')
+      const pdf = (pdfParse as any).default || pdfParse
       const result = await pdf(buffer)
-      const text = result.text.trim()
+      const text = (result.text || '').trim()
 
       if (text.length < 50) {
         return {
@@ -76,8 +69,9 @@ export async function parseCVFile(
   // ── DOCX ─────────────────────────────────────────────────────────────────
   if (isDocxType(mimeType, ext)) {
     try {
+      const mammoth = await import('mammoth')
       const result = await mammoth.extractRawText({ buffer })
-      const text = result.value.trim()
+      const text = (result.value || '').trim()
 
       if (!text) {
         return {
