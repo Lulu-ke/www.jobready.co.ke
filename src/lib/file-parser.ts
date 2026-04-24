@@ -1,7 +1,4 @@
 // ─── DOMMatrix polyfill for Node.js / Vercel serverless ───────────────────────
-// pdfjs-dist v5 uses DOMMatrix for page transforms. In browser environments it's
-// available globally, but in Node.js serverless (Vercel) it's missing.
-// We provide a minimal 2D-only polyfill that covers pdfjs's text-extraction needs.
 
 const _polyfillDOMMatrix = () => {
   if (typeof globalThis.DOMMatrix === 'undefined') {
@@ -86,26 +83,35 @@ function isDocxType(mimeType: string, ext: string): boolean {
 }
 
 // ─── PDF text extraction using pdfjs-dist directly ───────────────────────────
-// We use pdfjs-dist/legacy/build/pdf.mjs instead of pdf-parse v2 because
-// pdf-parse v2 depends on @napi-rs/canvas (native module) which fails in
-// Vercel serverless.
+// pdfjs-dist v5 uses DOMMatrix (polyfilled above) and a "fake worker" in Node.js.
+// The fake worker does `await import(workerSrc)` to load the WorkerMessageHandler.
 //
-// pdfjs-dist v5 in Node.js auto-disables the web worker and uses a "fake worker"
-// that does `await import(workerSrc)` to load the worker code. With
-// serverExternalPackages in next.config.ts, pdfjs-dist is kept external and
-// loaded from node_modules at runtime. The workerSrc defaults to "./pdf.worker.mjs"
-// which resolves relative to the pdfjs-dist build directory.
+// When loaded via Turbopack external packages, the module lives in .next/server/chunks/
+// and import("./pdf.worker.mjs") resolves relative to THAT directory, not the original
+// source. So we MUST set workerSrc to an absolute path pointing to the actual worker file.
 //
-// IMPORTANT: public/pdf.worker.mjs must exist and be a copy of the pdfjs worker
-// for the standalone build to include it. The standalone output traces pdfjs-dist
-// as an external package and copies its node_modules, but only the non-minified
-// pdf.worker.mjs is needed (the default workerSrc).
+// The postbuild script (scripts/copy-pdfjs-worker.js) copies the worker to:
+//   .next/standalone/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs
+// Which in Vercel is at: /var/task/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
 
-  // Don't override workerSrc — let pdfjs use its default "./pdf.worker.mjs"
-  // which resolves correctly when serverExternalPackages is set.
+  // Set workerSrc to absolute path of the worker file.
+  // The worker file must exist at this path (ensured by postbuild script).
+  if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+    const nodePath = await import('path')
+    // In Vercel: /var/task/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs
+    // In local dev: <project>/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs
+    pdfjs.GlobalWorkerOptions.workerSrc = nodePath.join(
+      process.cwd(),
+      'node_modules',
+      'pdfjs-dist',
+      'legacy',
+      'build',
+      'pdf.worker.mjs',
+    )
+  }
 
   const data = new Uint8Array(buffer)
   const doc = await pdfjs.getDocument({
@@ -125,7 +131,6 @@ async function extractPdfText(buffer: Buffer): Promise<string> {
       if (!('str' in item) || !item.str) continue
       const y = item.transform?.[5] ?? 0
 
-      // New line when Y position changes significantly (new text line)
       if (lastY !== null && Math.abs(y - lastY) > 2) {
         lines.push('\n')
       }
@@ -141,12 +146,6 @@ async function extractPdfText(buffer: Buffer): Promise<string> {
 
 // ─── parseCVFile ─────────────────────────────────────────────────────────────
 
-/**
- * Parse a CV file (PDF or DOCX) and extract its raw text content.
- *
- * Uses dynamic imports so mammoth/pdfjs-dist only load when actually needed
- * (avoids crashes in serverless / edge environments).
- */
 export async function parseCVFile(
   file: Buffer | Uint8Array,
   fileName: string,
@@ -155,65 +154,36 @@ export async function parseCVFile(
   const ext = getFileExtension(fileName)
   const buffer = Buffer.isBuffer(file) ? file : Buffer.from(file)
 
-  // ── PDF ──────────────────────────────────────────────────────────────────
   if (isPdfType(mimeType, ext)) {
     try {
       const text = await extractPdfText(buffer).then(t => t.trim())
-
       if (text.length < 50) {
-        return {
-          text: '',
-          error:
-            'This PDF appears to be image-based and cannot be parsed. Please paste your CV text directly or use a text-based PDF.',
-        }
+        return { text: '', error: 'This PDF appears to be image-based and cannot be parsed. Please paste your CV text directly or use a text-based PDF.' }
       }
-
       return { text }
     } catch (error: any) {
       const errMsg = error?.message || String(error)
       console.error('[file-parser] PDF parse error:', errMsg, error?.stack?.substring(0, 500))
-      return {
-        text: '',
-        error: `Failed to parse PDF: ${errMsg}`,
-      }
+      return { text: '', error: `Failed to parse PDF: ${errMsg}` }
     }
   }
 
-  // ── DOCX ─────────────────────────────────────────────────────────────────
   if (isDocxType(mimeType, ext)) {
     try {
       const mammoth = await import('mammoth')
       const result = await mammoth.extractRawText({ buffer })
       const text = (result.value || '').trim()
-
-      if (!text) {
-        return {
-          text: '',
-          error: 'The DOCX file appears to be empty. Please upload a file that contains text.',
-        }
-      }
-
+      if (!text) return { text: '', error: 'The DOCX file appears to be empty.' }
       return { text }
     } catch (error) {
       console.error('[file-parser] DOCX parse error:', error)
-      return {
-        text: '',
-        error: 'Failed to parse DOCX. The file may be corrupted or in an unsupported format.',
-      }
+      return { text: '', error: 'Failed to parse DOCX.' }
     }
   }
 
-  // ── Legacy .DOC ─────────────────────────────────────────────────────────
   if (ext === '.doc') {
-    return {
-      text: '',
-      error: 'Old .DOC format not supported. Please save as .DOCX or PDF.',
-    }
+    return { text: '', error: 'Old .DOC format not supported. Please save as .DOCX or PDF.' }
   }
 
-  // ── Unsupported ──────────────────────────────────────────────────────────
-  return {
-    text: '',
-    error: 'Unsupported file format. Please upload a PDF or DOCX file.',
-  }
+  return { text: '', error: 'Unsupported file format. Please upload a PDF or DOCX file.' }
 }
