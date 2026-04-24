@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider     = "sqlite"
+  provider     = "mysql"
   url          = env("DATABASE_URL")
 }
 
@@ -14,7 +14,7 @@ model Employer {
   email         String        @unique
   phone         String?
   logoUrl       String?
-  description   String?       
+  description   String?       @db.Text
   orgType       OrgType       @default(PRIVATE)
   createdAt     DateTime      @default(now())
   jobs          Job[]
@@ -30,7 +30,7 @@ model Category {
   icon        String
   color       String
   jobCount    Int      @default(0)
-  description String?  
+  description String?  @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   jobs        Job[]
@@ -40,9 +40,9 @@ model Job {
   id              String           @id @default(cuid())
   title           String
   slug            String           @unique
-  description     String           
-  requirements    String           
-  howToApply      String           
+  description     String           @db.Text
+  requirements    String           @db.Text
+  howToApply      String           @db.Text
   location        String
   county          String
   type            String           @default("Full-Time")
@@ -73,11 +73,11 @@ model Opportunity {
   title       String
   slug        String          @unique
   type        OpportunityType
-  description String?         
+  description String?         @db.Text
   providerId  String?
   amount      Float?
   deadline    DateTime?
-  link        String?         
+  link        String?
   isActive    Boolean         @default(true)
   views       Int             @default(0)
   createdAt   DateTime        @default(now())
@@ -90,8 +90,8 @@ model Article {
   id         String   @id @default(cuid())
   title      String
   slug       String   @unique
-  excerpt    String   
-  content    String   
+  excerpt    String   @db.Text
+  content    String   @db.LongText
   category   String   @default("Career Advice")
   author     String?
   coverImage String?
@@ -106,7 +106,7 @@ model Subscriber {
   id          String   @id @default(cuid())
   email       String   @unique
   name        String?
-  preferences String   @default("[]") 
+  preferences String   @default("[]") @db.Text
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -179,8 +179,8 @@ model JobApplication {
   applicantName  String
   applicantEmail String
   applicantPhone String?
-  cvUrl          String?           
-  coverLetter    String?           
+  cvUrl          String?
+  coverLetter    String?           @db.Text
   status         ApplicationStatus @default(pending)
   appliedAt      DateTime          @default(now())
   job            Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
@@ -220,7 +220,7 @@ model CareerService {
   id           String    @id @default(cuid())
   name         String
   slug         String    @unique
-  description  String    
+  description  String    @db.Text
   price        Float
   deliveryDays Int       @default(3)
   isActive     Boolean   @default(true)
@@ -290,10 +290,10 @@ model Profile {
   id          String   @id @default(cuid())
   userId      String   @unique
   title       String?
-  summary     String?  
-  skills      String?   // JSON array of skill strings
-  experience  Json?    // Array of { company, role, duration, description }
-  education   Json?    // Array of { institution, degree, field, year }
+  summary     String?  @db.Text
+  skills      String?  @db.Text
+  experience  Json?
+  education   Json?
   cvUrl       String?
   cvFileName  String?
   location    String?
@@ -323,7 +323,7 @@ model Notification {
   userId    String
   type      NotificationType
   title     String
-  message   String                
+  message   String                @db.Text
   link      String?
   isRead    Boolean               @default(false)
   createdAt DateTime              @default(now())
@@ -346,8 +346,8 @@ model JobUpdate {
   id          String     @id @default(cuid())
   title       String
   slug        String     @unique
-  content     String     
-  sourceUrl   String?    
+  content     String     @db.LongText
+  sourceUrl   String?
   sourceName  String     @default("Unknown")
   type        UpdateType @default(GENERAL)
   isPublished Boolean    @default(true)
@@ -367,8 +367,8 @@ model CVScan {
   id              String    @id @default(cuid())
   userId          String?
   email           String?
-  cvText          String    
-  jobDescription  String?   
+  cvText          String    @db.LongText
+  jobDescription  String?   @db.Text
   atsScore        Int       @default(0)
   keywordMatch    Int       @default(0)
   formatScore     Int       @default(0)
@@ -389,7 +389,7 @@ model CareerDocument {
   userId        String
   type          CareerDocumentType @default(CV)
   title         String
-  content       String          
+  content       String          @db.LongText
   version       Int             @default(1)
   isPublic      Boolean         @default(false)
   createdAt     DateTime        @default(now())
