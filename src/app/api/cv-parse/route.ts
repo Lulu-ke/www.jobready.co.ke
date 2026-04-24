@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let formData;
+    let formData: FormData;
     try {
       formData = await request.formData();
     } catch {
