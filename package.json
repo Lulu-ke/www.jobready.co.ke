@@ -13,7 +13,8 @@
     "db:migrate": "node scripts/set-db-url.js && prisma migrate dev",
     "db:reset": "node scripts/set-db-url.js && prisma migrate reset",
     "db:seed": "bun prisma/seed.ts",
-    "db:setup": "node scripts/set-db-url.js"
+    "db:setup": "node scripts/set-db-url.js",
+    "postbuild": "node scripts/copy-pdfjs-worker.js"
   },
   "prisma": {
     "seed": "bun prisma/seed.ts"

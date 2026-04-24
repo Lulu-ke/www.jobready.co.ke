@@ -91,55 +91,21 @@ function isDocxType(mimeType: string, ext: string): boolean {
 // Vercel serverless.
 //
 // pdfjs-dist v5 in Node.js auto-disables the web worker and uses a "fake worker"
-// that does `await import(workerSrc)` to load the worker code. The workerSrc
-// defaults to "./pdf.worker.mjs" (relative to the pdfjs build dir), but in
-// Vercel standalone mode this file may not exist.
+// that does `await import(workerSrc)` to load the worker code. With
+// serverExternalPackages in next.config.ts, pdfjs-dist is kept external and
+// loaded from node_modules at runtime. The workerSrc defaults to "./pdf.worker.mjs"
+// which resolves relative to the pdfjs-dist build directory.
 //
-// We resolve workerSrc to the file in public/ which IS included in standalone.
-
-async function ensurePdfjsWorker(pdfjs: any): Promise<void> {
-  if (pdfjs.GlobalWorkerOptions.workerSrc) return
-
-  const workerCandidates = [
-    // 1. public/ directory (included in standalone output)
-    async () => {
-      const nodePath = await import('path')
-      const nodeFs = await import('fs')
-      const candidate = nodePath.join(process.cwd(), 'public', 'pdf.worker.min.mjs')
-      nodeFs.accessSync(candidate)
-      return candidate
-    },
-    // 2. node_modules (works in local dev)
-    async () => {
-      const nodePath = await import('path')
-      const nodeFs = await import('fs')
-      const candidate = nodePath.join(
-        process.cwd(), 'node_modules', 'pdfjs-dist', 'legacy', 'build', 'pdf.worker.min.mjs',
-      )
-      nodeFs.accessSync(candidate)
-      return candidate
-    },
-    // 3. require.resolve fallback
-    async () => {
-      const { createRequire } = await import('module')
-      const req = createRequire(import.meta.url)
-      return req.resolve('pdfjs-dist/legacy/build/pdf.worker.min.mjs')
-    },
-  ]
-
-  for (const strategy of workerCandidates) {
-    try {
-      pdfjs.GlobalWorkerOptions.workerSrc = await strategy()
-      return
-    } catch {
-      // Try next
-    }
-  }
-}
+// IMPORTANT: public/pdf.worker.mjs must exist and be a copy of the pdfjs worker
+// for the standalone build to include it. The standalone output traces pdfjs-dist
+// as an external package and copies its node_modules, but only the non-minified
+// pdf.worker.mjs is needed (the default workerSrc).
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
-  await ensurePdfjsWorker(pdfjs)
+
+  // Don't override workerSrc — let pdfjs use its default "./pdf.worker.mjs"
+  // which resolves correctly when serverExternalPackages is set.
 
   const data = new Uint8Array(buffer)
   const doc = await pdfjs.getDocument({
