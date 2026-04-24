@@ -20,6 +20,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     });
     if (!opportunity) return NextResponse.json({ error: 'Opportunity not found' }, { status: 404 });
+
+    // Increment view count (fire-and-forget)
+    db.opportunity.update({
+      where: { id: opportunity.id },
+      data: { views: { increment: 1 } },
+    }).catch(() => {});
+
     return NextResponse.json({ opportunity });
   } catch (error) {
     console.error('Error fetching opportunity:', error);

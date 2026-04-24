@@ -61,6 +61,12 @@ export async function GET(
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
+    // Increment view count (fire-and-forget)
+    db.job.update({
+      where: { id: job.id },
+      data: { views: { increment: 1 } },
+    }).catch(() => {});
+
     const formattedJob = {
       ...job,
       company: job.employer?.companyName || null,
