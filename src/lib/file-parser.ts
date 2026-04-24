@@ -24,6 +24,64 @@ function isDocxType(mimeType: string, ext: string): boolean {
   )
 }
 
+// ─── DOMMatrix polyfill for Node.js / Vercel serverless ───────────────────────
+// pdfjs-dist v5 uses DOMMatrix for page transforms. In browser environments it's
+// available globally, but in Node.js serverless (Vercel) it's missing.
+// We provide a minimal 2D-only polyfill that covers pdfjs's text-extraction needs.
+
+if (typeof globalThis.DOMMatrix === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+  (globalThis as any).DOMMatrix = class DOMMatrixImpl {
+    a = 1; b = 0; c = 0; d = 1; e = 0; f = 0
+    m11 = 1; m12 = 0; m21 = 0; m22 = 1; m41 = 0; m42 = 0
+    is2D = true
+    isIdentity = true
+
+    constructor(init?: string | number[]) {
+      if (typeof init === 'string') {
+        const nums = init.match(/[-+]?[0-9]*\.?[0-9]+/g)?.map(Number) || []
+        if (nums.length >= 6) {
+          this.a = nums[0]; this.b = nums[1]; this.c = nums[2]
+          this.d = nums[3]; this.e = nums[4]; this.f = nums[5]
+        }
+      } else if (Array.isArray(init)) {
+        this.a = init[0] ?? 1; this.b = init[1] ?? 0; this.c = init[2] ?? 0
+        this.d = init[3] ?? 1; this.e = init[4] ?? 0; this.f = init[5] ?? 0
+      }
+      this.m11 = this.a; this.m12 = this.b
+      this.m21 = this.c; this.m22 = this.d
+      this.m41 = this.e; this.m42 = this.f
+      this.isIdentity = this.a === 1 && this.b === 0 && this.c === 0 &&
+        this.d === 1 && this.e === 0 && this.f === 0
+    }
+
+    multiply(other: DOMMatrixImpl): DOMMatrixImpl {
+      return new DOMMatrixImpl([
+        this.a * other.a + this.c * other.b,
+        this.b * other.a + this.d * other.b,
+        this.a * other.c + this.c * other.d,
+        this.b * other.c + this.d * other.d,
+        this.a * other.e + this.c * other.f + this.e,
+        this.b * other.e + this.d * other.f + this.f,
+      ])
+    }
+
+    inverse(): DOMMatrixImpl {
+      const det = this.a * this.d - this.b * this.c
+      if (det === 0) return new DOMMatrixImpl()
+      return new DOMMatrixImpl([
+        this.d / det, -this.b / det, -this.c / det, this.a / det,
+        (this.c * this.f - this.d * this.e) / det,
+        (this.b * this.e - this.a * this.f) / det,
+      ])
+    }
+
+    toString(): string {
+      return `matrix(${this.a}, ${this.b}, ${this.c}, ${this.d}, ${this.e}, ${this.f})`
+    }
+  }
+}
+
 // ─── PDF text extraction using pdfjs-dist directly ───────────────────────────
 // We use pdfjs-dist/legacy/build/pdf.mjs instead of pdf-parse v2 because
 // pdf-parse v2 depends on @napi-rs/canvas (native module) which fails in
