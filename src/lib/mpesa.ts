@@ -223,7 +223,7 @@ export async function initiateSTKPush(
   const password = generatePassword(businessShortCode, passkey, timestamp);
   const formattedPhone = formatPhoneNumber(phone);
 
-  const callbackUrl = `${process.env.NEXTAUTH_URL || "https://www.jobready.co.ke"}/api/mpesa/callback`;
+  const callbackUrl = process.env.MPESA_CALLBACK_URL || "https://api.jobready.co.ke/mpesa-callback";
 
   const body: Record<string, unknown> = {
     BusinessShortCode: businessShortCode,
