@@ -87,3 +87,43 @@ Stage Summary:
 - All pdfjs code is lazy-loaded (dynamic imports only)
 - Both PDF and DOCX uploads verified working on live Vercel deployment
 - Solution is fully portable for future hosting migration
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Improve CV Checker UX and add CV import to CV Builder
+
+Work Log:
+- Reviewed CV Checker (/cv-checker) page — identified confusing tabbed layout
+  - Upload tab: only file upload, no job description field visible
+  - Paste tab: had both CV text and job description
+  - Users couldn't see job description when using file upload
+- Reviewed CV Builder (/dashboard/cv-builder) — no document upload functionality
+  - Users must manually type all CV fields with no import option
+- Redesigned CV Checker input section:
+  - Replaced top-level Tabs with two-column grid layout
+  - Left column: "Your CV" with mini toggle (Upload/Paste) within the column
+  - Right column: "Job Description (optional)" — always visible regardless of CV input mode
+  - Added help text under job description explaining keyword matching benefit
+  - Removed Tabs component imports (no longer needed)
+- Added CV import to CV Builder:
+  - Added "Import CV" button at top-right of page header
+  - Supports PDF and DOCX file upload via hidden file input
+  - Shows loading state during import
+  - Uses two-step process: parse file via /api/cv-parse, then extract structured data via /api/ai/cv-extract
+  - Populates all form fields: name, email, phone, location, linkedin, summary, experience, education, skills, certifications, languages
+  - Skills are merged (deduplicated) with existing skills
+  - Success/error toast notifications for user feedback
+- Created new API endpoint /api/ai/cv-extract:
+  - POST endpoint taking cvText string, returning structured JSON
+  - Auth-protected (requires NextAuth session)
+  - Uses AI with temperature 0.1 for accuracy
+  - Handles AI markdown code block wrapping in response
+  - Validates array types in response before returning
+- Build verified: zero errors, all changes committed and pushed
+
+Stage Summary:
+- CV Checker now has clear two-column layout with always-visible job description
+- CV Builder now supports importing existing CVs from PDF/DOCX files
+- New /api/ai/cv-extract endpoint for structured CV data extraction
+- Commit: deddd4a pushed to GitHub
