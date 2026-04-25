@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { Menu, X, Search, MessageCircle, Bookmark, Briefcase, Sparkles } from 'lucide-react';
+import { Menu, X, MessageCircle, Bookmark, Briefcase } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -26,7 +26,7 @@ export default function Header() {
     { label: 'Companies', href: '/companies' },
     { label: 'Career Advice', href: '/career-advice' },
     { label: 'CV Checker', href: '/cv-checker' },
-    { label: 'CV Services', href: '/cv-services' },
+    { label: 'CV Builder', href: '/cv-builder' },
   ];
 
   const topBarLinks = [
@@ -75,25 +75,17 @@ export default function Header() {
           {/* Logo */}
           <div className="flex items-center gap-2.5">
             <Link href="/" className="flex-shrink-0">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg bg-[#5B21B6]">
-                JK
-              </div>
-            </Link>
-            <Link href="/" className="hidden sm:block">
-              <div className="flex flex-col">
-                <span className="text-base font-bold leading-tight" style={{ color: '#1E293B' }}>JobReady</span>
-                <span className="text-[10px] text-gray-400 leading-none tracking-wider uppercase">Kenya</span>
-              </div>
+              <img src="/logo.svg" alt="JobReady Kenya" className="h-10 w-auto" />
             </Link>
           </div>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden md:flex items-center space-x-5">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="transition text-[#1E293B] hover:text-[#0D9488]"
+                className="text-[13px] font-medium transition text-[#1E293B] hover:text-[#0D9488]"
               >
                 {link.label}
               </Link>
@@ -102,17 +94,6 @@ export default function Header() {
 
           {/* Desktop Right Side */}
           <div className="hidden md:flex items-center space-x-3">
-            {/* Search Input */}
-            <form action="/jobs" method="GET" className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                name="search"
-                placeholder="Search jobs..."
-                className="w-48 lg:w-56 pl-9 pr-3 py-1.5 rounded-full border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-700 placeholder-gray-400"
-                type="text"
-              />
-            </form>
-
             {/* WhatsApp Button */}
             <a
               href="https://wa.me/"
@@ -196,22 +177,12 @@ export default function Header() {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-gray-100 shadow-lg">
             <div className="px-4 py-4 space-y-1">
-              {/* Search */}
-              <div className="relative mb-3">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  placeholder="Search jobs..."
-                  className="w-full pl-9 pr-3 py-2 rounded-full border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-gray-700 placeholder-gray-400"
-                  type="text"
-                />
-              </div>
-
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-4 py-3 text-sm font-medium text-[#1E293B] hover:text-[#0D9488] hover:bg-gray-50 rounded-lg transition"
+                  className="block px-4 py-3 text-[13px] font-medium text-[#1E293B] hover:text-[#0D9488] hover:bg-gray-50 rounded-lg transition"
                 >
                   {link.label}
                 </Link>
