@@ -143,7 +143,7 @@ export default function CVBuilderPage() {
       const d = extractCVFields(parseData.text);
 
       // Step 3: Populate form fields
-      if (d.name) setName(d.name);
+      if (d.name) setName(d.professionalTitle ? `${d.name} — ${d.professionalTitle}` : d.name);
       if (d.email) setEmail(d.email);
       if (d.phone) setPhone(d.phone);
       if (d.location) setLocation(d.location);
