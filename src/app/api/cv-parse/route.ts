@@ -5,14 +5,15 @@ const ALLOWED_EXTENSIONS = ['.pdf', '.docx'];
 const ALLOWED_MIME_TYPES = [
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/octet-stream', // Some browsers / OS send PDFs/DOCX with this generic MIME
 ];
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 /**
  * POST /api/cv-parse
  *
  * Accepts multipart/form-data with a `file` field.
- * Validates type (pdf/docx) and size (≤5 MB), then extracts text.
+ * Validates type (pdf/docx) and size (≤10 MB), then extracts text.
  *
  * Returns:
  *   { success: true, text: string, fileName: string }
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
     if (file.size > MAX_FILE_SIZE) {
       const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
       return NextResponse.json(
-        { success: false, error: `File is too large (${sizeMB} MB). Maximum allowed size is 5 MB.` },
+        { success: false, error: `File is too large (${sizeMB} MB). Maximum allowed size is 10 MB.` },
         { status: 400 },
       );
     }
@@ -68,10 +69,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ── Validate MIME type (best-effort, browsers sometimes send generic types) ──
+    // ── Validate MIME type (tolerant: accept application/* for generic browser types) ──
     if (file.type && !ALLOWED_MIME_TYPES.includes(file.type) && !file.type.startsWith('application/')) {
+      console.warn('[CV Parse] Rejected MIME type:', file.type, 'for file:', fileName);
       return NextResponse.json(
-        { success: false, error: 'Invalid file type. Please upload a PDF or DOCX file.' },
+        { success: false, error: `Invalid file type (${file.type}). Please upload a PDF or DOCX file.` },
         { status: 400 },
       );
     }
@@ -96,11 +98,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!result.text || result.text.trim().length < 50) {
+    if (!result.text || result.text.trim().length < 20) {
+      console.warn('[CV Parse] Insufficient text extracted:', result.text?.length ?? 0, 'chars from:', fileName);
       return NextResponse.json(
         {
           success: false,
-          error: 'The file contains too little text to analyze (less than 50 characters). It may be image-based or empty.',
+          error: 'The file contains too little text to analyze. It may be image-based, scanned, or empty. Try a text-based PDF/DOCX or paste your CV text directly.',
         },
         { status: 400 },
       );
