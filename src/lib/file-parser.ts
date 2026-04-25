@@ -1,4 +1,5 @@
 // ─── DOMMatrix polyfill for Node.js / Vercel serverless ───────────────────────
+// pdfjs-dist requires DOMMatrix globally in Node.js environments.
 
 const _polyfillDOMMatrix = () => {
   if (typeof globalThis.DOMMatrix === 'undefined') {
@@ -56,21 +57,6 @@ const _polyfillDOMMatrix = () => {
 }
 _polyfillDOMMatrix()
 
-// ─── Set pdfjs workerSrc ASAP (before any pdfjs import) ───────────────────
-// This must run before pdfjs-dist/legacy/build/pdf.mjs is imported,
-// because the fake worker module checks GlobalWorkerOptions.workerSrc at load time.
-import path from 'path'
-import { GlobalWorkerOptions } from 'pdfjs-dist/legacy/build/pdf.mjs'
-
-GlobalWorkerOptions.workerSrc = path.join(
-  process.cwd(),
-  'node_modules',
-  'pdfjs-dist',
-  'legacy',
-  'build',
-  'pdf.worker.mjs',
-)
-
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface ParseResult {
@@ -97,13 +83,18 @@ function isDocxType(mimeType: string, ext: string): boolean {
   )
 }
 
-// ─── PDF text extraction using pdfjs-dist directly ───────────────────────────
-// pdfjs-dist v5 in Node.js uses a fake worker that does dynamic import('./pdf.worker.mjs').
-// When Turbopack bundles this, the relative import resolves to the wrong path on Vercel.
-// Fix: Keep pdfjs-dist external (serverExternalPackages) so the module stays unmodified.
-// Set workerSrc to the standalone output path where Vercel traces the worker file.
+// ─── PDF text extraction using pdfjs-dist ────────────────────────────────────
+//
+// IMPORTANT: All pdfjs imports are dynamic (await import(...)) to prevent
+// pdfjs code from executing during Next.js build-time "page data collection".
+// pdfjs-dist v5 is kept in serverExternalPackages so Turbopack doesn't bundle it.
+// In Node.js, pdfjs auto-detects the environment and uses a "fake worker"
+// that runs inline — no actual Web Worker is spawned.
+// The fake worker resolves ./pdf.worker.mjs relative to the pdf.mjs module
+// location, which works correctly when the package is external (not bundled).
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
+  // Dynamic import: only runs at request time, never during build
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
 
   const data = new Uint8Array(buffer)
@@ -156,7 +147,7 @@ export async function parseCVFile(
       return { text }
     } catch (error: any) {
       const errMsg = error?.message || String(error)
-      console.error('[file-parser] PDF parse error:', errMsg, error?.stack?.substring(0, 500))
+      console.error('[file-parser] PDF parse error:', errMsg, error?.stack)
       return { text: '', error: `Failed to parse PDF: ${errMsg}` }
     }
   }
@@ -168,8 +159,8 @@ export async function parseCVFile(
       const text = (result.value || '').trim()
       if (!text) return { text: '', error: 'The DOCX file appears to be empty.' }
       return { text }
-    } catch (error) {
-      console.error('[file-parser] DOCX parse error:', error)
+    } catch (error: any) {
+      console.error('[file-parser] DOCX parse error:', error?.message || error)
       return { text: '', error: 'Failed to parse DOCX.' }
     }
   }
