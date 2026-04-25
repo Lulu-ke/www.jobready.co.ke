@@ -88,42 +88,64 @@ function isDocxType(mimeType: string, ext: string): boolean {
 // IMPORTANT: All pdfjs imports are dynamic (await import(...)) to prevent
 // pdfjs code from executing during Next.js build-time "page data collection".
 //
-// pdfjs-dist is listed in serverExternalPackages so Turbopack does NOT bundle it.
-// At runtime the dynamic import resolves to the real node_modules path, and
-// pdfjs-dist's built-in Node.js "fake worker" correctly finds pdf.worker.mjs
-// relative to pdf.mjs in the installed package directory.
+// Vercel serverless cannot reliably load pdf.worker.mjs at runtime.
+// We disable the worker entirely so PDF.js parses inline without importing
+// the worker file. No need for serverExternalPackages — pdfjs is bundled by
+// Turbopack and parsed in the main thread.
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
-  // Dynamic import: only runs at request time, never during build
+  // Dynamic import: only runs at request time
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
 
+  // IMPORTANT:
+  // Vercel serverless cannot reliably load pdf.worker.mjs.
+  // Disable the worker completely for server-side parsing.
+  pdfjs.GlobalWorkerOptions.workerSrc = ''
+
   const data = new Uint8Array(buffer)
+
   const doc = await pdfjs.getDocument({
     data,
+
+    // Prevent PDF.js from trying to create/import a worker on Vercel
+    disableWorker: true,
+
+    // Safer serverless settings
+    useWorkerFetch: false,
+    isEvalSupported: false,
+
+    // Avoid relying on browser font behavior
     useSystemFonts: true,
-    disableFontFace: false,
+    disableFontFace: true,
   }).promise
 
   const pageTexts: string[] = []
+
   for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i)
     const textContent = await page.getTextContent()
+
     const lines: string[] = []
     let lastY: number | null = null
 
     for (const item of textContent.items) {
       if (!('str' in item) || !item.str) continue
+
       const y = item.transform?.[5] ?? 0
 
       if (lastY !== null && Math.abs(y - lastY) > 2) {
         lines.push('\n')
       }
+
       lastY = y
       lines.push(item.str)
     }
-    pageTexts.push(lines.join(''))
+
+    pageTexts.push(lines.join(' '))
     page.cleanup()
   }
+
+  await doc.destroy()
 
   return pageTexts.join('\n\n')
 }

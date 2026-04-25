@@ -7,12 +7,6 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
 
-  // Keep pdfjs-dist external so Turbopack doesn't bundle it.
-  // When external, the dynamic import resolves to the real node_modules path,
-  // and pdfjs-dist's built-in Node.js "fake worker" correctly finds
-  // pdf.worker.mjs relative to pdf.mjs in the installed package.
-  serverExternalPackages: ['pdfjs-dist'],
-
   // Security headers for all responses
   async headers() {
     return [
