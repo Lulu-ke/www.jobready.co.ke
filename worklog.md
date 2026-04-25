@@ -56,6 +56,34 @@ Work Log:
 
 Stage Summary:
 - PDF upload parsing confirmed working on Vercel serverless
+- DOCX upload parsing confirmed working on Vercel serverless
 - CV Builder requires auth (correct behavior)
 - Shared links load correctly
 - Screenshots saved to /home/z/my-project/download/
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Fix pdfjs-dist worker resolution for cross-platform compatibility
+
+Work Log:
+- Discovered that commits after previous session (5df0f89, 8e2d51b, 83988db) reintroduced broken process.cwd() approach and serverExternalPackages
+- Vercel API test returned 500 error on /api/cv-parse endpoint
+- Attempted fix with createRequire(import.meta.url) for workerSrc — failed at build time ("Invalid workerSrc type" during page data collection)
+- Attempted fix with outputFileTracingIncludes — Vercel still couldn't find pdf.worker.mjs at /var/task/node_modules/
+- Root cause: serverExternalPackages keeps pdfjs-dist in node_modules but Vercel's standalone output doesn't include the worker subfile
+- Final solution: remove serverExternalPackages entirely, let Turbopack bundle pdfjs-dist
+  - All pdfjs imports are dynamic (await import()) so no build-time evaluation occurs
+  - Turbopack bundles the worker code inline, resolving the fake worker's dynamic import at build time
+  - No platform-specific config needed — works on Vercel, shared hosting, VPS
+- Also removed copy-pdfjs-worker.js from build script (no longer needed)
+- Build verified locally: zero errors, PDF text extraction works correctly
+- Tested on Vercel: both PDF and DOCX uploads return success=true with correct text
+- 3 commits pushed: c362c5d (lazy pdfjs imports), eac8eec (add tracing), f30af47 (remove serverExternalPackages — final fix)
+
+Stage Summary:
+- pdfjs-dist PDF parsing works on Vercel, shared hosting, and VPS
+- No serverExternalPackages, no outputFileTracingIncludes, no CDN URLs needed
+- All pdfjs code is lazy-loaded (dynamic imports only)
+- Both PDF and DOCX uploads verified working on live Vercel deployment
+- Solution is fully portable for future hosting migration
