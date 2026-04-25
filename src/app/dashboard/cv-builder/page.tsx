@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import {
   Save,
@@ -21,6 +21,7 @@ import {
   Award,
   Globe,
   Eye,
+  Upload,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -104,11 +105,102 @@ export default function CVBuilderPage() {
   const [languages, setLanguages] = useState<Language[]>([]);
   const [template, setTemplate] = useState<Template>('modern');
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     personal: true, summary: true, experience: true, education: true,
     skills: true, certifications: true, languages: true,
   });
+
+  // Import CV from file
+  const handleImportCV = useCallback(async (file: File) => {
+    const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+    if (!['.pdf', '.docx'].includes(ext)) {
+      toast.error('Only PDF and DOCX files are supported.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File is too large. Maximum 5 MB.');
+      return;
+    }
+
+    setImporting(true);
+    try {
+      // Step 1: Parse the file to text
+      const formData = new FormData();
+      formData.append('file', file);
+      const parseRes = await fetch('/api/cv-parse', { method: 'POST', body: formData });
+      const parseData = await parseRes.json();
+      if (!parseData.success) {
+        toast.error(parseData.error || 'Failed to parse file.');
+        setImporting(false);
+        return;
+      }
+
+      // Step 2: Use AI to extract structured data
+      const extractRes = await fetch('/api/ai/cv-extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cvText: parseData.text }),
+      });
+      const extractData = await extractRes.json();
+
+      if (!extractData.success) {
+        toast.error(extractData.error || 'AI could not extract CV data. Try pasting manually.');
+        setImporting(false);
+        return;
+      }
+
+      const d = extractData.data;
+      if (!d) { toast.error('No data extracted.'); setImporting(false); return; }
+
+      // Step 3: Populate form fields
+      if (d.name) setName(d.name);
+      if (d.email) setEmail(d.email);
+      if (d.phone) setPhone(d.phone);
+      if (d.location) setLocation(d.location);
+      if (d.linkedin) setLinkedin(d.linkedin);
+      if (d.summary) setSummary(d.summary);
+
+      if (Array.isArray(d.experience) && d.experience.length > 0) {
+        setExperience(d.experience.map((e: any) => ({
+          id: uid(), company: e.company || '', role: e.role || e.position || '',
+          startDate: e.startDate || '', endDate: e.endDate || '',
+          current: e.current || false, description: e.description || '',
+        })));
+      }
+      if (Array.isArray(d.education) && d.education.length > 0) {
+        setEducation(d.education.map((e: any) => ({
+          id: uid(), institution: e.institution || e.school || '',
+          degree: e.degree || '', field: e.field || e.fieldOfStudy || '',
+          startYear: e.startYear || '', endYear: e.endYear || '',
+        })));
+      }
+      if (Array.isArray(d.skills)) {
+        setSkills((prev) => {
+          const merged = [...prev, ...d.skills.filter((s: string) => !prev.includes(s))];
+          return [...new Set(merged)];
+        });
+      }
+      if (Array.isArray(d.certifications)) {
+        setCertifications(d.certifications.map((c: any) => ({
+          id: uid(), name: c.name || '', issuer: c.issuer || '', year: c.year || '',
+        })));
+      }
+      if (Array.isArray(d.languages)) {
+        setLanguages(d.languages.map((l: any) => ({
+          id: uid(), name: l.name || '', proficiency: l.proficiency || 'Intermediate',
+        })));
+      }
+
+      toast.success(`CV imported from "${file.name}" successfully! Review and edit the extracted data.`);
+    } catch {
+      toast.error('Import failed. Please try again or paste your CV manually.');
+    } finally {
+      setImporting(false);
+    }
+  }, []);
 
   const toggleSection = (key: string) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -328,9 +420,19 @@ export default function CVBuilderPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">CV Builder</h1>
-        <p className="text-gray-500 text-sm mt-1">Build your ATS-friendly CV with AI assistance</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">CV Builder</h1>
+          <p className="text-gray-500 text-sm mt-1">Build your ATS-friendly CV with AI assistance</p>
+        </div>
+        <div className="flex gap-2">
+          <input ref={fileInputRef} type="file" accept=".pdf,.docx" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportCV(f); if (fileInputRef.current) fileInputRef.current.value = ''; }} />
+          <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importing} className="text-sm border-teal-200 text-teal-700 hover:bg-teal-50">
+            {importing ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Upload className="w-4 h-4 mr-1.5" />}
+            {importing ? 'Importing...' : 'Import CV'}
+          </Button>
+          <span className="text-xs text-gray-400 self-center">Upload PDF or DOCX</span>
+        </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">

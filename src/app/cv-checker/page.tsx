@@ -45,12 +45,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
+
 import Link from 'next/link';
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -707,142 +702,152 @@ export default function CVCheckerPage() {
       <section id="cv-input-section" className="max-w-5xl mx-auto px-4 pb-12">
         <Card className="shadow-xl border-0">
           <CardContent className="p-6 md:p-8">
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="w-full"
-            >
-              <TabsList className="mb-6 w-full sm:w-auto grid grid-cols-2 sm:inline-flex h-11 rounded-lg bg-gray-100 p-1">
-                <TabsTrigger
-                  value="upload"
-                  className="rounded-md px-4 py-2 text-sm font-medium gap-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  Upload File
-                </TabsTrigger>
-                <TabsTrigger
-                  value="paste"
-                  className="rounded-md px-4 py-2 text-sm font-medium gap-2"
-                >
-                  <FileText className="w-4 h-4" />
-                  Paste Text
-                </TabsTrigger>
-              </TabsList>
-
-              {/* ── Tab: Upload File ─────────────────────────────────────── */}
-              <TabsContent value="upload">
-                {/* Hidden file input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.docx"
-                  onChange={handleFileInputChange}
-                  className="hidden"
-                />
-
-                {!uploadedFile ? (
-                  <div
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors ${
-                      isDragOver
-                        ? 'border-teal-500 bg-teal-50'
-                        : 'border-gray-300 hover:border-teal-400 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex flex-col items-center gap-3">
-                      <div
-                        className={`w-14 h-14 rounded-full flex items-center justify-center ${
-                          isDragOver ? 'bg-teal-100' : 'bg-gray-100'
-                        }`}
-                      >
-                        <Upload
-                          className={`w-7 h-7 ${
-                            isDragOver ? 'text-teal-600' : 'text-gray-400'
-                          }`}
-                        />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-700">
-                          {isDragOver
-                            ? 'Drop your file here'
-                            : 'Drag & drop your CV here'}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          or <span className="text-teal-600 font-medium">browse files</span>{' '}
-                          — PDF or DOCX, max 5 MB
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-4 p-4 bg-green-50 border border-green-200 rounded-xl">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
-                        {uploadedFile.name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {(uploadedFile.size / 1024).toFixed(1)} KB
-                      </p>
-                    </div>
-                    {fileParsing ? (
-                      <Loader2 className="w-5 h-5 text-teal-600 animate-spin flex-shrink-0" />
-                    ) : parsedText ? (
-                      <Badge
-                        variant="secondary"
-                        className="bg-green-100 text-green-700 border-0 flex-shrink-0"
-                      >
-                        Parsed
-                      </Badge>
-                    ) : null}
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* ── Left Column: Your CV ─────────────────────────────────── */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-semibold text-gray-900">
+                    Your CV <span className="text-red-500">*</span>
+                  </h3>
+                  {/* Mini toggle: Upload / Paste */}
+                  <div className="inline-flex h-8 rounded-lg bg-gray-100 p-0.5">
                     <button
                       type="button"
-                      onClick={removeFile}
-                      className="p-1.5 rounded-full hover:bg-gray-200 transition-colors flex-shrink-0"
-                      aria-label="Remove file"
+                      onClick={() => setActiveTab('upload')}
+                      className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                        activeTab === 'upload'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
                     >
-                      <X className="w-4 h-4 text-gray-500" />
+                      <Upload className="w-3.5 h-3.5" />
+                      Upload
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('paste')}
+                      className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                        activeTab === 'paste'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      Paste
                     </button>
                   </div>
+                </div>
+
+                {/* Upload mode */}
+                {activeTab === 'upload' && (
+                  <>
+                    {/* Hidden file input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,.docx"
+                      onChange={handleFileInputChange}
+                      className="hidden"
+                    />
+
+                    {!uploadedFile ? (
+                      <div
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
+                          isDragOver
+                            ? 'border-teal-500 bg-teal-50'
+                            : 'border-gray-300 hover:border-teal-400 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-2.5">
+                          <div
+                            className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                              isDragOver ? 'bg-teal-100' : 'bg-gray-100'
+                            }`}
+                          >
+                            <Upload
+                              className={`w-6 h-6 ${
+                                isDragOver ? 'text-teal-600' : 'text-gray-400'
+                              }`}
+                            />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-700">
+                              {isDragOver
+                                ? 'Drop your CV here'
+                                : 'Drag & drop your CV'}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              or <span className="text-teal-600 font-medium">browse files</span>{' '}
+                              — PDF or DOCX, max 5 MB
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-xl">
+                        <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                          <CheckCircle2 className="w-4.5 h-4.5 text-green-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
+                            {uploadedFile.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {(uploadedFile.size / 1024).toFixed(1)} KB
+                          </p>
+                        </div>
+                        {fileParsing ? (
+                          <Loader2 className="w-4.5 h-4.5 text-teal-600 animate-spin flex-shrink-0" />
+                        ) : parsedText ? (
+                          <Badge
+                            variant="secondary"
+                            className="bg-green-100 text-green-700 border-0 flex-shrink-0 text-xs"
+                          >
+                            Parsed
+                          </Badge>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={removeFile}
+                          className="p-1.5 rounded-full hover:bg-gray-200 transition-colors flex-shrink-0"
+                          aria-label="Remove file"
+                        >
+                          <X className="w-3.5 h-3.5 text-gray-500" />
+                        </button>
+                      </div>
+                    )}
+
+                    {fileParsing && (
+                      <p className="text-sm text-teal-600 mt-2 flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Extracting text from your file...
+                      </p>
+                    )}
+                    {fileError && (
+                      <p className="text-sm text-red-500 mt-2">{fileError}</p>
+                    )}
+
+                    {/* Hidden textarea to store parsed text */}
+                    {parsedText && (
+                      <textarea
+                        value={parsedText}
+                        readOnly
+                        className="hidden"
+                        aria-hidden="true"
+                        tabIndex={-1}
+                      />
+                    )}
+                  </>
                 )}
 
-                {fileParsing && (
-                  <p className="text-sm text-teal-600 mt-3 flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Extracting text from your file...
-                  </p>
-                )}
-
-                {fileError && (
-                  <p className="text-sm text-red-500 mt-3">{fileError}</p>
-                )}
-
-                {/* Hidden textarea to store parsed text for the scan */}
-                {parsedText && (
-                  <textarea
-                    value={parsedText}
-                    readOnly
-                    className="hidden"
-                    aria-hidden="true"
-                    tabIndex={-1}
-                  />
-                )}
-              </TabsContent>
-
-              {/* ── Tab: Paste Text ──────────────────────────────────────── */}
-              <TabsContent value="paste">
-                <div className="grid md:grid-cols-2 gap-4">
+                {/* Paste mode */}
+                {activeTab === 'paste' && (
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-semibold text-gray-700">
-                        Paste your CV text{' '}
-                        <span className="text-red-500">*</span>
-                      </label>
+                    <div className="flex items-center justify-end mb-1.5">
                       <span className="text-xs text-gray-400">
                         {cvText.length} characters{' '}
                         {cvText.length > 0 && cvText.length < 50 && (
@@ -854,24 +859,34 @@ export default function CVCheckerPage() {
                       value={cvText}
                       onChange={(e) => setCvText(e.target.value)}
                       placeholder={`JOHN KAMAU\nSoftware Engineer\n\nProfessional Summary\nExperienced software engineer with 5+ years...`}
-                      className="min-h-[200px] resize-y text-sm"
+                      className="min-h-[220px] resize-y text-sm"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Paste job description{' '}
-                      <span className="text-gray-400">(optional)</span>
-                    </label>
-                    <Textarea
-                      value={jobDescription}
-                      onChange={(e) => setJobDescription(e.target.value)}
-                      placeholder="Paste the job description here to get keyword matching analysis..."
-                      className="min-h-[200px] resize-y text-sm"
-                    />
-                  </div>
+                )}
+              </div>
+
+              {/* ── Right Column: Job Description ────────────────────────── */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-semibold text-gray-900">
+                    Job Description
+                    <span className="text-gray-400 font-normal ml-1.5">(optional)</span>
+                  </h3>
+                  <Badge variant="outline" className="text-xs text-gray-400 border-gray-200">
+                    For keyword matching
+                  </Badge>
                 </div>
-              </TabsContent>
-            </Tabs>
+                <Textarea
+                  value={jobDescription}
+                  onChange={(e) => setJobDescription(e.target.value)}
+                  placeholder="Paste the job description here to get keyword matching analysis...\n\nInclude requirements, qualifications, and responsibilities for the best results."
+                  className="min-h-[220px] resize-y text-sm"
+                />
+                <p className="text-xs text-gray-400 mt-1.5">
+                  Adding a job description helps our AI match your CV keywords against what employers are looking for.
+                </p>
+              </div>
+            </div>
 
             {/* ── Email & Phone Inputs ──────────────────────────────────── */}
             <div className="grid sm:grid-cols-2 gap-3 mt-5">
