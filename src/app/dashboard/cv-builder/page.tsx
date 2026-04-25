@@ -193,7 +193,7 @@ export default function CVBuilderPage() {
       }
       if (d.languages.length > 0) {
         setLanguages(d.languages.map((l) => ({
-          id: uid(), name: l.name || '', proficiency: l.proficiency || 'Intermediate',
+          id: uid(), name: l.name || '', proficiency: l.proficiency || '',
         })));
       }
       if (d.referees.length > 0) {
@@ -203,8 +203,15 @@ export default function CVBuilderPage() {
         })));
       }
 
-      const filled = [d.name, d.email, d.phone, d.location, d.summary, ...d.skills, ...d.experience.map(e => e.role || e.company), ...d.education.map(e => e.institution || e.degree)].filter(Boolean).length;
-      toast.success(`CV imported from "${file.name}" — ${filled} fields detected. Review and use AI buttons to refine.`);
+      // Merge careerStrengths into skills if present
+      if (d.careerStrengths && d.careerStrengths.length > 0) {
+        setSkills((prev) => {
+          const merged = [...prev, ...d.careerStrengths.filter((s) => !prev.includes(s))];
+          return [...new Set(merged)];
+        });
+      }
+      const filled = [d.name, d.email, d.phone, d.location, d.summary, ...d.skills, ...d.careerStrengths, ...d.experience.map(e => e.role || e.company), ...d.education.map(e => e.institution || e.degree)].filter(Boolean).length;
+      toast.success(`CV imported from "${decodeURIComponent(file.name)}" — ${filled} fields detected. Review and use AI buttons to refine.`);
     } catch {
       toast.error('Import failed. Please try again or paste your CV manually.');
     } finally {
@@ -401,6 +408,7 @@ export default function CVBuilderPage() {
   const downloadPDF = () => {
     const pw = window.open('', '_blank');
     if (!pw) return;
+    pw.document.title = name || 'CV';
     pw.document.write(`<!DOCTYPE html><html><head><title>${name || 'CV'}</title>
       <style>
         body{font-family:'Segoe UI',Tahoma,sans-serif;margin:40px;color:#1a1a1a;line-height:1.5}
@@ -411,11 +419,12 @@ export default function CVBuilderPage() {
         .skills{display:flex;flex-wrap:wrap;gap:6px}.skill-tag{background:#f0fdfa;color:#0d9488;padding:2px 10px;border-radius:12px;font-size:12px;border:1px solid #ccfbf1}
         .list-item{font-size:13px;margin:2px 0}
         .referee-item{margin-bottom:10px;font-size:12px}.referee-name{font-weight:600;font-size:13px}.referee-detail{color:#555}
-        @page{margin:15mm 20mm}
+        @page{margin:15mm 20mm;size:A4}
         @media print{
           body{margin:0}
-          @page{margin:15mm 20mm}
-          /* Suppress browser print headers/footers */
+          @page{margin:15mm 20mm;size:A4}
+          /* Force hide browser headers/footers */
+          @page { header: none; footer: none; }
         }
       </style></head><body>${buildPreviewHTML()}<script>window.onload=()=>window.print()</script></body></html>`);
     pw.document.close();
@@ -467,7 +476,26 @@ export default function CVBuilderPage() {
     if (summary) h += `<p style="margin-bottom:16px">${esc(summary).replace(/\n/g, '<br>')}</p>`;
     if (experience.length) {
       h += '<h2>Work Experience</h2>';
-      experience.forEach((e) => { if (e.role || e.company) { h += `<div class="exp-item"><div class="exp-header">${esc(e.role) || 'Role'}</div><div class="exp-sub">${esc(e.company) || ''}${e.startDate ? ' | ' + esc(e.startDate) : ''}${e.endDate ? ' - ' + esc(e.endDate) : ''}${e.current ? ' - Present' : ''}</div>${e.description ? '<div class="exp-desc">' + esc(e.description).replace(/\n/g, '<br>') + '</div>' : ''}</div>`; } });
+      experience.forEach((e) => { if (e.role || e.company) {
+        const descHtml = e.description
+          ? (() => {
+              // Normalize: split by \n first (new extractor format), then detect bullet chars
+              const lines = e.description.split(/\n/).filter(l => l.trim());
+              // Check if any line starts with a bullet character
+              const hasBulletChars = lines.some(l => /^[•·▪▸►→●\-*]\s/.test(l.trim()));
+              const bulletItems = hasBulletChars
+                ? lines.map(l => l.replace(/^[•·▪▸►→●\-*]\s*/, '').trim()).filter(Boolean)
+                : lines;
+              if (bulletItems.length > 1) {
+                return '<ul style="margin:4px 0;padding-left:18px;list-style:disc">' +
+                  bulletItems.map(b => `<li style="font-size:13px;margin:1px 0">${esc(b)}</li>`).join('') +
+                  '</ul>';
+              }
+              return '<div class="exp-desc">' + esc(e.description).replace(/\n/g, '<br>') + '</div>';
+            })()
+          : '';
+        h += `<div class="exp-item"><div class="exp-header">${esc(e.role) || 'Role'}</div><div class="exp-sub">${esc(e.company) || ''}${e.startDate ? ' | ' + esc(e.startDate) : ''}${e.endDate ? ' - ' + esc(e.endDate) : ''}${e.current ? ' - Present' : ''}</div>${descHtml}</div>`;
+      } });
     }
     if (education.length) {
       h += '<h2>Education</h2>';

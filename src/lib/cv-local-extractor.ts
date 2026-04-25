@@ -62,6 +62,7 @@ export interface ExtractedCV {
   portfolio: string;
   summary: string;
   skills: string[];
+  careerStrengths: string[];
   experience: ExtractedExperience[];
   education: ExtractedEducation[];
   certifications: ExtractedCertification[];
@@ -547,6 +548,36 @@ function splitLines(text: string): string[] {
   return text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
 }
 
+/**
+ * Pre-clean raw CV text before parsing to remove common artifacts.
+ * Strips image placeholders, LaTeX artifacts, browser print artifacts,
+ * and collapses excessive blank lines.
+ */
+function preCleanText(raw: string): string {
+  let cleaned = raw;
+
+  // Strip image[[...]] placeholders
+  cleaned = cleaned.replace(/image\[\[[^\]]*\]\]/g, '');
+
+  // Clean ^{...} LaTeX/MathJax artifacts (replace with content inside braces)
+  cleaned = cleaned.replace(/\^\{([^}]*)\}/g, '$1');
+
+  // Remove lines that are browser print artifacts
+  const lines = cleaned.split(/\r?\n/);
+  const filtered = lines.filter(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return false; // blank lines handled below
+    if (/^about:blank$/i.test(trimmed)) return false;
+    if (/^\d{1,2}\/\d{1,2}\/\d{2},\s*\d{1,2}:\d{2}\s*[AaPp][Mm]$/.test(trimmed)) return false;
+    if (/^\d+\/\d+$/.test(trimmed) && trimmed.length <= 10) return false;
+    if (/^Page\s+\d+\s+of\s+\d+$/i.test(trimmed)) return false;
+    return true;
+  });
+
+  // Rejoin and collapse multiple blank lines into single newline
+  return filtered.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
 const grab = (text: string, pattern: RegExp): string | null => {
   const m = text.match(pattern);
   return m ? (m[1]?.trim() || null) : null;
@@ -732,66 +763,97 @@ const COMMON_SKILLS = new Set([
   'graphics design', 'web design', 'web development',
   'erp systems', 'records management',
   'public relations', 'stakeholder management',
+  // IT/Cybersecurity/Networking (expanded)
+  'network maintenance', 'endpoint security', 'incident response', 'vulnerability assessment',
+  'vlan', 'vpn', 'kaspersky', 'switch monitoring', 'network administration',
+  'active directory', 'help desk', 'troubleshooting', 'desktop support',
+  'ticketing systems', 'asset management', 'endpoint management',
+  'backup and recovery', 'disaster recovery', 'patch management',
+  'system administration', 'server administration', 'windows server',
+  'tcp/ip', 'dns', 'dhcp', 'firewall', 'antivirus', 'malware removal',
+  'remote support', 'teamviewer', 'anydesk', 'hardware troubleshooting',
+  'software installation', 'os deployment', 'windows 10', 'windows 11',
+  'microsoft office', 'google workspace', 'outlook email',
+  'cable management', 'network cabling', 'fibre optic',
+  'printer management', 'scanner setup', 'peripheral devices',
+  'data backup', 'cloud backup', 'onedrive', 'google drive',
+  'siem', 'intrusion detection', 'security auditing', 'penetration testing',
+  'risk assessment', 'compliance auditing', 'iso 27001',
+  'database administration', 'microsoft sql', 'oracle', 'sqlite',
+  'power automate', 'scripting', 'batch scripting', 'powershell',
+  'sharepoint', 'teams', 'zoom', 'microsoft 365',
+  'process improvement', 'vendor management', 'sla management',
+  'documentation', 'knowledge base', 'user training',
+  'it support', 'technical support', 'l1 support', 'l2 support',
 ]);
+
+/**
+ * Check if a line from the skills section matches a career strength pattern.
+ * Used by both extractCareerStrengths (to extract) and extractSkills (to skip).
+ * Matches:
+ *   - Single-line: "Category: Description" or "Category – Description"
+ *   - Multi-line header: "Category:" or "Category –" at end of line
+ */
+function isCareerStrengthLine(line: string): boolean {
+  // Single-line: category followed by separator and 10+ char description
+  if (/^\s*[A-Z][A-Za-z\s/()\-]{2,40}\s*(?::|[–—])\s+(.{10,})/.test(line)) return true;
+  // Multi-line category header: ends with colon or dash
+  if (/^\s*[A-Z][A-Za-z\s/()\-]{2,40}\s*(?::|[–—])\s*$/.test(line)) return true;
+  return false;
+}
 
 function extractSkills(sections: SectionBlock[]): string[] {
   const skills = new Set<string>();
   const seen = new Set<string>();
 
-  // Collect from skills, professional_qualifications, and header sections
-  const allSkillLines = [
-    ...getSectionLines(sections, 'header'),
-    ...getSectionLines(sections, 'skills'),
-    ...getSectionLines(sections, 'professional_qualifications'),
-    ...getSectionLines(sections, 'awards'), // achievements may mention skills
-  ];
+  // ── Phase A: Accept-all from explicit skill sections ──
+  // Skills and professional_qualifications: split by separators, accept ALL items as-is.
+  // No filtering against COMMON_SKILLS — domain-agnostic.
+  for (const sectionId of ['skills', 'professional_qualifications'] as SectionId[]) {
+    const sectionLines = getSectionLines(sections, sectionId);
+    for (const rawLine of sectionLines) {
+      // Skip career-strength lines to avoid duplication
+      if (isCareerStrengthLine(rawLine)) continue;
 
-  for (const rawLine of allSkillLines) {
-    const line = rawLine.toLowerCase();
-    for (const skill of COMMON_SKILLS) {
-      if (!seen.has(skill) && !SKILL_BLACKLIST.has(skill)) {
-        // For short skills (≤4 chars), use word boundary check to avoid false positives
-        // e.g., "go" should not match "google", "sql" should not match "mysql"
-        if (skill.length <= 4) {
-          const re = new RegExp('(?:^|[\\s|/,;.()\\[\\]{}])' + skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:$|[\\s|/,;.()\\[\\]{}])', 'i');
-          if (re.test(line)) {
-            seen.add(skill);
-            skills.add(cap(skill));
-          }
-        } else {
-          if (line.includes(skill)) {
-            seen.add(skill);
-            skills.add(cap(skill));
-          }
-        }
-      }
-    }
-
-    // Split by separators for comma/pipe-separated lists
-    const parts = rawLine.split(SKILL_SEPARATORS);
-    for (const part of parts) {
-      const trimmed = part.trim().toLowerCase().replace(/^[-–—:]\s*/, '');
-      if (trimmed.length >= 3 && trimmed.length <= 50 && !seen.has(trimmed) && !SKILL_BLACKLIST.has(trimmed)) {
-        for (const skill of COMMON_SKILLS) {
-          // Forward match: the separator-split part contains a known skill
-          if (trimmed.includes(skill)) {
-            seen.add(trimmed);
-            skills.add(cap(skill));
-            break;
-          }
-          // Reverse match: a known skill contains the separator-split part
-          // Only allow if the part is at least 5 chars to avoid false positives like "go", "tax"
-          if (trimmed.length >= 5 && skill.includes(trimmed)) {
-            seen.add(trimmed);
-            skills.add(cap(skill));
-            break;
+      const parts = rawLine.split(SKILL_SEPARATORS);
+      for (const part of parts) {
+        const trimmed = part.trim().replace(/^[-–—:]\s*/, '');
+        const normalized = trimmed.toLowerCase();
+        // Accept all items: 2-50 chars, not in blacklist
+        if (trimmed.length >= 2 && trimmed.length <= 50 && !SKILL_BLACKLIST.has(normalized)) {
+          if (!seen.has(normalized)) {
+            seen.add(normalized);
+            skills.add(cap(normalized));
           }
         }
       }
     }
   }
 
-  // Also scan experience for skill keywords
+  // Header section: only lines that look like skill bars (contain 2+ separators)
+  const headerLines = getSectionLines(sections, 'header');
+  for (const rawLine of headerLines) {
+    if (isCareerStrengthLine(rawLine)) continue;
+    // Skip lines that look like contact info (emails, phone numbers, URLs)
+    if (/@|\+?\d{7,}|https?:\/\//i.test(rawLine)) continue;
+    const sepCount = (rawLine.match(SKILL_SEPARATORS) || []).length;
+    if (sepCount < 2) continue;
+
+    const parts = rawLine.split(SKILL_SEPARATORS);
+    for (const part of parts) {
+      const trimmed = part.trim().replace(/^[-–—:]\s*/, '');
+      const normalized = trimmed.toLowerCase();
+      if (trimmed.length >= 2 && trimmed.length <= 50 && !SKILL_BLACKLIST.has(normalized)) {
+        if (!seen.has(normalized)) {
+          seen.add(normalized);
+          skills.add(cap(normalized));
+        }
+      }
+    }
+  }
+
+  // ── Phase B: Heuristic-only from implicit sections (work experience) ──
+  // Scan experience prose against COMMON_SKILLS — only add skills not already in Phase A.
   const expLines = getSectionLines(sections, 'work_experience');
   for (const rawLine of expLines) {
     const line = rawLine.toLowerCase();
@@ -807,7 +869,60 @@ function extractSkills(sections: SectionBlock[]): string[] {
     }
   }
 
-  return [...skills].slice(0, 30);
+  return [...skills].slice(0, 40);
+}
+
+// ─── Career Strengths extraction ─────────────────────────────────────────────
+
+/**
+ * Extract "Category: Description" patterns from the skills section.
+ * Supports:
+ *   - Single-line: "Category: Description" or "Category – Description"
+ *   - Multi-line: category header (ending with : or –) on one line, description on next line(s)
+ * Returns an array of "Category: Description" strings with full, untruncated text.
+ */
+function extractCareerStrengths(sections: SectionBlock[]): string[] {
+  const strengths: string[] = [];
+  const skillLines = getSectionLines(sections, 'skills');
+
+  let i = 0;
+  while (i < skillLines.length) {
+    const line = skillLines[i];
+
+    // Single-line: "Category: Description" or "Category – Description"
+    const singleLine = line.match(/^\s*([A-Z][A-Za-z\s/()\-]{2,40})\s*(?::|[–—])\s+(.{10,})/);
+    if (singleLine) {
+      const category = singleLine[1].trim();
+      const description = singleLine[2].trim();
+      strengths.push(`${category}: ${description}`);
+      i++; continue;
+    }
+
+    // Multi-line: category header ending with : or –, description on next line(s)
+    const catWithSep = line.match(/^\s*([A-Z][A-Za-z\s/()\-]{2,40})\s*(?::|[–—])\s*$/);
+    if (catWithSep && catWithSep[1].trim().length >= 3 && i + 1 < skillLines.length) {
+      const category = catWithSep[1].trim();
+      const descParts: string[] = [];
+      let j = i + 1;
+      // Collect up to 3 description lines until we hit a new category or blank
+      for (let k = 0; k < 3 && j < skillLines.length; k++, j++) {
+        const next = skillLines[j].trim();
+        if (!next) break;
+        // Stop if next line looks like a new category header
+        if (/^[A-Z][A-Za-z\s/()\-]{2,40}\s*(?::|[–—])/i.test(next) && next.length < 50) break;
+        descParts.push(next);
+      }
+      if (descParts.length > 0) {
+        const description = descParts.join(' ').replace(/\s{2,}/g, ' ').trim();
+        strengths.push(`${category}: ${description}`);
+        i = j; continue;
+      }
+    }
+
+    i++;
+  }
+
+  return strengths;
 }
 
 // ─── Date parsing utilities ──────────────────────────────────────────────────
@@ -871,8 +986,8 @@ function extractExperience(sections: SectionBlock[]): ExtractedExperience[] {
     if (/^[•·▪▸►→●\-\*]\s/.test(line) && results.length > 0 && !isInBriefSection) {
       const desc = line.replace(/^[•·▪▸►→●\-\*]\s*/, '').trim();
       if (desc) {
-        results[results.length - 1].description =
-          (results[results.length - 1].description + ' ' + desc).replace(/\s{2,}/g, ' ').trim();
+        const prev = results[results.length - 1].description;
+        results[results.length - 1].description = prev ? prev + '\n' + desc : desc;
       }
       i++; continue;
     }
@@ -947,7 +1062,7 @@ function extractExperience(sections: SectionBlock[]): ExtractedExperience[] {
         if (/^key\s+contributions?\s*[:\-–]?\s*$/i.test(d)) { i++; continue; }
         dl.push(d.replace(/^[•·▪▸►→●\-\*]\s*/, '').trim()); i++;
       }
-      remaining = dl.join(' ').replace(/\s{2,}/g, ' ').trim();
+      remaining = dl.join('\n').trim();
     } else if (dateOnNextLine) {
       dates = dateOnNextLine;
       if (line.includes(' – ') || line.includes(' - ') || line.includes(' — ')) {
@@ -966,7 +1081,7 @@ function extractExperience(sections: SectionBlock[]): ExtractedExperience[] {
         if (/^key\s+contributions?\s*[:\-–]?\s*$/i.test(d)) { i++; continue; }
         dl.push(d.replace(/^[•·▪▸►→●\-\*]\s*/, '').trim()); i++;
       }
-      remaining = dl.join(' ').replace(/\s{2,}/g, ' ').trim();
+      remaining = dl.join('\n').trim();
     } else {
       if (/^[•·▪▸►→●\-\*]\s/.test(line)) {
         const content = line.replace(/^[•·▪▸►→●\-\*]\s*/, '');
@@ -1191,7 +1306,8 @@ export function extractCVFields(text: string): ExtractedCV {
   const linkedin = extractLinkedIn(text);
   const portfolio = extractPortfolio(text);
   const location = extractLocation(text);
-  const allLines = splitLines(text);
+  const cleanedText = preCleanText(text);
+  const allLines = splitLines(cleanedText);
   const sections = splitIntoSections(allLines);
   const headerLines = getSectionLines(sections, 'header');
   const { name, title } = extractNameAndTitle(headerLines, email);
@@ -1206,6 +1322,7 @@ export function extractCVFields(text: string): ExtractedCV {
     portfolio,
     summary: extractSummary(sections),
     skills: extractSkills(sections),
+    careerStrengths: extractCareerStrengths(sections),
     experience: extractExperience(sections),
     education: extractEducation(sections),
     certifications: extractCertifications(sections),
