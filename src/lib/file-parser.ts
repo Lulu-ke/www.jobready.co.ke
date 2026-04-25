@@ -56,6 +56,21 @@ const _polyfillDOMMatrix = () => {
 }
 _polyfillDOMMatrix()
 
+// ─── Set pdfjs workerSrc ASAP (before any pdfjs import) ───────────────────
+// This must run before pdfjs-dist/legacy/build/pdf.mjs is imported,
+// because the fake worker module checks GlobalWorkerOptions.workerSrc at load time.
+import path from 'path'
+import { GlobalWorkerOptions } from 'pdfjs-dist/legacy/build/pdf.mjs'
+
+GlobalWorkerOptions.workerSrc = path.join(
+  process.cwd(),
+  'node_modules',
+  'pdfjs-dist',
+  'legacy',
+  'build',
+  'pdf.worker.mjs',
+)
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface ParseResult {
@@ -90,23 +105,6 @@ function isDocxType(mimeType: string, ext: string): boolean {
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
-  const nodePath = await import('path')
-
-  // Set workerSrc to the expected path in standalone output.
-  // With serverExternalPackages + outputFileTracingIncludes, Vercel traces
-  // the worker into .next/standalone/node_modules/pdfjs-dist/...
-  // At runtime, process.cwd() is /var/task on Vercel.
-  if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    const workerPath = nodePath.join(
-      process.cwd(),
-      'node_modules',
-      'pdfjs-dist',
-      'legacy',
-      'build',
-      'pdf.worker.mjs',
-    )
-    pdfjs.GlobalWorkerOptions.workerSrc = workerPath
-  }
 
   const data = new Uint8Array(buffer)
   const doc = await pdfjs.getDocument({
