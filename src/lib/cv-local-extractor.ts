@@ -700,93 +700,6 @@ function extractSummary(sections: SectionBlock[]): string {
 
 const SKILL_SEPARATORS = /[;,|•·▪▸►→●)\]}>\/+]/;
 
-/** Short terms that are too ambiguous as standalone skills — only valid in context */
-const SKILL_BLACKLIST = new Set([
-  'go', 'tax', 'word', 'express', 'access', 'outlook', 'basic', 'internet',
-  'email', 'social', 'office', 'support', 'service', 'data', 'analytics',
-  'data entry', 'presentation', 'windows',
-]);
-
-const COMMON_SKILLS = new Set([
-  // Programming & tech
-  'javascript', 'typescript', 'python', 'java', 'c++', 'c#', 'ruby', 'php', 'go',
-  'rust', 'swift', 'kotlin', 'scala', 'matlab', 'sql', 'nosql', 'mongodb',
-  'postgresql', 'mysql', 'redis', 'elasticsearch', 'docker', 'kubernetes', 'aws',
-  'azure', 'gcp', 'linux', 'git', 'github', 'gitlab', 'bitbucket', 'jenkins',
-  'ci/cd', 'terraform', 'ansible', 'nginx', 'apache', 'rest api', 'graphql',
-  'react', 'angular', 'vue', 'next.js', 'node.js', 'express', 'django', 'flask',
-  'spring', 'laravel', '.net', 'html', 'css', 'sass', 'tailwind', 'bootstrap',
-  'figma', 'sketch', 'adobe', 'photoshop', 'illustrator', 'indesign',
-  // Office & tools
-  'excel', 'power bi', 'tableau', 'powerpoint', 'word', 'outlook', 'access',
-  'google sheets', 'google docs', 'google slides',
-  // Accounting & finance
-  'accounting', 'bookkeeping', 'audit', 'tax', 'budgeting', 'financial analysis',
-  'financial reporting', 'risk management', 'payroll', 'quickbooks', 'sage', 'tally',
-  'cpa', 'bank reconciliation', 'imprest management', 'payment vouchers',
-  'warrant management', 'data entry',
-  // Project & product
-  'project management', 'product management', 'agile', 'scrum', 'jira', 'confluence',
-  'slack', 'trello', 'asana', 'notion', 'monday.com',
-  // Marketing
-  'marketing', 'digital marketing', 'social media', 'content writing',
-  'seo', 'sem', 'email marketing', 'copywriting',
-  'graphic design', 'ui/ux', 'user research', 'wireframing', 'prototyping',
-  // Supply chain
-  'supply chain', 'procurement', 'logistics', 'inventory management',
-  // HR & admin
-  'human resources', 'recruitment', 'training', 'mentoring', 'coaching',
-  'computer literacy', 'computer packages',
-  // Soft skills
-  'team leadership', 'leadership', 'communication', 'problem solving',
-  'critical thinking', 'attention to detail', 'time management',
-  'customer service', 'negotiation', 'presentation', 'public speaking',
-  'report writing', 'research', 'analytics', 'organizational skills',
-  // Engineering
-  'civil engineering', 'electrical engineering', 'mechanical engineering',
-  'construction', 'architecture', 'autocad', 'revit',
-  // Mobile
-  'mobile development', 'ios', 'android', 'flutter', 'react native',
-  // Dev & cloud
-  'devops', 'microservices', 'api design', 'cloud computing', 'networking',
-  'cybersecurity', 'firebase', 'supabase', 'vercel', 'netlify', 'heroku',
-  'shopify', 'wordpress', 'magento', 'stripe', 'paypal',
-  'sap', 'salesforce', 'hubspot', 'zoho',
-  // Data
-  'machine learning', 'deep learning', 'artificial intelligence', 'nlp',
-  'data analysis', 'data science', 'data engineering', 'data visualization',
-  // Other common
-  'teaching', 'curriculum development', 'classroom management',
-  'nursing', 'patient care', 'clinical',
-  'legal', 'compliance', 'regulatory', 'contract management',
-  'driving', 'photography', 'videography', 'event planning',
-  'graphics design', 'web design', 'web development',
-  'erp systems', 'records management',
-  'public relations', 'stakeholder management',
-  // IT/Cybersecurity/Networking (expanded)
-  'network maintenance', 'endpoint security', 'incident response', 'vulnerability assessment',
-  'vlan', 'vpn', 'kaspersky', 'switch monitoring', 'network administration',
-  'active directory', 'help desk', 'troubleshooting', 'desktop support',
-  'ticketing systems', 'asset management', 'endpoint management',
-  'backup and recovery', 'disaster recovery', 'patch management',
-  'system administration', 'server administration', 'windows server',
-  'tcp/ip', 'dns', 'dhcp', 'firewall', 'antivirus', 'malware removal',
-  'remote support', 'teamviewer', 'anydesk', 'hardware troubleshooting',
-  'software installation', 'os deployment', 'windows 10', 'windows 11',
-  'microsoft office', 'google workspace', 'outlook email',
-  'cable management', 'network cabling', 'fibre optic',
-  'printer management', 'scanner setup', 'peripheral devices',
-  'data backup', 'cloud backup', 'onedrive', 'google drive',
-  'siem', 'intrusion detection', 'security auditing', 'penetration testing',
-  'risk assessment', 'compliance auditing', 'iso 27001',
-  'database administration', 'microsoft sql', 'oracle', 'sqlite',
-  'power automate', 'scripting', 'batch scripting', 'powershell',
-  'sharepoint', 'teams', 'zoom', 'microsoft 365',
-  'process improvement', 'vendor management', 'sla management',
-  'documentation', 'knowledge base', 'user training',
-  'it support', 'technical support', 'l1 support', 'l2 support',
-]);
-
 /**
  * Check if a line from the skills section matches a career strength pattern.
  * Used by both extractCareerStrengths (to extract) and extractSkills (to skip).
@@ -808,7 +721,8 @@ function extractSkills(sections: SectionBlock[]): string[] {
 
   // ── Phase A: Accept-all from explicit skill sections ──
   // Skills and professional_qualifications: split by separators, accept ALL items as-is.
-  // No filtering against COMMON_SKILLS — domain-agnostic.
+  // Domain-agnostic — no filtering against any predefined skill set.
+  // Only skips career-strength lines (Category: Description patterns) to avoid duplication.
   for (const sectionId of ['skills', 'professional_qualifications'] as SectionId[]) {
     const sectionLines = getSectionLines(sections, sectionId);
     for (const rawLine of sectionLines) {
@@ -819,8 +733,8 @@ function extractSkills(sections: SectionBlock[]): string[] {
       for (const part of parts) {
         const trimmed = part.trim().replace(/^[-–—:]\s*/, '');
         const normalized = trimmed.toLowerCase();
-        // Accept all items: 2-50 chars, not in blacklist
-        if (trimmed.length >= 2 && trimmed.length <= 50 && !SKILL_BLACKLIST.has(normalized)) {
+        // Accept all items: 2-50 chars, deduplicated
+        if (trimmed.length >= 2 && trimmed.length <= 50) {
           if (!seen.has(normalized)) {
             seen.add(normalized);
             skills.add(cap(normalized));
@@ -843,7 +757,7 @@ function extractSkills(sections: SectionBlock[]): string[] {
     for (const part of parts) {
       const trimmed = part.trim().replace(/^[-–—:]\s*/, '');
       const normalized = trimmed.toLowerCase();
-      if (trimmed.length >= 2 && trimmed.length <= 50 && !SKILL_BLACKLIST.has(normalized)) {
+      if (trimmed.length >= 2 && trimmed.length <= 50) {
         if (!seen.has(normalized)) {
           seen.add(normalized);
           skills.add(cap(normalized));
@@ -852,22 +766,8 @@ function extractSkills(sections: SectionBlock[]): string[] {
     }
   }
 
-  // ── Phase B: Heuristic-only from implicit sections (work experience) ──
-  // Scan experience prose against COMMON_SKILLS — only add skills not already in Phase A.
-  const expLines = getSectionLines(sections, 'work_experience');
-  for (const rawLine of expLines) {
-    const line = rawLine.toLowerCase();
-    for (const skill of COMMON_SKILLS) {
-      if (!seen.has(skill) && !SKILL_BLACKLIST.has(skill)) {
-        if (skill.length <= 4) {
-          const re = new RegExp('(?:^|[\\s|/,;.()\\[\\]{}])' + skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:$|[\\s|/,;.()\\[\\]{}])', 'i');
-          if (re.test(line)) { seen.add(skill); skills.add(cap(skill)); }
-        } else {
-          if (line.includes(skill)) { seen.add(skill); skills.add(cap(skill)); }
-        }
-      }
-    }
-  }
+  // No Phase B — we no longer scan experience prose against a fixed skill set.
+  // Skills are only extracted from explicit skills sections (domain-agnostic).
 
   return [...skills].slice(0, 40);
 }

@@ -62,6 +62,7 @@ _polyfillDOMMatrix()
 interface ParseResult {
   text: string
   error?: string
+  fileName?: string
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -81,6 +82,43 @@ function isDocxType(mimeType: string, ext: string): boolean {
     mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
     ext === '.docx'
   )
+}
+
+// ─── Text cleaning ────────────────────────────────────────────────────────
+
+/**
+ * Post-process extracted PDF/DOCX text to strip browser print artifacts.
+ *
+ * Removes:
+ *   - about:blank lines
+ *   - Browser print timestamps (M/D/YY, H:MM PM)
+ *   - Page N of N / N/N page numbers
+ *   - image[[...]] placeholder strings
+ *   - ^{...} LaTeX/MathJax artifacts (kept content inside braces)
+ */
+export function cleanExtractedText(raw: string): string {
+  let cleaned = raw;
+
+  // Remove lines that are just 'about:blank'
+  cleaned = cleaned.replace(/^about:blank\s*$/gm, '');
+
+  // Remove browser print timestamp lines like "1/15/25, 2:30 PM" or "12/1/24, 10:00 AM"
+  cleaned = cleaned.replace(/^\d{1,2}\/\d{1,2}\/\d{2},\s*\d{1,2}:\d{2}\s*[AaPp][Mm]\s*$/gm, '');
+
+  // Remove standalone "Page N of N" or "N/N" page numbers
+  cleaned = cleaned.replace(/^Page\s+\d+\s+of\s+\d+\s*$/gim, '');
+  cleaned = cleaned.replace(/^\d+\/\d+\s*$/gm, '');
+
+  // Remove image[[...]] placeholder strings
+  cleaned = cleaned.replace(/image\[\[[^\]]*\]\]/g, '');
+
+  // Strip ^{...} LaTeX/MathJax artifacts, keeping content inside braces
+  cleaned = cleaned.replace(/\^\{([^}]*)\}/g, '$1');
+
+  // Collapse multiple blank lines into single newline
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+
+  return cleaned.trim();
 }
 
 // ─── PDF text extraction using pdfjs-dist ────────────────────────────────────
@@ -146,7 +184,7 @@ async function extractPdfText(buffer: Buffer): Promise<string> {
 
   await doc.destroy()
 
-  return pageTexts.join('\n\n')
+  return cleanExtractedText(pageTexts.join('\n\n'))
 }
 
 // ─── parseCVFile ─────────────────────────────────────────────────────────────
@@ -158,6 +196,7 @@ export async function parseCVFile(
 ): Promise<ParseResult> {
   const ext = getFileExtension(fileName)
   const buffer = Buffer.isBuffer(file) ? file : Buffer.from(file)
+  const decodedName = decodeURIComponent(fileName)
 
   if (isPdfType(mimeType, ext)) {
     try {
@@ -165,7 +204,7 @@ export async function parseCVFile(
       if (text.length < 50) {
         return { text: '', error: 'This PDF appears to be image-based and cannot be parsed. Please paste your CV text directly or use a text-based PDF.' }
       }
-      return { text }
+      return { text, fileName: decodedName }
     } catch (error: any) {
       const errMsg = error?.message || String(error)
       console.error('[file-parser] PDF parse error:', errMsg, error?.stack)
@@ -177,9 +216,9 @@ export async function parseCVFile(
     try {
       const mammoth = await import('mammoth')
       const result = await mammoth.extractRawText({ buffer })
-      const text = (result.value || '').trim()
+      const text = cleanExtractedText((result.value || '').trim())
       if (!text) return { text: '', error: 'The DOCX file appears to be empty.' }
-      return { text }
+      return { text, fileName: decodedName }
     } catch (error: any) {
       console.error('[file-parser] DOCX parse error:', error?.message || error)
       return { text: '', error: 'Failed to parse DOCX.' }

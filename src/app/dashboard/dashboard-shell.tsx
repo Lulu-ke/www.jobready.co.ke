@@ -16,6 +16,8 @@ import {
   Menu,
   ChevronRight,
   Mail,
+  FilePlus2,
+  ExternalLink,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -50,13 +52,13 @@ interface DashboardShellProps {
 const navLinks = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/dashboard/profile', label: 'Profile', icon: UserCircle },
-  { href: '/dashboard/cv-builder', label: 'CV Builder', icon: FileText },
   { href: '/dashboard/cover-letter', label: 'Cover Letter', icon: Mail },
   { href: '/dashboard/cv', label: 'My CV', icon: FileText },
   { href: '/dashboard/saved', label: 'Saved Jobs', icon: Bookmark },
   { href: '/dashboard/applications', label: 'Applications', icon: Briefcase },
   { href: '/dashboard/alerts', label: 'Job Alerts', icon: BellRing },
   { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
+  { href: '/cv-builder', label: 'Build CV', icon: FilePlus2, external: true },
 ];
 
 function getInitials(name: string) {
@@ -100,7 +102,8 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {navLinks.map((link) => {
           const Icon = link.icon;
-          const active = isActive(link.href);
+          const active = !link.external && isActive(link.href);
+          const isExternal = 'external' in link && link.external;
           return (
             <Link
               key={link.href}
@@ -110,11 +113,14 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
                 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all',
                 active
                   ? 'bg-teal-600 text-white shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  : isExternal
+                    ? 'text-teal-600 hover:bg-teal-50 hover:text-teal-700'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               )}
             >
               <Icon className="w-5 h-5 flex-shrink-0" />
               <span>{link.label}</span>
+              {isExternal && <ExternalLink className="w-3.5 h-3.5 ml-auto" />}
               {active && <ChevronRight className="w-4 h-4 ml-auto" />}
             </Link>
           );

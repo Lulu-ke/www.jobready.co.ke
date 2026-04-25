@@ -187,3 +187,28 @@ Stage Summary:
 - Architecture: /api/cv-parse (server) → extractCVFields (browser) → populate fields
 - AI preserved only for: improve summary, rewrite bullets, suggest skills
 - Import works without login, without AI tokens, and can't fail due to AI service downtime
+---
+Task ID: 1
+Agent: Main
+Task: Fix CV extraction engine — domain-agnostic skills parsing, career strengths preservation, experience bullet formatting
+
+Work Log:
+- Read and analyzed the full 1332-line cv-local-extractor.ts
+- Identified three issues: COMMON_SKILLS filtering (IT-biased, 170+ entries), SKILL_BLACKLIST (too aggressive), and careerStrengths merged into skills array in builder
+- Removed COMMON_SKILLS set entirely (lines 710-788) — 78 lines of IT-biased skill vocabulary
+- Removed SKILL_BLACKLIST set (lines 703-708) — 6 lines of overly aggressive filtering
+- Removed Phase B from extractSkills() — heuristic scanning of experience prose against COMMON_SKILLS
+- Updated Phase A to use only length constraint (2-50 chars) instead of blacklist filtering
+- File reduced from 1332 → 1232 lines (100 lines removed)
+- Updated cv-builder/page.tsx to store careerStrengths separately instead of merging into skills array
+- Added careerStrengths state variable and handlers (addCareerStrength, removeCareerStrength)
+- Added careerStrengths to save/load/persist logic
+- Added careerStrengths to preview HTML with proper "Category: Description" rendering
+- Added Career Strengths collapsible UI section in the builder form (amber-themed cards showing category + description)
+- Confirmed experience bullet formatting already works correctly (newlines preserved, preview renders as <ul>)
+
+Stage Summary:
+- cv-local-extractor.ts: Fully domain-agnostic — accepts all skills from explicit sections, no predefined filtering
+- cv-builder/page.tsx: Career strengths now have their own dedicated section with category-aware display
+- Extractor file: 1332 → 1232 lines
+- Builder page: ~1004 lines with new career strengths section
