@@ -102,6 +102,7 @@ function CategoryJobsInner({ categoryName, categorySlug }: CategoryJobsClientPro
     salaryMin: '',
     salaryMax: '',
     sort: 'newest',
+    county: '',
   });
 
   const limit = 12;

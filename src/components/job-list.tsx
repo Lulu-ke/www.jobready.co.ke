@@ -40,6 +40,7 @@ export default function JobList({ initialSearch }: JobListProps) {
     salaryMin: '',
     salaryMax: '',
     sort: 'newest',
+    county: '',
   });
 
   const limit = 12;
@@ -187,7 +188,7 @@ export default function JobList({ initialSearch }: JobListProps) {
                     <Button
                       variant="outline"
                       onClick={() => handleFilterChange({
-                        search: '', location: '', category: '', type: '', experienceLevel: '', salaryMin: '', salaryMax: '', sort: 'newest',
+                        search: '', location: '', category: '', type: '', experienceLevel: '', salaryMin: '', salaryMax: '', sort: 'newest', county: '',
                       })}
                     >
                       Clear all filters

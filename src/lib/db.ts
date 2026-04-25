@@ -8,7 +8,7 @@ function buildDatabaseUrl(): string {
   const port = process.env.DB_PORT || '3306'
   const name = process.env.DB_NAME
   const user = process.env.DB_USER
-  const pass = process.env.DB_PASS
+  const pass = process.env.DB_PASS || ''
 
   if (!host || !name || !user) {
     throw new Error(

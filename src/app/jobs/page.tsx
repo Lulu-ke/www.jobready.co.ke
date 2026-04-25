@@ -24,6 +24,7 @@ interface Filters {
   salaryMin: string;
   salaryMax: string;
   sort: string;
+  county: string;
 }
 
 interface Category {
@@ -107,6 +108,7 @@ function JobsPageInner() {
     salaryMin: '',
     salaryMax: '',
     sort: 'newest',
+    county: '',
   });
 
   const limit = 12;
@@ -350,6 +352,7 @@ function JobsPageInner() {
                         salaryMin: '',
                         salaryMax: '',
                         sort: 'newest',
+                        county: '',
                       })
                     }
                     className="bg-teal-600 hover:bg-teal-700 text-white"

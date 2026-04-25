@@ -23,6 +23,7 @@ interface Filters {
   salaryMin: string;
   salaryMax: string;
   sort: string;
+  county: string;
 }
 
 interface Category {
@@ -106,6 +107,7 @@ function TypeJobsInner({ jobType, typeSlug }: TypeJobsClientProps) {
     salaryMin: '',
     salaryMax: '',
     sort: 'newest',
+    county: '',
   });
 
   const limit = 12;
