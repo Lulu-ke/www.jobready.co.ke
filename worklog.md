@@ -153,3 +153,37 @@ Stage Summary:
 - CSP: Google Fonts stylesheets now allowed via style-src directive
 - resetToken: user must run db:push to add missing columns to production database
 - Build passes cleanly, ready for deploy
+
+---
+Task ID: 6
+Agent: Main Agent
+Task: Replace mandatory AI extraction in CV Builder with local regex-based extraction
+
+Work Log:
+- Created src/lib/cv-local-extractor.ts (599 lines) — pure regex/rule-based CV field extraction
+  - extractEmail: standard email regex
+  - extractPhone: Kenyan format aware (+254/0xx), auto-normalizes
+  - extractLinkedIn: matches linkedin.com/in/ URLs
+  - extractPortfolio: finds non-LinkedIn URLs (GitHub, Behance, .dev, .io, etc.)
+  - extractLocation: Kenyan city/county database + fallback pattern matching
+  - extractName: first uppercase-name line + email-based fallback
+  - extractSummary: section-header aware, stops at next section boundary
+  - extractSkills: 200+ common skills database + separator-based list parsing
+  - extractExperience: section-header aware, extracts role/company/dates/description
+  - extractEducation: degree/institution/year pattern matching
+  - extractCertifications: name/issuer/year extraction
+  - extractLanguages: name + proficiency level detection
+- Updated cv-builder/page.tsx:
+  - Replaced handleImportCV AI flow with local extractCVFields() call
+  - Removed dependency on /api/ai/cv-extract (was mandatory, now unused for import)
+  - Import now works without login and without AI tokens
+  - Added field count feedback in success toast
+  - AI buttons remain available for optional refinement (suggest summary, rewrite bullets, suggest skills)
+- Build verified: zero type errors, zero build errors
+- Commit efc9381 pushed to GitHub
+
+Stage Summary:
+- CV Builder import no longer requires AI — uses local regex extraction
+- Architecture: /api/cv-parse (server) → extractCVFields (browser) → populate fields
+- AI preserved only for: improve summary, rewrite bullets, suggest skills
+- Import works without login, without AI tokens, and can't fail due to AI service downtime
