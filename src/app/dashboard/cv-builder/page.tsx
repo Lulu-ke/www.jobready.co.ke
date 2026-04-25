@@ -368,14 +368,32 @@ export default function CVBuilderPage() {
     pw.document.close();
   };
 
-  const runATSCheck = () => {
+  const runATSCheck = async () => {
     const cvText = [name, email, phone, location, summary, ...experience.map((e) => `${e.role} at ${e.company}\n${e.description}`), ...education.map((e) => `${e.degree} in ${e.field} from ${e.institution}`), skills.join(', ')].filter(Boolean).join('\n');
     if (cvText.length < 50) { toast.error('Add more content before checking.'); return; }
-    const form = document.createElement('form');
-    form.method = 'POST'; form.action = '/api/cv-scan';
-    const input = document.createElement('input'); input.type = 'hidden'; input.name = 'cvText'; input.value = cvText;
-    form.appendChild(input); document.body.appendChild(form); form.submit(); document.body.removeChild(form);
+    try {
+      toast.loading('Submitting to ATS Checker...');
+      const res = await fetch('/api/cv-scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cvText }),
+      });
+      const data = await res.json();
+      toast.dismiss();
+      if (data.success && data.scanId) {
+        window.location.href = `/cv-checker/result?id=${data.scanId}`;
+      } else {
+        toast.error(data.error || 'ATS check failed. Please try from the CV Checker page.');
+      }
+    } catch {
+      toast.dismiss();
+      toast.error('Network error. Please try again.');
+    }
   };
+
+  /** Escape HTML entities to prevent XSS in dangerouslySetInnerHTML */
+  const esc = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 
   function buildPreviewHTML() {
     const ts: Record<Template, string> = {
@@ -384,24 +402,24 @@ export default function CVBuilderPage() {
       minimal: 'h1{color:#6b7280;font-weight:300}h2{border-bottom-color:#d1d5db;color:#6b7280;font-weight:400;letter-spacing:2px}.skill-tag{background:#f9fafb;color:#6b7280;border-color:#e5e7eb}',
     };
     const cp: string[] = [];
-    if (email) cp.push(`<span>${email}</span>`);
-    if (phone) cp.push(`<span>${phone}</span>`);
-    if (location) cp.push(`<span>${location}</span>`);
+    if (email) cp.push(`<span>${esc(email)}</span>`);
+    if (phone) cp.push(`<span>${esc(phone)}</span>`);
+    if (location) cp.push(`<span>${esc(location)}</span>`);
     let h = `<style>${ts[template]}</style>`;
-    h += `<h1>${name || 'Your Name'}</h1>`;
+    h += `<h1>${esc(name) || 'Your Name'}</h1>`;
     if (cp.length) h += `<div class="contact">${cp.join('')}</div>`;
-    if (summary) h += `<p style="margin-bottom:16px">${summary.replace(/\n/g, '<br>')}</p>`;
+    if (summary) h += `<p style="margin-bottom:16px">${esc(summary).replace(/\n/g, '<br>')}</p>`;
     if (experience.length) {
       h += '<h2>Work Experience</h2>';
-      experience.forEach((e) => { if (e.role || e.company) { h += `<div class="exp-item"><div class="exp-header">${e.role || 'Role'}</div><div class="exp-sub">${e.company || ''}${e.startDate ? ' | ' + e.startDate : ''}${e.endDate ? ' - ' + e.endDate : ''}${e.current ? ' - Present' : ''}</div>${e.description ? '<div class="exp-desc">' + e.description.replace(/\n/g, '<br>') + '</div>' : ''}</div>`; } });
+      experience.forEach((e) => { if (e.role || e.company) { h += `<div class="exp-item"><div class="exp-header">${esc(e.role) || 'Role'}</div><div class="exp-sub">${esc(e.company) || ''}${e.startDate ? ' | ' + esc(e.startDate) : ''}${e.endDate ? ' - ' + esc(e.endDate) : ''}${e.current ? ' - Present' : ''}</div>${e.description ? '<div class="exp-desc">' + esc(e.description).replace(/\n/g, '<br>') + '</div>' : ''}</div>`; } });
     }
     if (education.length) {
       h += '<h2>Education</h2>';
-      education.forEach((e) => { if (e.institution || e.degree) h += `<div class="list-item"><strong>${e.degree || ''} ${e.field ? 'in ' + e.field : ''}</strong> — ${e.institution || ''} ${e.endYear ? '(' + e.endYear + ')' : ''}</div>`; });
+      education.forEach((e) => { if (e.institution || e.degree) h += `<div class="list-item"><strong>${esc(e.degree) || ''} ${e.field ? 'in ' + esc(e.field) : ''}</strong> — ${esc(e.institution) || ''} ${e.endYear ? '(' + esc(e.endYear) + ')' : ''}</div>`; });
     }
-    if (skills.length) h += `<h2>Skills</h2><div class="skills">${skills.map((s) => `<span class="skill-tag">${s}</span>`).join('')}</div>`;
-    if (certifications.length) { h += '<h2>Certifications</h2>'; certifications.forEach((c) => { if (c.name) h += `<div class="list-item"><strong>${c.name}</strong> — ${c.issuer || ''} ${c.year ? '(' + c.year + ')' : ''}</div>`; }); }
-    if (languages.length) { h += '<h2>Languages</h2>'; languages.forEach((l) => { if (l.name) h += `<div class="list-item">${l.name} — ${l.proficiency || ''}</div>`; }); }
+    if (skills.length) h += `<h2>Skills</h2><div class="skills">${skills.map((s) => `<span class="skill-tag">${esc(s)}</span>`).join('')}</div>`;
+    if (certifications.length) { h += '<h2>Certifications</h2>'; certifications.forEach((c) => { if (c.name) h += `<div class="list-item"><strong>${esc(c.name)}</strong> — ${esc(c.issuer) || ''} ${c.year ? '(' + esc(c.year) + ')' : ''}</div>`; }); }
+    if (languages.length) { h += '<h2>Languages</h2>'; languages.forEach((l) => { if (l.name) h += `<div class="list-item">${esc(l.name)} — ${esc(l.proficiency) || ''}</div>`; }); }
     return h;
   }
 

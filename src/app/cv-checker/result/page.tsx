@@ -392,7 +392,7 @@ function ResultContent() {
           ) : (
             <FileDown className="w-4 h-4 mr-2" />
           )}
-          {pdfLoading ? 'Generating PDF...' : 'Download PDF Report'}
+          {pdfLoading ? 'Generating Report...' : 'Download Report'}
         </Button>
 
         <div className="flex items-center gap-2">
