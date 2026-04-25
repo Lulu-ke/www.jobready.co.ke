@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
 
+  // Keep pdfjs-dist external so Turbopack doesn't bundle it.
+  // Bundling breaks the fake worker's dynamic import('./pdf.worker.mjs').
+  serverExternalPackages: ["pdfjs-dist"],
+
+  // Ensure the pdfjs worker file is traced into standalone output.
+  outputFileTracingIncludes: {
+    "*": ["./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs", "./node_modules/pdfjs-dist/standard_fonts/**/*"],
+  },
+
   // Security headers for all responses
   async headers() {
     return [

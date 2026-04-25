@@ -83,18 +83,16 @@ function isDocxType(mimeType: string, ext: string): boolean {
 }
 
 // ─── PDF text extraction using pdfjs-dist directly ───────────────────────────
-// pdfjs-dist v5 uses DOMMatrix (polyfilled above) and a "fake worker" in Node.js.
-// We use a CDN URL for the worker to avoid Vercel serverless file-resolution issues.
+// pdfjs-dist v5 in Node.js uses a fake worker that does dynamic import('./pdf.worker.mjs').
+// When Turbopack bundles this, the relative import resolves to the wrong path on Vercel.
+// Fix: Set workerSrc to empty string before any import triggers worker initialization.
+// An empty workerSrc causes pdfjs to skip worker creation and run inline.
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
 
-  // Use CDN worker — avoids all local file resolution issues on Vercel.
-  // The version is read dynamically from the installed pdfjs-dist package.
-  if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    pdfjs.GlobalWorkerOptions.workerSrc =
-      `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`
-  }
+  // Must set before getDocument — empty string disables the fake worker.
+  pdfjs.GlobalWorkerOptions.workerSrc = ''
 
   const data = new Uint8Array(buffer)
   const doc = await pdfjs.getDocument({
