@@ -1,58 +1,41 @@
 ---
 Task ID: 1
 Agent: Main Agent
-Task: CV Checker Overhaul — Full pricing, payments, file uploads, email, PDF, SMS, Pro subscriptions
+Task: Full project security audit, bug fixes, and type safety overhaul
 
 Work Log:
-- Reviewed existing CV checker codebase (page.tsx, result/page.tsx, /api/cv-scan, /api/cv-scan/[id], schema)
-- Installed dependencies: mammoth, pdf-parse, @types/pdf-parse, nodemailer
-- Updated Prisma schema with 5 new models: ScanCredit, MpesaPayment, ProSubscription, SmsLog + new enums (ScanType, MpesaStatus, SubStatus)
-- Added phone, fileName, scanType, creditId fields to CVScan model
-- Added scanCredits, mpesaPayments, proSubscription relations to User model
-- Added all credentials to .env: M-Pesa sandbox + production, Talk-Sasa SMS, SMTP email, ZAI API key
-- Pushed schema to database successfully
-- Created src/lib/mpesa.ts — M-Pesa Daraja STK Push library with sandbox/production support
-- Created src/lib/email.ts — Nodemailer email transport with sendCVResults() and sendOTP()
-- Created src/lib/sms.ts — Talk-Sasa SMS gateway with sendOTP() and formatPhoneKenya()
-- Created src/lib/file-parser.ts — mammoth.js (DOCX) + pdf-parse (PDF) file parsing
-- Created src/app/api/mpesa/initiate/route.ts — POST endpoint for M-Pesa STK push initiation
-- Created src/app/api/mpesa/callback/route.ts — POST callback handler for Daraja (handles scan credits + pro subscriptions)
-- Created src/app/api/mpesa/status/route.ts — GET payment status checker
-- Created src/app/api/credits/check/route.ts — GET scan credits checker (phone or userId)
-- Created src/app/api/cv-parse/route.ts — POST file parsing endpoint (PDF/DOCX → text)
-- Created src/app/api/cv-scan/[id]/pdf/route.ts — GET PDF/HTML report generation
-- Created src/app/api/sms/send-otp/route.ts — POST OTP send with rate limiting
-- Created src/app/api/sms/verify-otp/route.ts — POST OTP verification with constant-time compare
-- Created src/app/api/subscribe/pro/route.ts — POST Pro subscription M-Pesa initiation
-- Rewrote src/app/api/cv-scan/route.ts — Added credit checking, file upload support, email sending, pro daily limits
-- Rewrote src/app/cv-checker/page.tsx — Pricing cards, file upload tabs, M-Pesa payment modal, session-aware credits
-- Rewrote src/app/cv-checker/result/page.tsx — PDF download, WhatsApp share with scores, 5th score card, session-aware upsells
+- Synced local repo to remote (github.com/Lulu-ke/www.jobready.co.ke)
+- Reviewed last commit (bb09cd5) and full worklog from remote
+- Ran deep project health check — found 4 critical, 14 warning issues
+- Investigated 12-commit pdfjs-dist churn — identified root cause (worker file not installed at top level, fragile process.cwd() path)
+- Fixed hardcoded production DB credentials in src/middleware.ts (removed inline MySQL URL, use PrismaClient defaults)
+- Fixed hardcoded SMS API token fallback in src/lib/sms.ts (removed production key, warn if missing)
+- Fixed pdfjs-dist for Vercel: switched to CDN workerSrc approach, removed serverExternalPackages, removed outputFileTracingIncludes, deleted copy-pdfjs-worker.js script reference, removed ~5MB orphaned public/pdf.worker* files
+- Added session-based auth to all 3 AI endpoints (/api/ai/cv-suggest, /api/ai/cover-letter, /api/ai/suggest-skills) — prevents AI credit abuse
+- Fixed IDOR vulnerability in cover-letter route (now uses session.userId instead of client-supplied userId)
+- Implemented password reset flow: forgot-password generates crypto token, stores hashed version + expiry in DB, sends email via nodemailer; new reset-password endpoint validates token and updates password
+- Added resetToken + resetTokenExpiry fields to Prisma User model
+- Created .env.example documenting all 20+ required environment variables
+- Updated .gitignore: added upload/, download/, db/*.db, --timeout, examples/, skills/
+- Enabled reactStrictMode: true, set ignoreBuildErrors: false
+- Added security headers (CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy)
+- Fixed all TypeScript errors exposed by strict build:
+  - Zod v4 API: error.errors → error.issues
+  - Prisma findUnique → findFirst for non-unique checkoutReqId lookups
+  - ZAI SDK private method via type augmentation declaration
+  - Added county field to Filters interface across all job listing pages (5 files)
+  - Fixed null vs undefined mismatches in employer type mappings
+  - Excluded examples/ and skills/ from tsconfig
+  - Fixed DB_PASS undefined default in db.ts
+- Removed dead dependencies: pdf-parse, @types/pdf-parse
+- Removed duplicate postbuild script and copy-webpack-plugin reference
+- Build verified: compiles with zero errors, zero warnings, 125 static pages generated
 
 Stage Summary:
-- Build passes with zero errors and zero warnings
-- All new TypeScript files have zero type errors
-- Database schema pushed successfully
-- 20+ new/modified files created
-- Complete pricing system: Anonymous KES 100/4 scans, Logged-in 1 free + KES 40/scan, Pro KES 500/month
----
-Task ID: 1
-Agent: Main Agent
-Task: Fix CV checker - PDF parsing failures, creditId flow, phone normalization
-
-Work Log:
-- Diagnosed pdf-parse v2 API mismatch: constructor takes { data: buffer } not raw Uint8Array
-- Fixed file-parser.ts PDF constructor call and TextResult handling
-- Found proceedWithScan() wasn't passing creditId to cv-scan API
-- Updated page.tsx to extract creditId from M-Pesa status response and forward to proceedWithScan
-- Found phone format mismatch: M-Pesa stores 254XXXXXXXXX, users type 0712345678
-- Created shared normalizePhone() utility in src/lib/phone.ts
-- Applied normalization to: mpesa callback, cv-scan route, credits/check route
-- Added anonymous user auto-find by normalized phone in cv-scan route
-- Build verified clean, pushed to GitHub
-
-Stage Summary:
-- 3 critical bugs fixed and pushed (commit 1d13e48)
-- PDF parsing: constructor fix + proper TextResult extraction + resource cleanup
-- Payment flow: creditId now properly forwarded after M-Pesa success
-- Phone normalization: shared utility ensures consistent 254XXXXXXXXX format
+- 2 commits pushed to GitHub (a115458 + 562d118)
+- All critical security issues resolved
+- pdfjs-dist Vercel deployment fixed with clean CDN approach
+- Password reset flow fully implemented
+- AI endpoints now require authentication
+- Strict TypeScript build passes cleanly
 - Vercel will auto-deploy from push
