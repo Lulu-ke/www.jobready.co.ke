@@ -3,7 +3,10 @@ import { db } from '@/lib/db'
 // ─── Config ──────────────────────────────────────────────────────────────────
 
 const SMS_API_BASE = process.env.SMS_API_BASE || 'https://bulksms.talksasa.com/api/v3'
-const SMS_API_TOKEN = process.env.SMS_API_TOKEN || '2659|FnfdH7nCnLtOkVf1p37QQWPKp5DNnt7tN7MV718b16a3065f'
+const SMS_API_TOKEN = process.env.SMS_API_TOKEN
+if (!SMS_API_TOKEN) {
+  console.warn('[sms] SMS_API_TOKEN is not configured. SMS sending will fail. Set it in .env.')
+}
 const SMS_SENDER_ID = process.env.SMS_SENDER_ID || 'TALK-SASA'
 
 // ─── Types ───────────────────────────────────────────────────────────────────

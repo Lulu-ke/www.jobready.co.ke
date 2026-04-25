@@ -30,13 +30,10 @@ async function getIdToSlug(model: string, id: string): Promise<string | null> {
   try {
     // Dynamic import to avoid bundling Prisma into the edge chunk at build time
     const { PrismaClient } = await import('@prisma/client');
-    const db = new PrismaClient({
-      datasources: {
-        db: {
-          url: 'mysql://jobready_database_admin:Amush%40100%25@da27.host-ww.net/jobready_database',
-        },
-      },
-    });
+    const db = new PrismaClient();
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[middleware] PrismaClient created with default DATABASE_URL. Ensure DATABASE_URL or DB_* env vars are set.');
+    }
 
     let result: { slug: string } | null = null;
 

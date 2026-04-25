@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find the payment record
-    const payment = await db.mpesaPayment.findUnique({
+    const payment = await db.mpesaPayment.findFirst({
       where: { checkoutReqId },
     });
 
@@ -68,9 +68,9 @@ export async function POST(request: NextRequest) {
 
       if (payment.purpose === 'pro_subscription') {
         // Handle Pro subscription activation/extension
-        const existingSub = await db.proSubscription.findUnique({
-          where: payment.userId ? { userId: payment.userId } : undefined,
-        });
+        const existingSub = payment.userId
+          ? await db.proSubscription.findUnique({ where: { userId: payment.userId } })
+          : null;
 
         if (existingSub && existingSub.status === 'ACTIVE' && new Date(existingSub.currentPeriodEnd) > new Date()) {
           // Extend existing subscription by 30 days

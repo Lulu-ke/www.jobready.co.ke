@@ -1,24 +1,28 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  /* config options here */
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
-  reactStrictMode: false,
+  reactStrictMode: true,
 
-  // Ensure pdfjs-dist stays external in both webpack and Turbopack builds
-  serverExternalPackages: ["pdfjs-dist"],
-
-  // Force Next.js to include pdfjs-dist worker files in standalone output
-  outputFileTracingIncludes: {
-    "*": [
-      "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
-      "./node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs",
-      "./node_modules/pdfjs-dist/standard_fonts/**/*",
-    ],
+  // Security headers for all responses
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Content-Security-Policy",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; img-src 'self' data: https: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://cdnjs.cloudflare.com https://bulksms.talksasa.com https://sandbox.safaricom.co.ke https://api.safaricom.co.ke;",
+          },
+        ],
+      },
+    ];
   },
 };
 

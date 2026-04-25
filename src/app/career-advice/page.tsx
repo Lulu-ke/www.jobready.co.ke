@@ -99,7 +99,7 @@ function ArticlesPageInner() {
 
   // Open detail sheet
   const openArticleSheet = useCallback(async (article: Article) => {
-    setSelectedArticle(article);
+    setSelectedArticle(article as unknown as ArticleDetail);
     setDetailOpen(true);
     sheetOpenRef.current = true;
     router.replace(`${pathname}?view=${article.slug}`, { scroll: false });

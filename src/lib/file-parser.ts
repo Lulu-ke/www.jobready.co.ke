@@ -84,33 +84,16 @@ function isDocxType(mimeType: string, ext: string): boolean {
 
 // ─── PDF text extraction using pdfjs-dist directly ───────────────────────────
 // pdfjs-dist v5 uses DOMMatrix (polyfilled above) and a "fake worker" in Node.js.
-// The fake worker does `await import(workerSrc)` to load the WorkerMessageHandler.
-//
-// When loaded via Turbopack external packages, the module lives in .next/server/chunks/
-// and import("./pdf.worker.mjs") resolves relative to THAT directory, not the original
-// source. So we MUST set workerSrc to an absolute path pointing to the actual worker file.
-//
-// The postbuild script (scripts/copy-pdfjs-worker.js) copies the worker to:
-//   .next/standalone/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs
-// Which in Vercel is at: /var/task/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs
+// We use a CDN URL for the worker to avoid Vercel serverless file-resolution issues.
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
 
-  // Set workerSrc to absolute path of the worker file.
-  // The worker file must exist at this path (ensured by postbuild script).
+  // Use CDN worker — avoids all local file resolution issues on Vercel.
+  // The version is read dynamically from the installed pdfjs-dist package.
   if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    const nodePath = await import('path')
-    // In Vercel: /var/task/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs
-    // In local dev: <project>/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs
-    pdfjs.GlobalWorkerOptions.workerSrc = nodePath.join(
-      process.cwd(),
-      'node_modules',
-      'pdfjs-dist',
-      'legacy',
-      'build',
-      'pdf.worker.mjs',
-    )
+    pdfjs.GlobalWorkerOptions.workerSrc =
+      `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`
   }
 
   const data = new Uint8Array(buffer)

@@ -196,7 +196,7 @@ export default async function JobDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <JobDetailClient job={formattedJob} relatedJobs={formattedRelated} />
+      <JobDetailClient job={formattedJob} relatedJobs={formattedRelated as any} />
     </>
   );
 }

@@ -229,7 +229,7 @@ export default function EmployerDetailClient({
             {jobs.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {jobs.map((job) => (
-                  <JobCard key={job.id} job={job} onClick={handleJobClick} />
+                  <JobCard key={job.id} job={job as any} onClick={handleJobClick as any} />
                 ))}
               </div>
             ) : (

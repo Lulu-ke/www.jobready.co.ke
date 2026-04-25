@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     // Look up by checkout request ID (takes priority)
     if (checkoutRequestId) {
-      const payment = await db.mpesaPayment.findUnique({
+      const payment = await db.mpesaPayment.findFirst({
         where: { checkoutReqId: checkoutRequestId },
         include: { credit: true },
       });

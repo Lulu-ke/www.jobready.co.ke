@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
-    "build": "node scripts/set-db-url.js && prisma generate && next build && node scripts/copy-pdfjs-worker.js && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
+    "build": "node scripts/set-db-url.js && prisma generate && next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
     "postinstall": "node scripts/set-db-url.js && prisma generate",
     "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
@@ -13,8 +13,7 @@
     "db:migrate": "node scripts/set-db-url.js && prisma migrate dev",
     "db:reset": "node scripts/set-db-url.js && prisma migrate reset",
     "db:seed": "bun prisma/seed.ts",
-    "db:setup": "node scripts/set-db-url.js",
-    "postbuild": "node scripts/copy-pdfjs-worker.js"
+    "db:setup": "node scripts/set-db-url.js"
   },
   "prisma": {
     "seed": "bun prisma/seed.ts"
@@ -56,12 +55,10 @@
     "@reactuses/core": "^6.0.5",
     "@tanstack/react-query": "^5.82.0",
     "@tanstack/react-table": "^8.21.3",
-    "@types/pdf-parse": "^1.1.5",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "copy-webpack-plugin": "^14.0.0",
+    "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.2",
@@ -74,7 +71,6 @@
     "next-intl": "^4.3.4",
     "next-themes": "^0.4.6",
     "nodemailer": "^7.0.7",
-    "pdf-parse": "^2.4.5",
     "pdfjs-dist": "^5.4.296",
     "prisma": "^6.11.1",
     "react": "^19.0.0",

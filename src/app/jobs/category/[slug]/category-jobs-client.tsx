@@ -23,6 +23,7 @@ interface Filters {
   salaryMin: string;
   salaryMax: string;
   sort: string;
+  county: string;
 }
 
 interface Category {

@@ -190,13 +190,17 @@ export default async function EmployerDetailPage({
     },
   });
 
-  const jobs: JobData[] = rawJobs.map((job) => ({
+  const jobs = rawJobs.map((job) => ({
     ...job,
     company: job.employer?.companyName || 'Unknown Company',
     logo: job.employer?.logoUrl || null,
     isUrgent: deriveIsUrgent(job.closingDate),
     salaryFormatted: formatSalary(job.salaryMin, job.salaryMax, job.currency),
-  }));
+    employer: job.employer ? {
+      ...job.employer,
+      description: job.employer.description ?? undefined,
+    } : null,
+  })) as JobData[];
 
   // ─── JSON-LD Structured Data ─────────────────────────────────────────────
 
@@ -250,7 +254,7 @@ export default async function EmployerDetailPage({
         }}
       />
 
-      <EmployerDetailClient employer={employer} jobs={jobs} />
+      <EmployerDetailClient employer={employer} jobs={jobs as any} />
     </>
   );
 }

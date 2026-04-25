@@ -55,3 +55,18 @@ server.log
 
 # Always ignore .env (contains secrets)
 .env
+
+# User uploads (may contain PII)
+/upload/
+
+# Download directory (dev artifacts)
+/download/
+
+# SQLite databases (legacy)
+/db/*.db
+
+# Accidental CLI artifacts
+--timeout
+
+# Examples / scratch code
+/examples/

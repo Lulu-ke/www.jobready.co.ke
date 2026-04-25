@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import ZAI from 'z-ai-web-dev-sdk';
 import { db } from '@/lib/db';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { userId, jobDescription, tone } = body;
+    // Require authentication to prevent AI credit abuse
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+    }
 
-    if (!userId || !jobDescription || typeof jobDescription !== 'string') {
+    const body = await request.json();
+    const { jobDescription, tone } = body;
+
+    if (!jobDescription || typeof jobDescription !== 'string') {
       return NextResponse.json(
-        { success: false, error: 'User ID and job description are required.' },
+        { success: false, error: 'Job description is required.' },
         { status: 400 }
       );
     }
@@ -20,6 +28,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Use session userId to prevent IDOR — ignore client-supplied userId
+    const userId = session.user.id;
 
     // Fetch user profile
     const user = await db.user.findUnique({
@@ -38,7 +49,7 @@ export async function POST(request: NextRequest) {
     const toneOption = tone || 'Professional';
 
     // Build profile context
-    const profileContext = [];
+    const profileContext: string[] = [];
     if (user.name) profileContext.push(`Name: ${user.name}`);
     if (profile?.title) profileContext.push(`Title: ${profile.title}`);
     if (profile?.summary) profileContext.push(`Summary: ${profile.summary}`);
