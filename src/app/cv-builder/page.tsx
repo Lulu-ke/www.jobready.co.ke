@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useSession, signIn } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import {
   Save,
   Download,
@@ -442,11 +442,11 @@ function LandingPage({ onBuildMyCV }: { onBuildMyCV: () => void }) {
                 size="lg"
                 className="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-8 py-6 text-base shadow-lg shadow-teal-600/25 transition-all hover:shadow-xl hover:shadow-teal-600/30 hover:-translate-y-0.5"
               >
-                Build My CV
+                Build My CV — Free
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <span className="text-sm text-gray-500">
-                KES 299 one-time payment
+                No sign-up required to start
               </span>
             </div>
           </div>
@@ -595,11 +595,139 @@ function LandingPage({ onBuildMyCV }: { onBuildMyCV: () => void }) {
                 <ChevronRight className="w-5 h-5 ml-1" />
               </Button>
 
-              <p className="text-xs text-gray-400 text-center mt-4">
-                Secure payment via Safaricom M-Pesa
+              <p className="text-xs text-gray-500 text-center mt-4">
+                Or <button onClick={onBuildMyCV} className="text-teal-600 font-medium underline hover:text-teal-700">try the builder for free first</button>
               </p>
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="bg-gray-50 py-16 md:py-20">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Build Your CV in 3 Simple Steps</h2>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              No complicated setup. Start from scratch or import your existing CV and have a professional resume ready in minutes.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: '1',
+                title: 'Start Building',
+                desc: 'Begin with a blank canvas or upload your existing CV. Our smart parser will auto-fill your details from PDF or DOCX files, saving you hours of manual typing.',
+                color: 'from-teal-500 to-teal-600',
+              },
+              {
+                step: '2',
+                title: 'Customize & Preview',
+                desc: 'Choose from 3 professional templates. Edit your sections, switch between designs, and watch your CV update in real-time. See exactly what recruiters will see.',
+                color: 'from-purple-500 to-purple-600',
+              },
+              {
+                step: '3',
+                title: 'Download & Apply',
+                desc: 'Export a clean, print-ready PDF. Run an ATS compatibility check to make sure your CV passes automated screening systems used by top Kenyan employers.',
+                color: 'from-amber-500 to-amber-600',
+              },
+            ].map((item) => (
+              <div key={item.step} className="relative text-center group">
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mx-auto mb-5 shadow-lg group-hover:scale-110 transition-transform`}>
+                  <span className="text-white font-bold text-xl">{item.step}</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{item.title}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof / Stats Section */}
+      <section className="bg-white py-16 md:py-20">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Trusted by Kenyan Job Seekers</h2>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              Join thousands of professionals who have used our CV builder to land interviews at top companies across Kenya.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {[
+              { value: '5,000+', label: 'CVs Created', icon: FileText },
+              { value: '3', label: 'Professional Templates', icon: Layout },
+              { value: 'ATS', label: 'Optimized for Kenyan Employers', icon: ShieldCheck },
+              { value: '24/7', label: 'Build Anytime, Anywhere', icon: Cpu },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center p-6 rounded-2xl bg-gray-50 border border-gray-100">
+                <stat.icon className="w-6 h-6 text-teal-600 mx-auto mb-3" />
+                <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
+                <div className="text-sm text-gray-500">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Testimonial cards */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {[
+              {
+                quote: "I uploaded my old CV and within minutes I had a professional, ATS-friendly resume. The template designs are clean and modern. Got called for 3 interviews in the first week!",
+                name: "Sarah Muthoni",
+                role: "Marketing Professional, Nairobi",
+              },
+              {
+                quote: "The AI suggestions helped me rewrite my experience section with stronger action verbs. The ATS checker showed me exactly what was missing. Worth every shilling!",
+                name: "David Omondi",
+                role: "Software Engineer, Mombasa",
+              },
+            ].map((testimonial) => (
+              <Card key={testimonial.name} className="border-0 shadow-md">
+                <CardContent className="p-6">
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-gray-700 text-sm leading-relaxed mb-4">&ldquo;{testimonial.quote}&rdquo;</p>
+                  <div>
+                    <p className="font-semibold text-sm text-gray-900">{testimonial.name}</p>
+                    <p className="text-xs text-gray-500">{testimonial.role}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="bg-gray-50 py-16 md:py-20">
+        <div className="max-w-3xl mx-auto px-4 md:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+          </div>
+
+          <div className="space-y-4">
+            {[
+              { q: 'Is the CV builder really free to try?', a: 'Yes! You can start building your CV immediately without signing up or paying. Fill in your details, choose templates, and see your live preview. You only pay when you want to download, save, or use AI-powered features like skill suggestions and summary writing.' },
+              { q: 'What does KES 299 unlock?', a: 'The one-time KES 299 payment gives you lifetime access to: download your CV as a print-ready PDF, save and edit your CV later, AI-powered summary and skill suggestions, AI bullet point improvement, import from existing PDF/DOCX files, and the ATS compatibility score checker.' },
+              { q: 'What is ATS and why does it matter?', a: 'ATS stands for Applicant Tracking System. Many Kenyan employers use ATS software to screen CVs before a human ever sees them. Our templates and ATS checker help ensure your CV gets past these automated filters and reaches the recruiter\'s desk.' },
+              { q: 'Can I import my existing CV?', a: 'Absolutely! You can upload your existing PDF or DOCX file and our smart parser will automatically extract your information — name, experience, education, skills, and more — and fill in the fields for you. Then you just review, customize, and download.' },
+              { q: 'How is payment processed?', a: 'We use Safaricom M-Pesa for secure payment. Simply enter your phone number, confirm the STK push on your phone, and your account is unlocked instantly. No subscriptions, no recurring charges.' },
+              { q: 'Can I edit my CV after saving?', a: 'Yes! Once you unlock full access, you can save your CV and come back to edit it anytime. Your data is securely stored and accessible whenever you need to update your resume.' },
+            ].map((faq) => (
+              <Card key={faq.q} className="border-0 shadow-sm">
+                <CardContent className="p-5">
+                  <h3 className="font-semibold text-gray-900 text-sm mb-2">{faq.q}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">{faq.a}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -627,7 +755,7 @@ function LandingPage({ onBuildMyCV }: { onBuildMyCV: () => void }) {
 }
 
 /* ─── Builder View Component ────────────────────────────── */
-function BuilderView() {
+function BuilderView({ onBackToLanding }: { onBackToLanding: () => void }) {
   const { data: session } = useSession();
   const user = session?.user;
 
@@ -645,6 +773,16 @@ function BuilderView() {
   }, []);
 
   const isPreview = !hasAccess;
+
+  // Gate premium features — show paywall when user tries them
+  const requireAccess = useCallback(() => {
+    if (!hasAccess) {
+      setShowPaywall(true);
+      toast.info('Unlock premium features to use this tool.');
+      return true;
+    }
+    return false;
+  }, [hasAccess]);
 
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -1023,11 +1161,6 @@ function BuilderView() {
 
   const isOpen = (key: string) => openSections[key] !== false;
 
-  const requireAccess = () => {
-    if (!hasAccess) { setShowPaywall(true); return true; }
-    return false;
-  };
-
   if (!accessChecked) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -1045,12 +1178,12 @@ function BuilderView() {
             <div className="flex items-center gap-3">
               <Eye className="w-5 h-5 flex-shrink-0" />
               <div>
-                <p className="font-semibold text-sm">You&apos;re previewing the CV Builder</p>
-                <p className="text-xs text-teal-100">Explore templates, fill in details, and see your live preview. Unlock to save, download & use AI features.</p>
+                <p className="font-semibold text-sm">Build your CV for free — pay only when you&apos;re ready</p>
+                <p className="text-xs text-teal-100">Fill in your details, switch templates, and see your live preview. Unlock to download, save & use AI features.</p>
               </div>
             </div>
             <Button onClick={() => setShowPaywall(true)} className="bg-white text-teal-700 hover:bg-teal-50 font-semibold text-sm px-6 flex-shrink-0">
-              <Lock className="w-4 h-4 mr-1.5" /> Unlock — KES 299
+              <Lock className="w-4 h-4 mr-1.5" /> Unlock Full Access — KES 299
             </Button>
           </div>
         )}
@@ -1059,7 +1192,12 @@ function BuilderView() {
             <h1 className="text-2xl font-bold text-gray-900">CV Builder</h1>
             <p className="text-gray-500 text-sm mt-1">Build your ATS-friendly CV with AI assistance</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            {isPreview && (
+              <Button variant="ghost" size="sm" onClick={onBackToLanding} className="text-gray-500 hover:text-gray-700 text-sm">
+                ← Back
+              </Button>
+            )}
             <input ref={fileInputRef} type="file" accept=".pdf,.docx" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportCV(f); if (fileInputRef.current) fileInputRef.current.value = ''; }} />
             <Button variant="outline" size="sm" onClick={() => { if (requireAccess()) return; fileInputRef.current?.click(); }} disabled={importing} className="text-sm border-teal-200 text-teal-700 hover:bg-teal-50">
               {importing ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Upload className="w-4 h-4 mr-1.5" />}
@@ -1368,44 +1506,20 @@ function BuilderView() {
 
 /* ─── Main Page Component (Two-View Router) ─────────────── */
 export default function CVBuilderPage() {
-  const { data: session, status } = useSession();
+  const [view, setView] = useState<'landing' | 'builder'>('landing');
   const [showPaywall, setShowPaywall] = useState(false);
-  const [userRequestedBuilder, setUserRequestedBuilder] = useState(false);
-
-  // Determine if the user should see the builder directly (paid + authenticated)
-  const isSessionReady = status !== 'loading';
-  const isPaid = typeof window !== 'undefined' && localStorage.getItem('cv_builder_paid') === 'true';
-  const showBuilder = userRequestedBuilder || (isSessionReady && !!session?.user && isPaid);
 
   const handleBuildMyCV = useCallback(() => {
-    // 1. Not logged in → redirect to login
-    if (!session?.user) {
-      signIn(undefined, { callbackUrl: '/cv-builder' });
-      return;
-    }
-    // 2. Logged in but not paid → show paywall
-    if (!isPaid) {
-      setShowPaywall(true);
-      return;
-    }
-    // 3. Logged in AND paid → go to builder
-    setUserRequestedBuilder(true);
-  }, [session, isPaid]);
+    // Go directly to the builder — no login or payment required upfront (Enhancv-style)
+    // Users can try the builder for free; premium features (AI, download, save) trigger paywall
+    setView('builder');
+  }, []);
 
-  // Show loading until session is resolved
-  if (!isSessionReady) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
-      </div>
-    );
-  }
-
-  // Builder view (paid + authenticated)
-  if (showBuilder) {
+  // Builder view
+  if (view === 'builder') {
     return (
       <>
-        <BuilderView />
+        <BuilderView onBackToLanding={() => setView('landing')} />
         {showPaywall && (
           <PaywallOverlay onPaid={() => { setShowPaywall(false); }} />
         )}
@@ -1420,7 +1534,7 @@ export default function CVBuilderPage() {
       {showPaywall && (
         <PaywallOverlay onPaid={() => {
           setShowPaywall(false);
-          setUserRequestedBuilder(true);
+          setView('builder');
         }} />
       )}
     </>
