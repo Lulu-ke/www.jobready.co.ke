@@ -7,6 +7,12 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
 
+  // Keep pdfjs-dist external so Turbopack doesn't bundle it.
+  // When external, the dynamic import resolves to the real node_modules path,
+  // and pdfjs-dist's built-in Node.js "fake worker" correctly finds
+  // pdf.worker.mjs relative to pdf.mjs in the installed package.
+  serverExternalPackages: ['pdfjs-dist'],
+
   // Security headers for all responses
   async headers() {
     return [
@@ -18,7 +24,14 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; img-src 'self' data: https: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://cdnjs.cloudflare.com https://bulksms.talksasa.com https://sandbox.safaricom.co.ke https://api.safaricom.co.ke;",
+            value: [
+              "default-src 'self';",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com;",
+              "img-src 'self' data: https: blob:;",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
+              "font-src 'self' https://fonts.gstatic.com;",
+              "connect-src 'self' https://cdnjs.cloudflare.com https://bulksms.talksasa.com https://sandbox.safaricom.co.ke https://api.safaricom.co.ke;",
+            ].join(' '),
           },
         ],
       },

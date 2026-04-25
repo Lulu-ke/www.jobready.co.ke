@@ -127,3 +127,29 @@ Stage Summary:
 - CV Builder now supports importing existing CVs from PDF/DOCX files
 - New /api/ai/cv-extract endpoint for structured CV data extraction
 - Commit: deddd4a pushed to GitHub
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Fix Vercel deployment errors — resetToken column, pdfjs-dist worker, CSP Google Fonts
+
+Work Log:
+- Analyzed 4 deployment errors from Vercel console:
+  1. Prisma error: "column User.resetToken does not exist" — schema has resetToken but DB not synced
+  2. PDF worker: "Cannot find module '/var/task/.next/server/chunks/pdf.worker.mjs'" — Turbopack bundling pdfjs into chunks
+  3. CSP blocking Google Fonts stylesheets — style-src missing https://fonts.googleapis.com
+  4. 400/500 on /api/cv-scan — cascade from resetToken + PDF parse failures
+- Fixed next.config.ts:
+  - Added serverExternalPackages: ['pdfjs-dist'] — prevents Turbopack from bundling pdfjs, allows it to load from node_modules at runtime where the fake worker can find pdf.worker.mjs relative to pdf.mjs
+  - Fixed CSP style-src: added https://fonts.googleapis.com to allow Google Fonts CSS loading
+- Updated file-parser.ts comment to accurately reflect current approach (serverExternalPackages)
+- Confirmed CV Builder already has DOCX upload (Import CV button, accepts .pdf/.docx)
+- Confirmed CV Checker already has side-by-side layout (left: CV, right: job description)
+- Build verified: zero type errors, zero build errors
+- Instructed user to run `npm run db:push` to sync resetToken/resetTokenExpiry columns to database
+
+Stage Summary:
+- pdfjs-dist: restored serverExternalPackages approach for reliable Node.js fake worker resolution
+- CSP: Google Fonts stylesheets now allowed via style-src directive
+- resetToken: user must run db:push to add missing columns to production database
+- Build passes cleanly, ready for deploy

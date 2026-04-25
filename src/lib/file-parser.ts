@@ -87,11 +87,11 @@ function isDocxType(mimeType: string, ext: string): boolean {
 //
 // IMPORTANT: All pdfjs imports are dynamic (await import(...)) to prevent
 // pdfjs code from executing during Next.js build-time "page data collection".
-// pdfjs-dist v5 is kept in serverExternalPackages so Turbopack doesn't bundle it.
-// In Node.js, pdfjs auto-detects the environment and uses a "fake worker"
-// that runs inline — no actual Web Worker is spawned.
-// The fake worker resolves ./pdf.worker.mjs relative to the pdf.mjs module
-// location, which works correctly when the package is external (not bundled).
+//
+// pdfjs-dist is listed in serverExternalPackages so Turbopack does NOT bundle it.
+// At runtime the dynamic import resolves to the real node_modules path, and
+// pdfjs-dist's built-in Node.js "fake worker" correctly finds pdf.worker.mjs
+// relative to pdf.mjs in the installed package directory.
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
   // Dynamic import: only runs at request time, never during build
