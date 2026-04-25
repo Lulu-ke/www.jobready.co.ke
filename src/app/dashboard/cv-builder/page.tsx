@@ -22,6 +22,7 @@ import {
   Globe,
   Eye,
   Upload,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -73,6 +74,15 @@ interface Language {
   proficiency: string;
 }
 
+interface Referee {
+  id: string;
+  name: string;
+  title: string;
+  organization: string;
+  phone: string;
+  email: string;
+}
+
 type Template = 'modern' | 'classic' | 'minimal';
 
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -95,6 +105,10 @@ export default function CVBuilderPage() {
   const [linkedin, setLinkedin] = useState('');
   const [portfolio, setPortfolio] = useState('');
   const [summary, setSummary] = useState('');
+  const [professionalTitle, setProfessionalTitle] = useState('');
+  const [referees, setReferees] = useState<Referee[]>([]);
+  const [interests, setInterests] = useState<string[]>([]);
+  const [interestInput, setInterestInput] = useState('');
   const [suggestingSummary, setSuggestingSummary] = useState(false);
   const [experience, setExperience] = useState<Experience[]>([]);
   const [education, setEducation] = useState<Education[]>([]);
@@ -111,7 +125,7 @@ export default function CVBuilderPage() {
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     personal: true, summary: true, experience: true, education: true,
-    skills: true, certifications: true, languages: true,
+    skills: true, certifications: true, languages: true, referees: true, interests: true,
   });
 
   // Import CV from file — uses local extraction (no AI required)
@@ -143,7 +157,8 @@ export default function CVBuilderPage() {
       const d = extractCVFields(parseData.text);
 
       // Step 3: Populate form fields
-      if (d.name) setName(d.professionalTitle ? `${d.name} — ${d.professionalTitle}` : d.name);
+      if (d.name) setName(d.name);
+      if (d.professionalTitle) setProfessionalTitle(d.professionalTitle);
       if (d.email) setEmail(d.email);
       if (d.phone) setPhone(d.phone);
       if (d.location) setLocation(d.location);
@@ -179,6 +194,12 @@ export default function CVBuilderPage() {
       if (d.languages.length > 0) {
         setLanguages(d.languages.map((l) => ({
           id: uid(), name: l.name || '', proficiency: l.proficiency || 'Intermediate',
+        })));
+      }
+      if (d.referees.length > 0) {
+        setReferees(d.referees.map((r) => ({
+          id: uid(), name: r.name || '', title: r.title || '',
+          organization: r.organization || '', phone: r.phone || '', email: r.email || '',
         })));
       }
 
@@ -217,6 +238,9 @@ export default function CVBuilderPage() {
             if (Array.isArray(content.skills)) setSkills(content.skills);
             if (Array.isArray(content.certifications)) setCertifications(content.certifications);
             if (Array.isArray(content.languages)) setLanguages(content.languages);
+            if (content.professionalTitle) setProfessionalTitle(content.professionalTitle);
+            if (Array.isArray(content.referees)) setReferees(content.referees);
+            if (Array.isArray(content.interests)) setInterests(content.interests);
             if (content.template) setTemplate(content.template);
           } catch { /* not parseable */ }
         }
@@ -309,6 +333,20 @@ export default function CVBuilderPage() {
   };
   const removeLanguage = (id: string) => { setLanguages(languages.filter((l) => l.id !== id)); };
 
+  const addReferee = () => {
+    setReferees([...referees, { id: uid(), name: '', title: '', organization: '', phone: '', email: '' }]);
+  };
+  const updateReferee = (id: string, field: keyof Referee, value: string) => {
+    setReferees(referees.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
+  };
+  const removeReferee = (id: string) => { setReferees(referees.filter((r) => r.id !== id)); };
+
+  const addInterest = () => {
+    const i = interestInput.trim();
+    if (i && !interests.includes(i)) { setInterests([...interests, i]); setInterestInput(''); }
+  };
+  const removeInterest = (i: string) => { setInterests(interests.filter((int) => int !== i)); };
+
   const suggestSummary = async () => {
     const ctx: string[] = [];
     if (experience.length > 0) ctx.push(experience.slice(0, 2).map((e) => `${e.role} at ${e.company}`).join(', '));
@@ -341,7 +379,7 @@ export default function CVBuilderPage() {
     if (!session?.user?.id) { toast.error('You must be logged in.'); return; }
     setSaving(true);
     try {
-      const content = JSON.stringify({ name, email, phone, location, linkedin, portfolio, summary, experience, education, skills, certifications, languages, template });
+      const content = JSON.stringify({ name, professionalTitle, email, phone, location, linkedin, portfolio, summary, experience, education, skills, certifications, languages, referees, interests, template });
       const existingRes = await fetch('/api/career-documents?type=CV');
       const existingData = await existingRes.json();
       if (existingData.success && existingData.documents && existingData.documents.length > 0) {
@@ -407,6 +445,9 @@ export default function CVBuilderPage() {
     if (location) cp.push(`<span>${esc(location)}</span>`);
     let h = `<style>${ts[template]}</style>`;
     h += `<h1>${esc(name) || 'Your Name'}</h1>`;
+    if (professionalTitle) h += `<p style="margin:0 0 8px;font-size:14px;color:#666;font-weight:500">${esc(professionalTitle)}</p>`;
+    if (linkedin) cp.push(`<span>${esc(linkedin)}</span>`);
+    if (portfolio) cp.push(`<span>${esc(portfolio)}</span>`);
     if (cp.length) h += `<div class="contact">${cp.join('')}</div>`;
     if (summary) h += `<p style="margin-bottom:16px">${esc(summary).replace(/\n/g, '<br>')}</p>`;
     if (experience.length) {
@@ -420,6 +461,15 @@ export default function CVBuilderPage() {
     if (skills.length) h += `<h2>Skills</h2><div class="skills">${skills.map((s) => `<span class="skill-tag">${esc(s)}</span>`).join('')}</div>`;
     if (certifications.length) { h += '<h2>Certifications</h2>'; certifications.forEach((c) => { if (c.name) h += `<div class="list-item"><strong>${esc(c.name)}</strong> — ${esc(c.issuer) || ''} ${c.year ? '(' + esc(c.year) + ')' : ''}</div>`; }); }
     if (languages.length) { h += '<h2>Languages</h2>'; languages.forEach((l) => { if (l.name) h += `<div class="list-item">${esc(l.name)} — ${esc(l.proficiency) || ''}</div>`; }); }
+    if (referees.length) {
+      h += '<h2>Referees</h2>';
+      referees.forEach((r) => {
+        if (r.name) {
+          h += `<div class="list-item"><strong>${esc(r.name)}</strong>${r.title ? ' — ' + esc(r.title) : ''}${r.organization ? '<br>' + esc(r.organization) : ''}${r.email ? '<br>' + esc(r.email) : ''}${r.phone ? '<br>' + esc(r.phone) : ''}</div>`;
+        }
+      });
+    }
+    if (interests.length) h += `<h2>Interests</h2><div class="skills">${interests.map((i) => `<span class="skill-tag">${esc(i)}</span>`).join('')}</div>`;
     return h;
   }
 
@@ -466,6 +516,7 @@ export default function CVBuilderPage() {
             {isOpen('personal') && <div className="p-4">
               <div className="grid sm:grid-cols-2 gap-3">
                 <div><Label className="text-xs">Full Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} className="text-sm" placeholder="John Kamau" /></div>
+                <div><Label className="text-xs">Professional Title</Label><Input value={professionalTitle} onChange={(e) => setProfessionalTitle(e.target.value)} className="text-sm" placeholder="Certified Public Accountant" /></div>
                 <div><Label className="text-xs">Email</Label><Input value={email} onChange={(e) => setEmail(e.target.value)} className="text-sm" placeholder="john@email.com" /></div>
                 <div><Label className="text-xs">Phone</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} className="text-sm" placeholder="+254 700 000 000" /></div>
                 <div><Label className="text-xs">Location</Label><Input value={location} onChange={(e) => setLocation(e.target.value)} className="text-sm" placeholder="Nairobi, Kenya" /></div>
@@ -614,11 +665,55 @@ export default function CVBuilderPage() {
                       <SelectItem value="Intermediate">Intermediate</SelectItem>
                       <SelectItem value="Advanced">Advanced</SelectItem>
                       <SelectItem value="Fluent">Fluent</SelectItem>
+                      <SelectItem value="Native">Native</SelectItem>
                     </SelectContent>
                   </Select>
                   <button onClick={() => removeLanguage(lang.id)} className="text-red-400 hover:text-red-600 p-1"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               ))}
+            </div>}
+          </div>
+
+          {/* Referees */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden mb-4">
+            <button onClick={() => toggleSection('referees')} className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
+              <div className="flex items-center gap-2"><Users className="w-4 h-4 text-teal-600" /><span className="text-sm font-semibold text-gray-800">Referees</span></div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={addReferee} className="text-xs text-teal-600"><Plus className="w-3 h-3 mr-1" /> Add</Button>
+                {isOpen('referees') ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+              </div>
+            </button>
+            {isOpen('referees') && <div className="p-4 space-y-3">
+              {referees.length === 0 && <p className="text-gray-400 text-xs text-center py-4">No referees added yet.</p>}
+              {referees.map((ref) => (
+                <div key={ref.id} className="border border-gray-100 rounded-lg p-3 bg-gray-50/50">
+                  <div className="flex justify-end mb-2"><button onClick={() => removeReferee(ref.id)} className="text-red-400 hover:text-red-600 p-1"><Trash2 className="w-3.5 h-3.5" /></button></div>
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    <Input value={ref.name} onChange={(e) => updateReferee(ref.id, 'name', e.target.value)} placeholder="Full Name" className="text-xs" />
+                    <Input value={ref.title} onChange={(e) => updateReferee(ref.id, 'title', e.target.value)} placeholder="Title / Position" className="text-xs" />
+                    <Input value={ref.organization} onChange={(e) => updateReferee(ref.id, 'organization', e.target.value)} placeholder="Organization" className="text-xs" />
+                    <Input value={ref.phone} onChange={(e) => updateReferee(ref.id, 'phone', e.target.value)} placeholder="Phone" className="text-xs" />
+                    <div className="sm:col-span-2"><Input value={ref.email} onChange={(e) => updateReferee(ref.id, 'email', e.target.value)} placeholder="Email" className="text-xs" /></div>
+                  </div>
+                </div>
+              ))}
+            </div>}
+          </div>
+
+          {/* Interests */}
+          <div className="border border-gray-200 rounded-xl overflow-hidden mb-4">
+            <button onClick={() => toggleSection('interests')} className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition">
+              <div className="flex items-center gap-2"><Star className="w-4 h-4 text-purple-600" /><span className="text-sm font-semibold text-gray-800">Interests</span></div>
+              {isOpen('interests') ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+            </button>
+            {isOpen('interests') && <div className="p-4">
+              <div className="flex flex-wrap gap-1.5 mb-3">{interests.map((i) => (
+                <Badge key={i} variant="secondary" className="text-xs gap-1 pr-1">{i}<button onClick={() => removeInterest(i)} className="hover:text-red-500"><X className="w-3 h-3" /></button></Badge>
+              ))}</div>
+              <div className="flex gap-2">
+                <Input value={interestInput} onChange={(e) => setInterestInput(e.target.value)} placeholder="Type interest + Enter" className="text-xs flex-1" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addInterest(); } }} />
+                <Button variant="outline" size="sm" onClick={addInterest} className="text-xs"><Plus className="w-3 h-3" /></Button>
+              </div>
             </div>}
           </div>
 

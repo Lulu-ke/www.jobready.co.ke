@@ -723,7 +723,7 @@ const COMMON_SKILLS = new Set([
   'legal', 'compliance', 'regulatory', 'contract management',
   'driving', 'photography', 'videography', 'event planning',
   'graphics design', 'web design', 'web development',
-  'erp systems', 'inventory management', 'records management',
+  'erp systems', 'records management',
   'public relations', 'stakeholder management',
 ]);
 
