@@ -669,6 +669,13 @@ function extractSummary(sections: SectionBlock[]): string {
 
 const SKILL_SEPARATORS = /[;,|•·▪▸►→●)\]}>\/+]/;
 
+/** Short terms that are too ambiguous as standalone skills — only valid in context */
+const SKILL_BLACKLIST = new Set([
+  'go', 'tax', 'word', 'express', 'access', 'outlook', 'basic', 'internet',
+  'email', 'social', 'office', 'support', 'service', 'data', 'analytics',
+  'data entry', 'presentation', 'windows',
+]);
+
 const COMMON_SKILLS = new Set([
   // Programming & tech
   'javascript', 'typescript', 'python', 'java', 'c++', 'c#', 'ruby', 'php', 'go',
@@ -742,9 +749,21 @@ function extractSkills(sections: SectionBlock[]): string[] {
   for (const rawLine of allSkillLines) {
     const line = rawLine.toLowerCase();
     for (const skill of COMMON_SKILLS) {
-      if (line.includes(skill) && !seen.has(skill)) {
-        seen.add(skill);
-        skills.add(cap(skill));
+      if (!seen.has(skill) && !SKILL_BLACKLIST.has(skill)) {
+        // For short skills (≤4 chars), use word boundary check to avoid false positives
+        // e.g., "go" should not match "google", "sql" should not match "mysql"
+        if (skill.length <= 4) {
+          const re = new RegExp('(?:^|[\\s|/,;.()\\[\\]{}])' + skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:$|[\\s|/,;.()\\[\\]{}])', 'i');
+          if (re.test(line)) {
+            seen.add(skill);
+            skills.add(cap(skill));
+          }
+        } else {
+          if (line.includes(skill)) {
+            seen.add(skill);
+            skills.add(cap(skill));
+          }
+        }
       }
     }
 
@@ -752,9 +771,17 @@ function extractSkills(sections: SectionBlock[]): string[] {
     const parts = rawLine.split(SKILL_SEPARATORS);
     for (const part of parts) {
       const trimmed = part.trim().toLowerCase().replace(/^[-–—:]\s*/, '');
-      if (trimmed.length >= 2 && trimmed.length <= 50 && !seen.has(trimmed)) {
+      if (trimmed.length >= 3 && trimmed.length <= 50 && !seen.has(trimmed) && !SKILL_BLACKLIST.has(trimmed)) {
         for (const skill of COMMON_SKILLS) {
-          if (trimmed.includes(skill) || skill.includes(trimmed)) {
+          // Forward match: the separator-split part contains a known skill
+          if (trimmed.includes(skill)) {
+            seen.add(trimmed);
+            skills.add(cap(skill));
+            break;
+          }
+          // Reverse match: a known skill contains the separator-split part
+          // Only allow if the part is at least 5 chars to avoid false positives like "go", "tax"
+          if (trimmed.length >= 5 && skill.includes(trimmed)) {
             seen.add(trimmed);
             skills.add(cap(skill));
             break;
@@ -769,9 +796,13 @@ function extractSkills(sections: SectionBlock[]): string[] {
   for (const rawLine of expLines) {
     const line = rawLine.toLowerCase();
     for (const skill of COMMON_SKILLS) {
-      if (line.includes(skill) && !seen.has(skill)) {
-        seen.add(skill);
-        skills.add(cap(skill));
+      if (!seen.has(skill) && !SKILL_BLACKLIST.has(skill)) {
+        if (skill.length <= 4) {
+          const re = new RegExp('(?:^|[\\s|/,;.()\\[\\]{}])' + skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:$|[\\s|/,;.()\\[\\]{}])', 'i');
+          if (re.test(line)) { seen.add(skill); skills.add(cap(skill)); }
+        } else {
+          if (line.includes(skill)) { seen.add(skill); skills.add(cap(skill)); }
+        }
       }
     }
   }
@@ -994,12 +1025,23 @@ function extractEducation(sections: SectionBlock[]): ExtractedEducation[] {
       const degreeMatch = line.match(DEGREE_RE);
       if (degreeMatch) {
         const idx = line.toLowerCase().indexOf(degreeMatch[0].toLowerCase());
-        const de = line.indexOf('–', idx); const de2 = line.indexOf('-', idx);
+        // First try pipe separator (common: "BSc IT | Sep 2017 – Nov 2021")
+        let degreePart = line.slice(idx);
+        const pipeIdx = degreePart.indexOf('|');
+        if (pipeIdx > 0) {
+          // Check if the pipe is followed by a date (year or month)
+          const afterPipe = degreePart.slice(pipeIdx + 1).trim();
+          if (/^\d{4}|^(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*/i.test(afterPipe)) {
+            degreePart = degreePart.slice(0, pipeIdx);
+          }
+        }
+        // Then look for dash separators within the degree part
+        const de = degreePart.indexOf('–', idx > 0 ? 0 : idx); const de2 = degreePart.indexOf('-', idx > 0 ? 0 : idx);
         let endIdx = -1;
         if (de > -1 && de2 > -1) endIdx = Math.min(de, de2);
         else if (de > -1) endIdx = de;
         else if (de2 > -1) endIdx = de2;
-        const rawDegree = endIdx > -1 ? line.slice(idx, endIdx).trim() : line.slice(idx).trim();
+        const rawDegree = endIdx > -1 ? degreePart.slice(0, endIdx).trim() : degreePart.trim();
         degree = rawDegree
           .replace(/\s*[-–(]\s*(?:second|first|third)\s+class\s+honours?\s*(?:\(upper\s+division\)|\(lower\s+division\))?\s*\)?\s*/gi, '')
           .replace(/\s*[-–(]\s*(?:pass|credit|distinction)\s*\)?\s*/gi, '').trim();
@@ -1018,7 +1060,12 @@ function extractEducation(sections: SectionBlock[]): ExtractedEducation[] {
       if (KCPE_RE.test(line)) { degree = 'Kenya Certificate of Primary Education'; }
       if (INST_RE.test(nextLine)) {
         institution = nextLine.split(/\s*[-|–—]\s*/)[0].replace(/\|.*$/, '').trim();
-        const id = extractDateRange(nextLine); if (id) { startYear = id.start; endYear = id.isCurrent ? '' : id.end; }
+        // Extract dates from the degree line first, then fall back to institution line
+        const dd = extractDateRange(line);
+        const id = dd || extractDateRange(nextLine);
+        if (id) { startYear = startYear || id.start; endYear = id.isCurrent ? '' : id.end; }
+        // Also try to get a date from the institution line if degree line had none
+        if (!dd) { const id2 = extractDateRange(nextLine); if (id2) { startYear = id2.start; endYear = id2.isCurrent ? '' : id2.end; } }
         i += 2;
       } else {
         const ld = extractDateRange(line); if (ld) { startYear = ld.start; endYear = ld.isCurrent ? '' : ld.end; }
@@ -1092,7 +1139,7 @@ function extractLanguages(sections: SectionBlock[]): ExtractedLanguage[] {
     const pm = cl.match(PROFICIENCY_RE);
     const proficiency = pm ? cap(pm[1]) : '';
     const name = cl.replace(/[-|–—(]\s*(?:native|fluent|advanced|intermediate|beginner|elementary|basic|professional)\w*\s*[)]?/gi, '').trim();
-    if (name.length > 1) results.push({ name: cap(name), proficiency: proficiency || 'Intermediate' });
+    if (name.length > 1) results.push({ name: cap(name), proficiency });
   }
   return results.slice(0, 10);
 }

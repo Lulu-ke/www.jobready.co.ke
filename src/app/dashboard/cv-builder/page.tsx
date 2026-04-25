@@ -402,7 +402,22 @@ export default function CVBuilderPage() {
     const pw = window.open('', '_blank');
     if (!pw) return;
     pw.document.write(`<!DOCTYPE html><html><head><title>${name || 'CV'}</title>
-      <style>body{font-family:'Segoe UI',Tahoma,sans-serif;margin:40px;color:#1a1a1a;line-height:1.5}h1{font-size:24px;margin-bottom:4px}h2{font-size:16px;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #0d9488;padding-bottom:4px;margin-top:20px;color:#0d9488}.contact{font-size:13px;color:#666;margin-bottom:16px}.contact span{margin-right:16px}.exp-item{margin-bottom:12px}.exp-header{font-size:14px;font-weight:600}.exp-sub{font-size:12px;color:#666}.exp-desc{font-size:13px;margin-top:4px;white-space:pre-line}.skills{display:flex;flex-wrap:wrap;gap:6px}.skill-tag{background:#f0fdfa;color:#0d9488;padding:2px 10px;border-radius:12px;font-size:12px;border:1px solid #ccfbf1}.list-item{font-size:13px;margin:2px 0}@media print{body{margin:20px}}</style></head><body>${buildPreviewHTML()}<script>window.onload=()=>window.print()</script></body></html>`);
+      <style>
+        body{font-family:'Segoe UI',Tahoma,sans-serif;margin:40px;color:#1a1a1a;line-height:1.5}
+        h1{font-size:24px;margin-bottom:2px}
+        h2{font-size:16px;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #0d9488;padding-bottom:4px;margin-top:20px;color:#0d9488}
+        .contact{font-size:13px;color:#666;margin-bottom:16px}.contact span{margin-right:16px}
+        .exp-item{margin-bottom:12px}.exp-header{font-size:14px;font-weight:600}.exp-sub{font-size:12px;color:#666}.exp-desc{font-size:13px;margin-top:4px;white-space:pre-line}
+        .skills{display:flex;flex-wrap:wrap;gap:6px}.skill-tag{background:#f0fdfa;color:#0d9488;padding:2px 10px;border-radius:12px;font-size:12px;border:1px solid #ccfbf1}
+        .list-item{font-size:13px;margin:2px 0}
+        .referee-item{margin-bottom:10px;font-size:12px}.referee-name{font-weight:600;font-size:13px}.referee-detail{color:#555}
+        @page{margin:15mm 20mm}
+        @media print{
+          body{margin:0}
+          @page{margin:15mm 20mm}
+          /* Suppress browser print headers/footers */
+        }
+      </style></head><body>${buildPreviewHTML()}<script>window.onload=()=>window.print()</script></body></html>`);
     pw.document.close();
   };
 
@@ -456,11 +471,11 @@ export default function CVBuilderPage() {
     }
     if (education.length) {
       h += '<h2>Education</h2>';
-      education.forEach((e) => { if (e.institution || e.degree) h += `<div class="list-item"><strong>${esc(e.degree) || ''} ${e.field ? 'in ' + esc(e.field) : ''}</strong> — ${esc(e.institution) || ''} ${e.endYear ? '(' + esc(e.endYear) + ')' : ''}</div>`; });
+      education.forEach((e) => { if (e.institution || e.degree) h += `<div class="list-item"><strong>${esc(e.degree) || ''} ${e.field ? 'in ' + esc(e.field) : ''}</strong> ${e.startYear || e.endYear ? '| ' + esc(e.startYear || '') + (e.startYear && e.endYear ? ' – ' : '') + esc(e.endYear || '') + ' ' : ''}— ${esc(e.institution) || ''}</div>`; });
     }
     if (skills.length) h += `<h2>Skills</h2><div class="skills">${skills.map((s) => `<span class="skill-tag">${esc(s)}</span>`).join('')}</div>`;
     if (certifications.length) { h += '<h2>Certifications</h2>'; certifications.forEach((c) => { if (c.name) h += `<div class="list-item"><strong>${esc(c.name)}</strong> — ${esc(c.issuer) || ''} ${c.year ? '(' + esc(c.year) + ')' : ''}</div>`; }); }
-    if (languages.length) { h += '<h2>Languages</h2>'; languages.forEach((l) => { if (l.name) h += `<div class="list-item">${esc(l.name)} — ${esc(l.proficiency) || ''}</div>`; }); }
+    if (languages.length) { h += '<h2>Languages</h2>'; languages.forEach((l) => { if (l.name) h += `<div class="list-item">${esc(l.name)}${l.proficiency ? ' — ' + esc(l.proficiency) : ''}</div>`; }); }
     if (referees.length) {
       h += '<h2>Referees</h2>';
       referees.forEach((r) => {
