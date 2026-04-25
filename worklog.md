@@ -32,10 +32,30 @@ Work Log:
 - Build verified: compiles with zero errors, zero warnings, 125 static pages generated
 
 Stage Summary:
-- 2 commits pushed to GitHub (a115458 + 562d118)
+- 5 commits pushed to GitHub (a115458, 562d118, 5df0f89, 8e2d51b, 83988db)
 - All critical security issues resolved
-- pdfjs-dist Vercel deployment fixed with clean CDN approach
+- pdfjs-dist Vercel deployment fixed: serverExternalPackages + top-level workerSrc + outputFileTracingIncludes
 - Password reset flow fully implemented
 - AI endpoints now require authentication
 - Strict TypeScript build passes cleanly
-- Vercel will auto-deploy from push
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Test document upload on live Vercel site
+
+Work Log:
+- Tested CV Checker page (https://www-jobready-co-ke.vercel.app/cv-checker): page loads, UI renders correctly, file upload dropzone present
+- Tested CV Builder page (https://www-jobready-co-ke.vercel.app/dashboard/cv-builder): correctly redirects to login (auth-protected)
+- Tested shared link (https://www-jobready-co-ke.vercel.app?_vercel_share=...): homepage loads correctly
+- Created test PDF CV (John Kamau, Software Engineer) using reportlab
+- Tested /api/cv-parse endpoint with curl + test PDF
+- Initial test: PDF parsing FAILED with "Cannot find module pdf.worker.mjs" (old deployment)
+- After 3 iterative pdfjs fixes (serverExternalPackages + top-level workerSrc + outputFileTracingIncludes): PDF parsing SUCCEEDS
+- Final test returned: success=true, full CV text extracted correctly with all sections
+
+Stage Summary:
+- PDF upload parsing confirmed working on Vercel serverless
+- CV Builder requires auth (correct behavior)
+- Shared links load correctly
+- Screenshots saved to /home/z/my-project/download/
