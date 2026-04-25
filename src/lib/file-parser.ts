@@ -107,9 +107,6 @@ async function extractPdfText(buffer: Buffer): Promise<string> {
   const doc = await pdfjs.getDocument({
     data,
 
-    // Prevent PDF.js from trying to create/import a worker on Vercel
-    disableWorker: true,
-
     // Safer serverless settings
     useWorkerFetch: false,
     isEvalSupported: false,
