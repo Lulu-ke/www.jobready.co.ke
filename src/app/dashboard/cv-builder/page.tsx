@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useDashboardUser } from '@/app/dashboard/dashboard-shell';
+import { extractCVFields } from '@/lib/cv-local-extractor';
 
 /* ─── Types ─────────────────────────────────────────────── */
 interface Experience {
@@ -113,7 +114,7 @@ export default function CVBuilderPage() {
     skills: true, certifications: true, languages: true,
   });
 
-  // Import CV from file
+  // Import CV from file — uses local extraction (no AI required)
   const handleImportCV = useCallback(async (file: File) => {
     const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
     if (!['.pdf', '.docx'].includes(ext)) {
@@ -127,7 +128,7 @@ export default function CVBuilderPage() {
 
     setImporting(true);
     try {
-      // Step 1: Parse the file to text
+      // Step 1: Parse the file to text via server
       const formData = new FormData();
       formData.append('file', file);
       const parseRes = await fetch('/api/cv-parse', { method: 'POST', body: formData });
@@ -138,22 +139,8 @@ export default function CVBuilderPage() {
         return;
       }
 
-      // Step 2: Use AI to extract structured data
-      const extractRes = await fetch('/api/ai/cv-extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cvText: parseData.text }),
-      });
-      const extractData = await extractRes.json();
-
-      if (!extractData.success) {
-        toast.error(extractData.error || 'AI could not extract CV data. Try pasting manually.');
-        setImporting(false);
-        return;
-      }
-
-      const d = extractData.data;
-      if (!d) { toast.error('No data extracted.'); setImporting(false); return; }
+      // Step 2: Extract fields locally using regex/rules (no AI needed)
+      const d = extractCVFields(parseData.text);
 
       // Step 3: Populate form fields
       if (d.name) setName(d.name);
@@ -161,40 +148,42 @@ export default function CVBuilderPage() {
       if (d.phone) setPhone(d.phone);
       if (d.location) setLocation(d.location);
       if (d.linkedin) setLinkedin(d.linkedin);
+      if (d.portfolio) setPortfolio(d.portfolio);
       if (d.summary) setSummary(d.summary);
 
-      if (Array.isArray(d.experience) && d.experience.length > 0) {
-        setExperience(d.experience.map((e: any) => ({
-          id: uid(), company: e.company || '', role: e.role || e.position || '',
+      if (d.experience.length > 0) {
+        setExperience(d.experience.map((e) => ({
+          id: uid(), company: e.company || '', role: e.role || '',
           startDate: e.startDate || '', endDate: e.endDate || '',
           current: e.current || false, description: e.description || '',
         })));
       }
-      if (Array.isArray(d.education) && d.education.length > 0) {
-        setEducation(d.education.map((e: any) => ({
-          id: uid(), institution: e.institution || e.school || '',
-          degree: e.degree || '', field: e.field || e.fieldOfStudy || '',
+      if (d.education.length > 0) {
+        setEducation(d.education.map((e) => ({
+          id: uid(), institution: e.institution || '',
+          degree: e.degree || '', field: e.field || '',
           startYear: e.startYear || '', endYear: e.endYear || '',
         })));
       }
-      if (Array.isArray(d.skills)) {
+      if (d.skills.length > 0) {
         setSkills((prev) => {
-          const merged = [...prev, ...d.skills.filter((s: string) => !prev.includes(s))];
+          const merged = [...prev, ...d.skills.filter((s) => !prev.includes(s))];
           return [...new Set(merged)];
         });
       }
-      if (Array.isArray(d.certifications)) {
-        setCertifications(d.certifications.map((c: any) => ({
+      if (d.certifications.length > 0) {
+        setCertifications(d.certifications.map((c) => ({
           id: uid(), name: c.name || '', issuer: c.issuer || '', year: c.year || '',
         })));
       }
-      if (Array.isArray(d.languages)) {
-        setLanguages(d.languages.map((l: any) => ({
+      if (d.languages.length > 0) {
+        setLanguages(d.languages.map((l) => ({
           id: uid(), name: l.name || '', proficiency: l.proficiency || 'Intermediate',
         })));
       }
 
-      toast.success(`CV imported from "${file.name}" successfully! Review and edit the extracted data.`);
+      const filled = [d.name, d.email, d.phone, d.location, d.summary, ...d.skills, ...d.experience.map(e => e.role || e.company), ...d.education.map(e => e.institution || e.degree)].filter(Boolean).length;
+      toast.success(`CV imported from "${file.name}" — ${filled} fields detected. Review and use AI buttons to refine.`);
     } catch {
       toast.error('Import failed. Please try again or paste your CV manually.');
     } finally {
