@@ -97,10 +97,12 @@ async function extractPdfText(buffer: Buffer): Promise<string> {
   // Dynamic import: only runs at request time
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
 
-  // IMPORTANT:
-  // Vercel serverless cannot reliably load pdf.worker.mjs.
-  // Disable the worker completely for server-side parsing.
-  pdfjs.GlobalWorkerOptions.workerSrc = ''
+  // Point to the installed worker file so PDF.js can find it in both
+  // local dev and Vercel serverless environments.
+  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/legacy/build/pdf.worker.mjs',
+    import.meta.url,
+  ).toString()
 
   const data = new Uint8Array(buffer)
 
